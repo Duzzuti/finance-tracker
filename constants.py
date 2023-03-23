@@ -1,0 +1,3 @@
+
+class CONSTANTS:
+    MAX_CATEGORIES = 5
