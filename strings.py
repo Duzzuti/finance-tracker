@@ -3,7 +3,9 @@ class ENG:
     APP_ICON = "media/icon.png"
     
     APP_LABEL_NEW_TRANSACTION = "Add new transaction"
-
+    APP_LABEL_NEW_TRANSACTION_CF = "Enter the gain or loss of the transaction"
+    APP_LABEL_NEW_TRANSACTION_CF_PP = "Per product"
+    APP_LABEL_NEW_TRANSACTION_CF_FULL = "For the full transaction"
 
 
 

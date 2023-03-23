@@ -1,8 +1,7 @@
 #testfiles
 TEST*
+test*
 * copy.*
-*.ui
-*.png
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
