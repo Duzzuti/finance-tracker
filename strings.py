@@ -1,4 +1,14 @@
 class ENG:
+    APP_TITLE = "Finance tracker"
+    APP_ICON = "media/icon.png"
+    
+    APP_LABEL_NEW_TRANSACTION = "Add new transaction"
+    APP_LABEL_NEW_TRANSACTION_CF = "Enter the gain or loss of the transaction"
+    APP_LABEL_NEW_TRANSACTION_CF_PP = "Per product"
+    APP_LABEL_NEW_TRANSACTION_CF_FULL = "For the full transaction"
+
+
+
 
     INVALID_DATA_TITLE = "Invalid data"
     INVALID_DATA_MESSAGE = "You provided some invalid data. Try again"

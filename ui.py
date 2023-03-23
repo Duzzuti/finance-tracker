@@ -1,57 +1,158 @@
-import easygui
 import datetime
 from strings import ENG
+from fonts import FONTS
 from backend import Backend
 
-class UI:
-    def __init__(self):
+from PyQt5.QtWidgets import QRadioButton, QGridLayout, QLabel, QGroupBox, QVBoxLayout, QHBoxLayout, QPushButton, QDialog
+from PyQt5.QtWidgets import QSpinBox, QCalendarWidget, QLineEdit, QCompleter
+from PyQt5 import QtGui, QtCore
+from PyQt5.QtCore import QRect, QDate
+from PyQt5.QtGui import QPixmap, QFont
+
+class Window(QDialog):
+    def __init__(self, geometry=(100, 100, 600, 400)):
+        super().__init__()
+
+        self.title = ENG.APP_TITLE
+        self.icon = QtGui.QIcon(ENG.APP_ICON)
+        self.top = geometry[0]
+        self.left = geometry[1]
+        self.width = geometry[2]
+        self.height = geometry[3]
+
         self.backend = Backend()
 
-    def run(self):
-        while True:
-            response = easygui.buttonbox(ENG.MAIN_MENU_MESSAGE, ENG.MAIN_MENU_TITLE, 
-                choices=[
-                    ENG.MAIN_MENU_CHOICE_ADD_TRANSACTION
-                ])
-            
-            if response == None or response == False:
-                return False
-            
-            elif response == ENG.MAIN_MENU_CHOICE_ADD_TRANSACTION:
-                if self.addTransaction(self):
-                    return True
+        self.InitWindow()
+
+    def InitWindow(self):
+        self.setWindowTitle(self.title)
+        self.setGeometry(self.left, self.top, self.width, self.height)
+        self.setWindowIcon(self.icon)
+        self.grid = QGridLayout()
+
+        self.createLayout()
+
+        self.setLayout(self.grid)
+
+        self.show()
     
-    def addTransaction(self):
-        today = datetime.date.today()
-        while True:
-            response = easygui.multenterbox(ENG.ADD_TRANSACTION_MESSAGE, ENG.ADD_TRANSACTION_TITLE, 
-                fields=[
-                    ENG.ADD_TRANSACTION_ENTER_DATE,
-                    ENG.ADD_TRANSACTION_ENTER_NUMBER,
-                    ENG.ADD_TRANSACTION_ENTER_CASHFLOW_PER_PRODUCT
-                ], 
-                values=[
-                    today.isoformat(),
-                    "1",
-                    "-0.00"
-                ])
-            
-            if response == None or response == False:
-                return False
-            
-            date, number, cashflow_pp = response
+    def createLayout(self):
+        self.groupBox_transaction_label = QLabel(ENG.APP_LABEL_NEW_TRANSACTION, self)
+        self.groupBox_transaction_label.setFont(FONTS.APP_NEW_TRANSACTION)
+        self.groupBox_transaction = QGroupBox()
+        self.layout_transaction = QVBoxLayout()
 
+        self.addWidgets()
+        self.groupBox_transaction.setLayout(self.layout_transaction)
+        self.grid.addWidget(self.groupBox_transaction_label, 0, 0)
+        self.grid.addWidget(self.groupBox_transaction, 1, 0)
+    
+    def addWidgets(self):
+        self.trans_date_edit = QCalendarWidget(self)
+        self.trans_date_edit.setMinimumDate(QDate(1900, 1, 1))
+        self.trans_date_edit.setMaximumDate(QDate.currentDate())
+        self.trans_date_edit.setVerticalHeaderFormat(QCalendarWidget.VerticalHeaderFormat.NoVerticalHeader)
+        #self.trans_date_edit.setMaximumWidth(400)
+        self.layout_transaction.addWidget(self.trans_date_edit)
+
+        self.trans_number_spin_box = QSpinBox(self)
+        self.trans_number_spin_box.setValue(1)
+        self.trans_number_spin_box.setMaximum(1000000)
+        self.trans_number_spin_box.valueChanged.connect(self.Esync_cashflows)
+        self.layout_transaction.addWidget(self.trans_number_spin_box)
+
+        groupbox_cf = QGroupBox(ENG.APP_LABEL_NEW_TRANSACTION_CF)
+        cf_grid = QGridLayout()
+
+        self.trans_ppp_label = QLabel(ENG.APP_LABEL_NEW_TRANSACTION_CF_PP)
+        cf_grid.addWidget(self.trans_ppp_label, 0, 0)
+
+        self.trans_fullp_label = QLabel(ENG.APP_LABEL_NEW_TRANSACTION_CF_FULL)
+        cf_grid.addWidget(self.trans_fullp_label, 0, 1)
+
+        self.trans_ppp_edit = QLineEdit(self)
+        self.trans_ppp_edit.textChanged.connect(self.Eenter_only_numbers)
+        self.trans_ppp_edit.textChanged.connect(self.Esync_cashflows)
+        cf_grid.addWidget(self.trans_ppp_edit, 1, 0)
+
+        self.trans_fullp_edit = QLineEdit(self)
+        self.trans_fullp_edit.textChanged.connect(self.Eenter_only_numbers)
+        self.trans_fullp_edit.textChanged.connect(self.Esync_cashflows)
+        cf_grid.addWidget(self.trans_fullp_edit, 1,1)
+
+        groupbox_cf.setLayout(cf_grid)
+        self.layout_transaction.addWidget(groupbox_cf)
+
+        self.trans_product_edit = QLineEdit(self)
+        self.trans_product_completer = QCompleter(self.backend.getProductNames())
+        self.trans_product_edit.setCompleter(self.trans_product_completer)
+        self.layout_transaction.addWidget(self.trans_product_edit)
+
+
+    def Eenter_only_numbers(self):
+        self.comma = '.'
+        edit = self.sender()
+        if edit.text() == "":
+            return
+        last_char = edit.text()[-1]
+        if last_char in [".", ","]:
+            if edit.text()[:-1].count(self.comma) == 0:
+                edit.setText(edit.text()[:-1] + self.comma)
+            else:
+                edit.setText(edit.text()[:-1])
+            return
+        if edit.text() == "-":
+            return
+        if not last_char in map(lambda x: str(x), range(10)):
+            edit.setText(edit.text()[:-1])
+            return
+      
+    def Esync_cashflows(self):
+        edit = self.sender()
+        if edit == self.trans_ppp_edit:
             try:
-                date = datetime.date.fromisoformat(date)
-                number = int(number)
-                cashflow_pp = float(cashflow_pp)
-                if date > today or number <= 0 or cashflow_pp != 0:
-                    raise ValueError
+                value = float(edit.text())
             except:
-                easygui.msgbox(ENG.INVALID_DATA_MESSAGE, ENG.INVALID_DATA_TITLE)
-                continue
+                if not edit.text() in ["-", ""]:
+                    print("Could not convert str to int "+edit.text())
+                return
             
+            number = self.trans_number_spin_box.value()
 
-            formatted_response = date, number, cashflow_pp
-            if self.backend.addTransaction(formatted_response):
-                return True
+            self.trans_fullp_edit.textChanged.disconnect(self.Esync_cashflows)
+            self.trans_ppp_edit.textChanged.disconnect(self.Esync_cashflows)
+            self.trans_fullp_edit.setText(str(value*number))
+            self.trans_fullp_edit.textChanged.connect(self.Esync_cashflows)
+            self.trans_ppp_edit.textChanged.connect(self.Esync_cashflows)
+        
+        if edit == self.trans_fullp_edit:
+            try:
+                value = float(edit.text())
+            except:
+                if not edit.text() in ["-", ""]:
+                    print("Could not convert str to int "+edit.text())
+                return
+            
+            number = self.trans_number_spin_box.value()
+
+            self.trans_fullp_edit.textChanged.disconnect(self.Esync_cashflows)
+            self.trans_ppp_edit.textChanged.disconnect(self.Esync_cashflows)
+            self.trans_ppp_edit.setText(str(value/number))
+            self.trans_fullp_edit.textChanged.connect(self.Esync_cashflows)
+            self.trans_ppp_edit.textChanged.connect(self.Esync_cashflows)
+
+        if edit == self.trans_number_spin_box:
+            try:
+                value = float(self.trans_ppp_edit.text())
+            except:
+                if not self.trans_ppp_edit.text() in ["-", ""]:
+                    print("Could not convert str to int "+self.trans_ppp_edit.text())
+                return
+            
+            number = edit.value()
+
+            self.trans_fullp_edit.textChanged.disconnect(self.Esync_cashflows)
+            self.trans_ppp_edit.textChanged.disconnect(self.Esync_cashflows)
+            self.trans_fullp_edit.setText(str(value*number))
+            self.trans_fullp_edit.textChanged.connect(self.Esync_cashflows)
+            self.trans_ppp_edit.textChanged.connect(self.Esync_cashflows)
