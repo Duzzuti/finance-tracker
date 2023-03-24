@@ -1,4 +1,8 @@
 class ENG:
+    def getTypeErrorString(arg, arg_name,  _type):
+        return f"The argument '{arg_name}' is not of type {_type}: {arg}"
+
+
     APP_TITLE = "Finance tracker"
     APP_ICON = "media/icon.png"
     
@@ -52,18 +56,6 @@ class ENG:
     ERROR_WRONG_SENDER_TYPE = "The slot is connected to the wrong type (slot, type): "
     ERROR_WRONG_SENDER = "The slot is connected to the wrong sender (slot, sender): "
     ERROR_WRONG_SIGN_CONTENT = "The content of sign is not valid. Should be: "+APP_LABEL_NEW_TRANSACTION_CF_SIGN_MINUS+" or "+APP_LABEL_NEW_TRANSACTION_CF_SIGN_PLUS+" but its: "
-    ERROR_WRONG_DEFAULT_ITEM_TYPE = "The default item is not of type str: "
-    ERROR_WRONG_ITEM_TYPE = "The item is not of type str: "
-    ERROR_WRONG_SET_ITEM_TYPE = "The 'set_item' argument is not of type bool: "
-    ERROR_WRONG_EVENT_FUNC_TYPE = "The event function is not of type function: "
-    ERROR_WRONG_GET_ITEMS_FUNC_TYPE = "The item getter function is not of type function: "
-    ERROR_WRONG_TRUE_FUNC_TYPE = "The argument 'true_func' is not of type function: "
-    ERROR_WRONG_FALSE_FUNC_TYPE = "The argument 'false_func' is not of type function: "
-    ERROR_WRONG_INPUT_ARG_TYPE = "The argument 'input' is not of type str: "
-    ERROR_WRONG_INPUT_ARG_TYPE = "The argument 'status' is not of type bool: "
-    ERROR_WRONG_LAYOUT_TYPE = "The layout is not of type QLayout: "
-    ERROR_WRONG_DEFAULT_ARG_TYPE = "The argument 'default' is not of type bool: "
     ERROR_WRONG_RETURN_ITEMS_TYPE = "The list 'items' is not of type list or/and the contents are not of type str: "
     ERROR_WRONG_RETURN_RES_TYPE = "The list 'res' is not of type list or/and the contents are not of type str: "
     ERROR_WRONG_INPUT_LIST_TYPE = "The list 'input_list' is not of type list or/and the contents are not of type str: "
-    ERROR_WRONG_ARG_SORT_TYPE = "The argument 'sort' is not of type bool: "

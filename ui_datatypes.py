@@ -5,9 +5,9 @@ from constants import CONSTANTS
 
 class Combo:
     def __init__(self, default_item, choosed_event_func, func_get_items):
-        assert(type(default_item) == str), STRINGS.ERROR_WRONG_DEFAULT_ITEM_TYPE+str(default_item)
-        assert(callable(choosed_event_func)), STRINGS.ERROR_WRONG_EVENT_FUNC_TYPE+str(choosed_event_func)
-        assert(callable(func_get_items)), STRINGS.ERROR_WRONG_GET_ITEMS_FUNC_TYPE+str(func_get_items)
+        assert(type(default_item) == str), STRINGS.getTypeErrorString(default_item, "default_item", str)
+        assert(callable(choosed_event_func)), STRINGS.getTypeErrorString(choosed_event_func, "choosed_event_func", "function")
+        assert(callable(func_get_items)), STRINGS.getTypeErrorString(func_get_items, "func_get_items", "function")
         self.boxes = []
         self.default = default_item
         self.choosed_event_func = choosed_event_func
@@ -15,7 +15,7 @@ class Combo:
         self.func_get_items = func_get_items
     
     def setLayout(self, layout):
-        assert(type(layout) == QVBoxLayout), STRINGS.ERROR_WRONG_LAYOUT_TYPE+str(layout)
+        assert(type(layout) == QVBoxLayout), STRINGS.getTypeErrorString(layout, "layout", QVBoxLayout)
         self.layout = layout
     
     def addComboBox(self):
@@ -33,7 +33,7 @@ class Combo:
     
     def getAllItems(self, default=False):
         assert(self.boxes != []), STRINGS.ERROR_NO_BOXES
-        assert(type(default) == bool), STRINGS.ERROR_WRONG_DEFAULT_ARG_TYPE+str(default)
+        assert(type(default) == bool), STRINGS.getTypeErrorString(default, "default", bool)
         items = [self.boxes[0].itemText(i) for i in range(self.boxes[0].count())]
         if not(default):
             while (self.default in items):
@@ -55,9 +55,9 @@ class Combo:
             box.currentTextChanged.connect(self.choosed_event_func)
 
     def addItem(self, item, set_item=True, sort=True):
-        assert(type(item) == str), STRINGS.ERROR_WRONG_ITEM_TYPE+str(item)
-        assert(type(set_item) == bool), STRINGS.ERROR_WRONG_SET_ITEM_TYPE+str(set_item)
-        assert(type(sort) == bool), STRINGS.ERROR_WRONG_ARG_SORT_TYPE+str(sort)
+        assert(type(item) == str), STRINGS.getTypeErrorString(item, "item", str)
+        assert(type(set_item) == bool), STRINGS.getTypeErrorString(set_item, "set_item", bool)
+        assert(type(sort) == bool), STRINGS.getTypeErrorString(sort, "sort", bool)
         new_item_set = False
         for box in self.boxes:
             box.addItem(item)
@@ -97,8 +97,8 @@ class Combo:
 class Inputs:
     def __init__(self, input_list, true_func, false_func):
         assert(type(input_list) == list and all(map(lambda x: type(x) == str, input_list))), STRINGS.ERROR_WRONG_INPUT_LIST_TYPE+str(input_list)
-        assert(callable(true_func)), STRINGS.ERROR_WRONG_TRUE_FUNC_TYPE+str(true_func)
-        assert(callable(false_func)), STRINGS.ERROR_WRONG_FALSE_FUNC_TYPE+str(false_func)
+        assert(callable(true_func)), STRINGS.getTypeErrorString(true_func, "true_func", "function")
+        assert(callable(false_func)), STRINGS.getTypeErrorString(false_func, "false_func", "function")
         self.input_dict = {}
         self.flag = False
         self.true_func = true_func
@@ -107,8 +107,8 @@ class Inputs:
             self.input_dict[i] = False
     
     def setInput(self, input, status):
-        assert(type(input) == str), STRINGS.ERROR_WRONG_INPUT_ARG_TYPE+str(input)
-        assert(type(status) == bool), STRINGS.ERROR_WRONG_STATUS_ARG_TYPE+str(status)
+        assert(type(input) == str), STRINGS.getTypeErrorString(input, "input", str)
+        assert(type(status) == bool), STRINGS.getTypeErrorString(status, "status", bool)
         assert(input in self.input_dict), STRINGS.ERROR_INPUT_NOT_IN_INPUTDICT+str(input)
         self.input_dict[input] = status
         if not(self.flag) and status and self.isAllInputs():
