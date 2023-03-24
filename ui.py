@@ -7,8 +7,8 @@ from backend import Backend
 
 from PyQt5.QtWidgets import QRadioButton, QGridLayout, QLabel, QGroupBox, QVBoxLayout, QHBoxLayout, QPushButton, QDialog
 from PyQt5.QtWidgets import QSpinBox, QCalendarWidget, QLineEdit, QCompleter, QComboBox, QMessageBox
-from PyQt5 import QtGui, QtCore
-from PyQt5.QtCore import QRect, QDate
+from PyQt5 import QtGui, QtCore, QtWidgets
+from PyQt5.QtCore import QRect, QDate, Qt
 from PyQt5.QtGui import QPixmap, QFont
 
 class Window(QDialog):
@@ -23,6 +23,8 @@ class Window(QDialog):
         self.height = geometry[3]
 
         self.category_boxes = []
+        self.ftperson_boxes = []
+        self.whyperson_boxes = []
 
         self.backend = Backend()
 
@@ -45,7 +47,7 @@ class Window(QDialog):
         self.groupBox_transaction_label.setFont(FONTS.APP_NEW_TRANSACTION)
         self.groupBox_transaction = QGroupBox()
         self.layout_transaction = QVBoxLayout()
-        self.layout_transaction.setSpacing(30)
+        #self.layout_transaction.setSpacing(30)
 
         self.addWidgets()
 
@@ -62,68 +64,68 @@ class Window(QDialog):
         #self.trans_date_edit.setMaximumWidth(400)
         self.layout_transaction.addWidget(self.trans_date_edit)
 
+        #********************PRODUCT*********************************
+        groupbox_prod_num = QGroupBox()
+        hgrid_prod_num = QGridLayout()
+
+        self.trans_product_label = QLabel(ENG.APP_LABEL_NEW_TRANSACTION_PRODUCT)
+        hgrid_prod_num.addWidget(self.trans_product_label, 0, 0)
+
+        self.trans_product_edit = QLineEdit(self)
+        self.trans_product_completer = QCompleter(self.backend.getProductNames())
+        self.trans_product_edit.setCompleter(self.trans_product_completer)
+        hgrid_prod_num.addWidget(self.trans_product_edit, 1, 0)
+
         #********************NUMBER OF PRODUCTS**********************
-        vbox_num = QVBoxLayout()
-        groupbox_num = QGroupBox()
 
         self.trans_number_label = QLabel(ENG.APP_LABEL_NEW_TRANSACTION_NUMBER)
-        vbox_num.addWidget(self.trans_number_label)
+        hgrid_prod_num.addWidget(self.trans_number_label, 0, 1)
 
         self.trans_number_spin_box = QSpinBox(self)
         self.trans_number_spin_box.setValue(1)
         self.trans_number_spin_box.setMinimum(1)
         self.trans_number_spin_box.setMaximum(1000000)
         self.trans_number_spin_box.valueChanged.connect(self.Esync_cashflows)
-        vbox_num.addWidget(self.trans_number_spin_box)
+        hgrid_prod_num.addWidget(self.trans_number_spin_box, 1, 1)
 
-        groupbox_num.setLayout(vbox_num)
-        self.layout_transaction.addWidget(groupbox_num)
+        groupbox_prod_num.setLayout(hgrid_prod_num)
+        self.layout_transaction.addWidget(groupbox_prod_num)
 
         #********************CASHFLOW********************************
-        vbox_cf = QVBoxLayout()
+        grid_cf = QGridLayout()
         groupbox_cf_full = QGroupBox()
 
         self.trans_cf_label = QLabel(ENG.APP_LABEL_NEW_TRANSACTION_CF)
-        vbox_cf.addWidget(self.trans_cf_label)
-        
-        groupbox_cf = QGroupBox()
-        cf_grid = QGridLayout()
+        self.trans_cf_label.setFont(FONTS.APP_NEW_TRANSACTION_CF)
+        grid_cf.addWidget(self.trans_cf_label, 0, 0, 1, 3)
+
+        self.trans_sign_label = QLabel(ENG.APP_LABEL_NEW_TRANSACTION_CF_SIGN)
+        grid_cf.addWidget(self.trans_sign_label, 2, 0)
+
+        self.trans_sign = QComboBox(self)
+        self.trans_sign.setStyleSheet("combobox-popup: 0;")
+        self.trans_sign.addItems([ENG.APP_LABEL_NEW_TRANSACTION_CF_SIGN_PLUS, ENG.APP_LABEL_NEW_TRANSACTION_CF_SIGN_MINUS])
+        self.trans_sign.setCurrentText(ENG.APP_LABEL_NEW_TRANSACTION_CF_SIGN_MINUS)
+        grid_cf.addWidget(self.trans_sign, 3, 0)
 
         self.trans_ppp_label = QLabel(ENG.APP_LABEL_NEW_TRANSACTION_CF_PP)
-        cf_grid.addWidget(self.trans_ppp_label, 0, 0)
+        grid_cf.addWidget(self.trans_ppp_label, 2, 1)
 
         self.trans_fullp_label = QLabel(ENG.APP_LABEL_NEW_TRANSACTION_CF_FULL)
-        cf_grid.addWidget(self.trans_fullp_label, 0, 1)
+        grid_cf.addWidget(self.trans_fullp_label, 2, 2)
 
         self.trans_ppp_edit = QLineEdit(self)
         self.trans_ppp_edit.textChanged.connect(self.Eenter_only_numbers)
         self.trans_ppp_edit.textChanged.connect(self.Esync_cashflows)
-        cf_grid.addWidget(self.trans_ppp_edit, 1, 0)
+        grid_cf.addWidget(self.trans_ppp_edit, 3, 1)
 
         self.trans_fullp_edit = QLineEdit(self)
         self.trans_fullp_edit.textChanged.connect(self.Eenter_only_numbers)
         self.trans_fullp_edit.textChanged.connect(self.Esync_cashflows)
-        cf_grid.addWidget(self.trans_fullp_edit, 1,1)
+        grid_cf.addWidget(self.trans_fullp_edit, 3, 2)
 
-        groupbox_cf.setLayout(cf_grid)
-        vbox_cf.addWidget(groupbox_cf)
-        groupbox_cf_full.setLayout(vbox_cf)
+        groupbox_cf_full.setLayout(grid_cf)
         self.layout_transaction.addWidget(groupbox_cf_full)
-
-        #********************PRODUCT*********************************
-        vbox = QVBoxLayout()
-        groupbox_product = QGroupBox()
-
-        self.trans_product_label = QLabel(ENG.APP_LABEL_NEW_TRANSACTION_PRODUCT)
-        vbox.addWidget(self.trans_product_label)
-
-        self.trans_product_edit = QLineEdit(self)
-        self.trans_product_completer = QCompleter(self.backend.getProductNames())
-        self.trans_product_edit.setCompleter(self.trans_product_completer)
-        vbox.addWidget(self.trans_product_edit)
-
-        groupbox_product.setLayout(vbox)
-        self.layout_transaction.addWidget(groupbox_product)
 
         #********************CATEGORY********************************
         groupbox_cat = QGroupBox()
@@ -170,6 +172,79 @@ class Window(QDialog):
         groupbox_cat.setLayout(hbox_cat)
         self.layout_transaction.addWidget(groupbox_cat)
 
+        #********************FROM_TO_PERSON********************************
+        groupbox_person = QGroupBox()
+        groupbox_ftp_choose = QGroupBox()
+        groupbox_whyp_choose = QGroupBox()
+        groupbox_person_new = QGroupBox()
+        grid_person = QGridLayout()
+        self.vbox_ftp = QVBoxLayout()
+        self.vbox_whyp = QVBoxLayout()
+        grid_new_person = QGridLayout()
+
+        self.trans_main_ftperson = QComboBox(self)
+        self.trans_main_ftperson.setMaxVisibleItems(20)
+        self.trans_main_ftperson.setStyleSheet("combobox-popup: 0;")
+        self.trans_main_ftperson.addItem(ENG.APP_NEW_TRANSACTION_DEFAULT_FTPERSON)
+        self.trans_main_ftperson.setCurrentText(ENG.APP_NEW_TRANSACTION_DEFAULT_FTPERSON)
+        self.trans_main_ftperson.addItems(self.backend.getPersons())
+        self.trans_main_ftperson.currentTextChanged.connect(self.Eftperson_choosed)
+        self.vbox_ftp.addWidget(self.trans_main_ftperson)
+
+        self.ftperson_boxes.append(self.trans_main_ftperson)
+        self.sortCombos()
+
+        groupbox_ftp_choose.setLayout(self.vbox_ftp)
+        grid_person.addWidget(groupbox_ftp_choose, 0, 0)
+
+        #********************WHY_PERSON******************************
+
+        self.trans_main_whyperson = QComboBox(self)
+        self.trans_main_whyperson.setMaxVisibleItems(20)
+        self.trans_main_whyperson.setStyleSheet("combobox-popup: 0;")
+        self.trans_main_whyperson.addItem(ENG.APP_NEW_TRANSACTION_DEFAULT_WHYPERSON)
+        self.trans_main_whyperson.setCurrentText(ENG.APP_NEW_TRANSACTION_DEFAULT_WHYPERSON)
+        self.trans_main_whyperson.addItems(self.backend.getPersons())
+        self.trans_main_whyperson.currentTextChanged.connect(self.Ewhyperson_choosed)
+        self.vbox_whyp.addWidget(self.trans_main_whyperson)
+
+        self.whyperson_boxes.append(self.trans_main_whyperson)
+        self.sortCombos()
+
+        groupbox_whyp_choose.setLayout(self.vbox_whyp)
+        grid_person.addWidget(groupbox_whyp_choose, 0, 1)
+
+        #********************ADD_PERSON******************************
+
+        self.trans_ftp_label = QLabel(ENG.APP_LABEL_NEW_TRANSACTION_PERSON)
+        grid_new_person.addWidget(self.trans_ftp_label, 0, 0)
+
+        self.trans_ftp_edit = QLineEdit(self)
+        self.trans_ftp_edit.textChanged.connect(self.Echange_person_text)
+        self.trans_ftp_edit.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Minimum))
+        grid_new_person.addWidget(self.trans_ftp_edit, 0, 1)
+
+        self.trans_ftp_button = QPushButton(ENG.APP_BUTTON_NEW_TRANSACTION_ADD_PERSON_FTP, self)
+        self.trans_ftp_button.setEnabled(False)
+        self.trans_ftp_button.setToolTip("Type at least 3 characters")
+        self.trans_ftp_button.clicked.connect(self.Eadd_person)
+        grid_new_person.addWidget(self.trans_ftp_button, 1, 0)
+
+        self.trans_whyp_button = QPushButton(ENG.APP_BUTTON_NEW_TRANSACTION_ADD_PERSON_WHYP, self)
+        self.trans_whyp_button.setEnabled(False)
+        self.trans_whyp_button.setToolTip("Type at least 3 characters")
+        self.trans_whyp_button.clicked.connect(self.Eadd_person)
+        grid_new_person.addWidget(self.trans_whyp_button, 1, 1)
+
+        self.trans_reset_button = QPushButton(ENG.APP_BUTTON_NEW_TRANSACTION_RESET_PERSON, self)
+        self.trans_reset_button.clicked.connect(self.Ereset_person)
+        grid_new_person.addWidget(self.trans_reset_button, 2, 0, 1, 2)
+
+        groupbox_person_new.setLayout(grid_new_person)
+        grid_person.addWidget(groupbox_person_new, 1, 0, 2, 0)
+        groupbox_person.setLayout(grid_person)
+        self.layout_transaction.addWidget(groupbox_person)
+
 
     def addCategoryToCombos(self, category_text):
         new_cat_set = False
@@ -204,8 +279,6 @@ class Window(QDialog):
             else:
                 edit.setText(edit.text()[:-1])
             return
-        if edit.text() == "-":
-            return
         if not last_char in map(lambda x: str(x), range(10)):
             edit.setText(edit.text()[:-1])
             return
@@ -216,7 +289,7 @@ class Window(QDialog):
             try:
                 value = float(edit.text())
             except:
-                if not edit.text() in ["-", ""]:
+                if not edit.text() in [".", ""]:
                     print("Could not convert str to int "+edit.text())
                 return
             
@@ -281,12 +354,57 @@ class Window(QDialog):
 
             self.category_boxes.append(category)
 
+    def Eftperson_choosed(self):
+        activated_ftperson = self.sender()
+        text = activated_ftperson.currentText()
+        if text == ENG.APP_NEW_TRANSACTION_DEFAULT_FTPERSON:
+            return
+        for combo in self.ftperson_boxes:
+            if combo.currentText() == ENG.APP_NEW_TRANSACTION_DEFAULT_FTPERSON:
+                return
+            
+        if CONSTANTS.MAX_PERSONS > len(self.ftperson_boxes):
+            ftperson = QComboBox(self)
+            ftperson.setMaxVisibleItems(20)
+            ftperson.setStyleSheet("combobox-popup: 0;")
+            ftperson.addItem(ENG.APP_NEW_TRANSACTION_DEFAULT_FTPERSON)
+            ftperson.setCurrentText(ENG.APP_NEW_TRANSACTION_DEFAULT_FTPERSON)
+            ftperson.addItems(self.backend.getPersons())
+            ftperson.currentTextChanged.connect(self.Eftperson_choosed)
+            self.vbox_ftp.addWidget(ftperson)
+
+            self.ftperson_boxes.append(ftperson)
+    
+    def Ewhyperson_choosed(self):
+        activated_whyperson = self.sender()
+        text = activated_whyperson.currentText()
+        if text == ENG.APP_NEW_TRANSACTION_DEFAULT_WHYPERSON:
+            return
+        for combo in self.whyperson_boxes:
+            if combo.currentText() == ENG.APP_NEW_TRANSACTION_DEFAULT_WHYPERSON:
+                return
+            
+        if CONSTANTS.MAX_PERSONS > len(self.whyperson_boxes):
+            whyperson = QComboBox(self)
+            whyperson.setMaxVisibleItems(20)
+            whyperson.setStyleSheet("combobox-popup: 0;")
+            whyperson.addItem(ENG.APP_NEW_TRANSACTION_DEFAULT_WHYPERSON)
+            whyperson.setCurrentText(ENG.APP_NEW_TRANSACTION_DEFAULT_WHYPERSON)
+            whyperson.addItems(self.backend.getPersons())
+            whyperson.currentTextChanged.connect(self.Ewhyperson_choosed)
+            self.vbox_whyp.addWidget(whyperson)
+
+            self.whyperson_boxes.append(whyperson)
+
     def Echange_cat_text(self):
         text = self.sender().text()
         if len(text) - text.count(" ") >= 3:
             self.trans_cat_button.setEnabled(True)
         else:
             self.trans_cat_button.setEnabled(False)
+
+    def Echange_person_text(self):
+        pass
 
     def Eadd_category(self):
         text = self.trans_cat_edit.text()
@@ -308,3 +426,9 @@ class Window(QDialog):
             self.vbox_cat.removeWidget(combo)
             combo.deleteLater()
         self.category_boxes = [combo1]
+
+    def Eadd_person(self):
+        pass
+
+    def Ereset_person(self):
+        pass

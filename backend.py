@@ -13,3 +13,6 @@ class Backend:
 
     def getError(self):
         return "An error occured"
+
+    def getPersons(self):
+        return ["per"+str(i) for i in range(20)] + ["z1"]
