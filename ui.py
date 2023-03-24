@@ -1,4 +1,4 @@
-from strings import ENG
+from strings import ENG as STRINGS
 from fonts import FONTS
 from constants import CONSTANTS
 from backend import Backend
@@ -13,8 +13,8 @@ class Window(QDialog):
     def __init__(self, geometry=(100, 100, 600, 400)):
         super().__init__()
 
-        self.title = ENG.APP_TITLE
-        self.icon = QtGui.QIcon(ENG.APP_ICON)
+        self.title = STRINGS.APP_TITLE
+        self.icon = QtGui.QIcon(STRINGS.APP_ICON)
         self.top = geometry[0]
         self.left = geometry[1]
         self.width = geometry[2]
@@ -22,11 +22,11 @@ class Window(QDialog):
 
         self.backend = Backend()
 
-        self.CatCombo = Combo(ENG.APP_NEW_TRANSACTION_DEFAULT_CATEGORY, self.Ecategory_choosed, self.backend.getCategories)
-        self.FtpCombo = Combo(ENG.APP_NEW_TRANSACTION_DEFAULT_FTPERSON, self.Eftperson_choosed, self.backend.getPersons)
-        self.WhyCombo = Combo(ENG.APP_NEW_TRANSACTION_DEFAULT_WHYPERSON, self.Ewhyperson_choosed, self.backend.getPersons)
+        self.CatCombo = Combo(STRINGS.APP_NEW_TRANSACTION_DEFAULT_CATEGORY, self.Ecategory_choosed, self.backend.getCategories)
+        self.FtpCombo = Combo(STRINGS.APP_NEW_TRANSACTION_DEFAULT_FTPERSON, self.Eftperson_choosed, self.backend.getPersons)
+        self.WhyCombo = Combo(STRINGS.APP_NEW_TRANSACTION_DEFAULT_WHYPERSON, self.Ewhyperson_choosed, self.backend.getPersons)
 
-        self.Inputs = Inputs([ENG.APP_NEW_TRANSACTION_PRODUCT_INPUT, ENG.APP_NEW_TRANSACTION_CASHFLOW_INPUT], self.activateTransSubmitButton, self.deactivateTransSubmitButton)
+        self.Inputs = Inputs([STRINGS.APP_NEW_TRANSACTION_PRODUCT_INPUT, STRINGS.APP_NEW_TRANSACTION_CASHFLOW_INPUT], self.activateTransSubmitButton, self.deactivateTransSubmitButton)
 
         self.InitWindow()
 
@@ -43,7 +43,7 @@ class Window(QDialog):
         self.show()
     
     def createLayout(self):
-        self.groupBox_transaction_label = QLabel(ENG.APP_LABEL_NEW_TRANSACTION, self)
+        self.groupBox_transaction_label = QLabel(STRINGS.APP_LABEL_NEW_TRANSACTION, self)
         self.groupBox_transaction_label.setFont(FONTS.APP_NEW_TRANSACTION)
         self.groupBox_transaction = QGroupBox()
         self.layout_transaction = QVBoxLayout()
@@ -68,7 +68,7 @@ class Window(QDialog):
         groupbox_prod_num = QGroupBox()
         hgrid_prod_num = QGridLayout()
 
-        self.trans_product_label = QLabel(ENG.APP_LABEL_NEW_TRANSACTION_PRODUCT)
+        self.trans_product_label = QLabel(STRINGS.APP_LABEL_NEW_TRANSACTION_PRODUCT)
         hgrid_prod_num.addWidget(self.trans_product_label, 0, 0)
 
         self.trans_product_edit = QLineEdit(self)
@@ -79,7 +79,7 @@ class Window(QDialog):
 
         #********************NUMBER OF PRODUCTS**********************
 
-        self.trans_number_label = QLabel(ENG.APP_LABEL_NEW_TRANSACTION_NUMBER)
+        self.trans_number_label = QLabel(STRINGS.APP_LABEL_NEW_TRANSACTION_NUMBER)
         hgrid_prod_num.addWidget(self.trans_number_label, 0, 1)
 
         self.trans_number_spin_box = QSpinBox(self)
@@ -96,23 +96,23 @@ class Window(QDialog):
         grid_cf = QGridLayout()
         groupbox_cf_full = QGroupBox()
 
-        self.trans_cf_label = QLabel(ENG.APP_LABEL_NEW_TRANSACTION_CF)
+        self.trans_cf_label = QLabel(STRINGS.APP_LABEL_NEW_TRANSACTION_CF)
         self.trans_cf_label.setFont(FONTS.APP_NEW_TRANSACTION_CF)
         grid_cf.addWidget(self.trans_cf_label, 0, 0, 1, 3)
 
-        self.trans_sign_label = QLabel(ENG.APP_LABEL_NEW_TRANSACTION_CF_SIGN)
+        self.trans_sign_label = QLabel(STRINGS.APP_LABEL_NEW_TRANSACTION_CF_SIGN)
         grid_cf.addWidget(self.trans_sign_label, 2, 0)
 
         self.trans_sign = QComboBox(self)
         self.trans_sign.setStyleSheet("combobox-popup: 0;")
-        self.trans_sign.addItems([ENG.APP_LABEL_NEW_TRANSACTION_CF_SIGN_PLUS, ENG.APP_LABEL_NEW_TRANSACTION_CF_SIGN_MINUS])
-        self.trans_sign.setCurrentText(ENG.APP_LABEL_NEW_TRANSACTION_CF_SIGN_MINUS)
+        self.trans_sign.addItems([STRINGS.APP_LABEL_NEW_TRANSACTION_CF_SIGN_PLUS, STRINGS.APP_LABEL_NEW_TRANSACTION_CF_SIGN_MINUS])
+        self.trans_sign.setCurrentText(STRINGS.APP_LABEL_NEW_TRANSACTION_CF_SIGN_MINUS)
         grid_cf.addWidget(self.trans_sign, 3, 0)
 
-        self.trans_ppp_label = QLabel(ENG.APP_LABEL_NEW_TRANSACTION_CF_PP)
+        self.trans_ppp_label = QLabel(STRINGS.APP_LABEL_NEW_TRANSACTION_CF_PP)
         grid_cf.addWidget(self.trans_ppp_label, 2, 1)
 
-        self.trans_fullp_label = QLabel(ENG.APP_LABEL_NEW_TRANSACTION_CF_FULL)
+        self.trans_fullp_label = QLabel(STRINGS.APP_LABEL_NEW_TRANSACTION_CF_FULL)
         grid_cf.addWidget(self.trans_fullp_label, 2, 2)
 
         self.trans_ppp_edit = QLineEdit(self)
@@ -145,20 +145,20 @@ class Window(QDialog):
         groupbox_cat_choose.setLayout(self.vbox_cat)
         hbox_cat.addWidget(groupbox_cat_choose)
 
-        self.trans_cat_label = QLabel(ENG.APP_LABEL_NEW_TRANSACTION_CAT)
+        self.trans_cat_label = QLabel(STRINGS.APP_LABEL_NEW_TRANSACTION_CAT)
         vbox_new_cat.addWidget(self.trans_cat_label)
 
         self.trans_cat_edit = QLineEdit(self)
         self.trans_cat_edit.textChanged.connect(self.Echange_cat_text)
         vbox_new_cat.addWidget(self.trans_cat_edit)
 
-        self.trans_cat_button = QPushButton(ENG.APP_BUTTON_NEW_TRANSACTION_ADD_CAT, self)
+        self.trans_cat_button = QPushButton(STRINGS.APP_BUTTON_NEW_TRANSACTION_ADD_CAT, self)
         self.trans_cat_button.setEnabled(False)
-        self.trans_cat_button.setToolTip(ENG.TOOLTIP_TYPE_3_CHARS)
+        self.trans_cat_button.setToolTip(STRINGS.TOOLTIP_TYPE_3_CHARS)
         self.trans_cat_button.clicked.connect(self.Eadd_category)
         vbox_new_cat.addWidget(self.trans_cat_button)
 
-        self.trans_reset_button = QPushButton(ENG.APP_BUTTON_NEW_TRANSACTION_RESET_CAT, self)
+        self.trans_reset_button = QPushButton(STRINGS.APP_BUTTON_NEW_TRANSACTION_RESET_CAT, self)
         self.trans_reset_button.clicked.connect(self.Ereset_category)
         vbox_new_cat.addWidget(self.trans_reset_button)
 
@@ -195,7 +195,7 @@ class Window(QDialog):
 
         #********************ADD_PERSON******************************
 
-        self.trans_ftp_label = QLabel(ENG.APP_LABEL_NEW_TRANSACTION_PERSON)
+        self.trans_ftp_label = QLabel(STRINGS.APP_LABEL_NEW_TRANSACTION_PERSON)
         grid_new_person.addWidget(self.trans_ftp_label, 0, 0)
 
         self.trans_person_edit = QLineEdit(self)
@@ -203,19 +203,19 @@ class Window(QDialog):
         self.trans_person_edit.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Minimum))
         grid_new_person.addWidget(self.trans_person_edit, 0, 1)
 
-        self.trans_ftp_button = QPushButton(ENG.APP_BUTTON_NEW_TRANSACTION_ADD_PERSON_FTP, self)
+        self.trans_ftp_button = QPushButton(STRINGS.APP_BUTTON_NEW_TRANSACTION_ADD_PERSON_FTP, self)
         self.trans_ftp_button.setEnabled(False)
-        self.trans_ftp_button.setToolTip(ENG.TOOLTIP_TYPE_3_CHARS)
+        self.trans_ftp_button.setToolTip(STRINGS.TOOLTIP_TYPE_3_CHARS)
         self.trans_ftp_button.clicked.connect(self.Eadd_ftperson)
         grid_new_person.addWidget(self.trans_ftp_button, 1, 0)
 
-        self.trans_whyp_button = QPushButton(ENG.APP_BUTTON_NEW_TRANSACTION_ADD_PERSON_WHYP, self)
+        self.trans_whyp_button = QPushButton(STRINGS.APP_BUTTON_NEW_TRANSACTION_ADD_PERSON_WHYP, self)
         self.trans_whyp_button.setEnabled(False)
-        self.trans_whyp_button.setToolTip(ENG.TOOLTIP_TYPE_3_CHARS)
+        self.trans_whyp_button.setToolTip(STRINGS.TOOLTIP_TYPE_3_CHARS)
         self.trans_whyp_button.clicked.connect(self.Eadd_whyperson)
         grid_new_person.addWidget(self.trans_whyp_button, 1, 1)
 
-        self.trans_reset_button = QPushButton(ENG.APP_BUTTON_NEW_TRANSACTION_RESET_PERSON, self)
+        self.trans_reset_button = QPushButton(STRINGS.APP_BUTTON_NEW_TRANSACTION_RESET_PERSON, self)
         self.trans_reset_button.clicked.connect(self.Ereset_person)
         grid_new_person.addWidget(self.trans_reset_button, 2, 0, 1, 2)
 
@@ -224,10 +224,10 @@ class Window(QDialog):
         groupbox_person.setLayout(grid_person)
         self.layout_transaction.addWidget(groupbox_person)
 
-        self.submit_button = QPushButton(ENG.APP_BUTTON_NEW_TRANSACTION_SUBMIT)
+        self.submit_button = QPushButton(STRINGS.APP_BUTTON_NEW_TRANSACTION_SUBMIT)
         self.submit_button.setFont(FONTS.APP_NEW_TRANSACTION_SUBMIT)
         self.submit_button.setEnabled(False)
-        self.submit_button.setToolTip(ENG.TOOLTIP_SUBMIT_BUTTON)
+        self.submit_button.setToolTip(STRINGS.TOOLTIP_SUBMIT_BUTTON)
         self.submit_button.clicked.connect(self.Esubmit_transaction)
         self.layout_transaction.addWidget(self.submit_button)
 
@@ -242,28 +242,28 @@ class Window(QDialog):
         try:
             ppp = float(self.trans_ppp_edit.text())
             if ppp > 0:
-                self.Inputs.setInput(ENG.APP_NEW_TRANSACTION_CASHFLOW_INPUT, True)
+                self.Inputs.setInput(STRINGS.APP_NEW_TRANSACTION_CASHFLOW_INPUT, True)
             else:
                 raise ValueError
         except:
-            self.Inputs.setInput(ENG.APP_NEW_TRANSACTION_CASHFLOW_INPUT, False)
+            self.Inputs.setInput(STRINGS.APP_NEW_TRANSACTION_CASHFLOW_INPUT, False)
             return
 
     def Echange_product_text(self):
         text = self.sender().text()
         if len(text) - text.count(" ") > 0:
-            self.Inputs.setInput(ENG.APP_NEW_TRANSACTION_PRODUCT_INPUT, True)
+            self.Inputs.setInput(STRINGS.APP_NEW_TRANSACTION_PRODUCT_INPUT, True)
         else:
-            self.Inputs.setInput(ENG.APP_NEW_TRANSACTION_PRODUCT_INPUT, False)
+            self.Inputs.setInput(STRINGS.APP_NEW_TRANSACTION_PRODUCT_INPUT, False)
 
     def Eenter_only_numbers(self):
         edit = self.sender()
         if edit.text() == "":
             return
         last_char = edit.text()[-1]
-        if last_char in ENG.COMMAS:
-            if edit.text()[:-1].count(ENG.COMMA) == 0:
-                edit.setText(edit.text()[:-1] + ENG.COMMA)
+        if last_char in STRINGS.COMMAS:
+            if edit.text()[:-1].count(STRINGS.COMMA) == 0:
+                edit.setText(edit.text()[:-1] + STRINGS.COMMA)
             else:
                 edit.setText(edit.text()[:-1])
             return
@@ -277,8 +277,8 @@ class Window(QDialog):
             try:
                 value = float(edit.text())
             except:
-                if not edit.text() in ENG.ZERO_STRINGS:
-                    print(ENG.ERROR_CONVERT_STRING_TO_INT+edit.text())
+                if not edit.text() in STRINGS.ZERO_STRINGS:
+                    print(STRINGS.ERROR_CONVERT_STRING_TO_INT+edit.text())
                     return
                 value = 0
             
@@ -294,8 +294,8 @@ class Window(QDialog):
             try:
                 value = float(edit.text())
             except:
-                if not edit.text() in ENG.ZERO_STRINGS:
-                    print(ENG.ERROR_CONVERT_STRING_TO_INT+edit.text())
+                if not edit.text() in STRINGS.ZERO_STRINGS:
+                    print(STRINGS.ERROR_CONVERT_STRING_TO_INT+edit.text())
                     return
                 value = 0
             
@@ -311,8 +311,8 @@ class Window(QDialog):
             try:
                 value = float(self.trans_ppp_edit.text())
             except:
-                if not self.trans_ppp_edit.text() in ENG.ZERO_STRINGS:
-                    print(ENG.ERROR_CONVERT_STRING_TO_INT+self.trans_ppp_edit.text())
+                if not self.trans_ppp_edit.text() in STRINGS.ZERO_STRINGS:
+                    print(STRINGS.ERROR_CONVERT_STRING_TO_INT+self.trans_ppp_edit.text())
                     return
                 value = 0
             
@@ -373,7 +373,7 @@ class Window(QDialog):
         if accepted == False:
             msgbox = QMessageBox(self)
             msgbox.setIcon(QMessageBox.Critical)
-            msgbox.setWindowTitle(ENG.ERROR_CATEGORY_NOT_ACCEPTED)
+            msgbox.setWindowTitle(STRINGS.ERROR_CATEGORY_NOT_ACCEPTED)
             msgbox.setText(self.backend.getError())
             msgbox.exec()
             return
@@ -389,7 +389,7 @@ class Window(QDialog):
         if accepted == False:
             msgbox = QMessageBox(self)
             msgbox.setIcon(QMessageBox.Critical)
-            msgbox.setWindowTitle(ENG.ERROR_PERSON_NOT_ACCEPTED)
+            msgbox.setWindowTitle(STRINGS.ERROR_PERSON_NOT_ACCEPTED)
             msgbox.setText(self.backend.getError())
             msgbox.exec()
             return
@@ -403,7 +403,7 @@ class Window(QDialog):
         if accepted == False:
             msgbox = QMessageBox(self)
             msgbox.setIcon(QMessageBox.Critical)
-            msgbox.setWindowTitle(ENG.ERROR_PERSON_NOT_ACCEPTED)
+            msgbox.setWindowTitle(STRINGS.ERROR_PERSON_NOT_ACCEPTED)
             msgbox.setText(self.backend.getError())
             msgbox.exec()
             return
@@ -423,9 +423,9 @@ class Window(QDialog):
         try:
             full_cashflow = float(self.trans_fullp_edit.text())
         except:
-            raise ValueError(ENG.ERROR_WRONG_CF_DATA+self.trans_fullp_edit.text())
+            raise ValueError(STRINGS.ERROR_WRONG_CF_DATA+self.trans_fullp_edit.text())
         
-        if sign == ENG.APP_LABEL_NEW_TRANSACTION_CF_SIGN_MINUS:
+        if sign == STRINGS.APP_LABEL_NEW_TRANSACTION_CF_SIGN_MINUS:
             full_cashflow = -full_cashflow
 
         categories = self.CatCombo.getChoosenItems()
