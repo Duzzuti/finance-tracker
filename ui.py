@@ -1,9 +1,8 @@
-import datetime
-import time
 from strings import ENG
 from fonts import FONTS
 from constants import CONSTANTS
 from backend import Backend
+from ui_datatypes import Combo
 
 from PyQt5.QtWidgets import QRadioButton, QGridLayout, QLabel, QGroupBox, QVBoxLayout, QHBoxLayout, QPushButton, QDialog
 from PyQt5.QtWidgets import QSpinBox, QCalendarWidget, QLineEdit, QCompleter, QComboBox, QMessageBox
@@ -22,11 +21,13 @@ class Window(QDialog):
         self.width = geometry[2]
         self.height = geometry[3]
 
-        self.category_boxes = []
-        self.ftperson_boxes = []
-        self.whyperson_boxes = []
-
         self.backend = Backend()
+
+        self.CatCombo = Combo(ENG.APP_NEW_TRANSACTION_DEFAULT_CATEGORY, self.Ecategory_choosed, self.backend)
+        self.FtpCombo = Combo(ENG.APP_NEW_TRANSACTION_DEFAULT_FTPERSON, self.Eftperson_choosed, self.backend)
+        self.WhyCombo = Combo(ENG.APP_NEW_TRANSACTION_DEFAULT_WHYPERSON, self.Ewhyperson_choosed, self.backend)
+
+        
 
         self.InitWindow()
 
@@ -135,17 +136,9 @@ class Window(QDialog):
         self.vbox_cat = QVBoxLayout()
         vbox_new_cat = QVBoxLayout()
 
-        self.trans_main_category = QComboBox(self)
-        self.trans_main_category.setMaxVisibleItems(20)
-        self.trans_main_category.setStyleSheet("combobox-popup: 0;")
-        self.trans_main_category.addItem(ENG.APP_NEW_TRANSACTION_DEFAULT_CATEGORY)
-        self.trans_main_category.setCurrentText(ENG.APP_NEW_TRANSACTION_DEFAULT_CATEGORY)
-        self.trans_main_category.addItems(self.backend.getCategories())
-        self.trans_main_category.currentTextChanged.connect(self.Ecategory_choosed)
-        self.vbox_cat.addWidget(self.trans_main_category)
-
-        self.category_boxes.append(self.trans_main_category)
-        self.sortCombos()
+        self.CatCombo.setLayout(self.vbox_cat)
+        self.CatCombo.addComboBox()
+        self.CatCombo.sort()
 
         groupbox_cat_choose.setLayout(self.vbox_cat)
         hbox_cat.addWidget(groupbox_cat_choose)
@@ -182,34 +175,18 @@ class Window(QDialog):
         self.vbox_whyp = QVBoxLayout()
         grid_new_person = QGridLayout()
 
-        self.trans_main_ftperson = QComboBox(self)
-        self.trans_main_ftperson.setMaxVisibleItems(20)
-        self.trans_main_ftperson.setStyleSheet("combobox-popup: 0;")
-        self.trans_main_ftperson.addItem(ENG.APP_NEW_TRANSACTION_DEFAULT_FTPERSON)
-        self.trans_main_ftperson.setCurrentText(ENG.APP_NEW_TRANSACTION_DEFAULT_FTPERSON)
-        self.trans_main_ftperson.addItems(self.backend.getPersons())
-        self.trans_main_ftperson.currentTextChanged.connect(self.Eftperson_choosed)
-        self.vbox_ftp.addWidget(self.trans_main_ftperson)
-
-        self.ftperson_boxes.append(self.trans_main_ftperson)
-        self.sortCombos()
+        self.FtpCombo.setLayout(self.vbox_ftp)
+        self.FtpCombo.addComboBox()
+        self.FtpCombo.sort()
 
         groupbox_ftp_choose.setLayout(self.vbox_ftp)
         grid_person.addWidget(groupbox_ftp_choose, 0, 0)
 
         #********************WHY_PERSON******************************
 
-        self.trans_main_whyperson = QComboBox(self)
-        self.trans_main_whyperson.setMaxVisibleItems(20)
-        self.trans_main_whyperson.setStyleSheet("combobox-popup: 0;")
-        self.trans_main_whyperson.addItem(ENG.APP_NEW_TRANSACTION_DEFAULT_WHYPERSON)
-        self.trans_main_whyperson.setCurrentText(ENG.APP_NEW_TRANSACTION_DEFAULT_WHYPERSON)
-        self.trans_main_whyperson.addItems(self.backend.getPersons())
-        self.trans_main_whyperson.currentTextChanged.connect(self.Ewhyperson_choosed)
-        self.vbox_whyp.addWidget(self.trans_main_whyperson)
-
-        self.whyperson_boxes.append(self.trans_main_whyperson)
-        self.sortCombos()
+        self.WhyCombo.setLayout(self.vbox_whyp)
+        self.WhyCombo.addComboBox()
+        self.WhyCombo.sort()
 
         groupbox_whyp_choose.setLayout(self.vbox_whyp)
         grid_person.addWidget(groupbox_whyp_choose, 0, 1)
@@ -219,21 +196,21 @@ class Window(QDialog):
         self.trans_ftp_label = QLabel(ENG.APP_LABEL_NEW_TRANSACTION_PERSON)
         grid_new_person.addWidget(self.trans_ftp_label, 0, 0)
 
-        self.trans_ftp_edit = QLineEdit(self)
-        self.trans_ftp_edit.textChanged.connect(self.Echange_person_text)
-        self.trans_ftp_edit.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Minimum))
-        grid_new_person.addWidget(self.trans_ftp_edit, 0, 1)
+        self.trans_person_edit = QLineEdit(self)
+        self.trans_person_edit.textChanged.connect(self.Echange_person_text)
+        self.trans_person_edit.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Minimum))
+        grid_new_person.addWidget(self.trans_person_edit, 0, 1)
 
         self.trans_ftp_button = QPushButton(ENG.APP_BUTTON_NEW_TRANSACTION_ADD_PERSON_FTP, self)
         self.trans_ftp_button.setEnabled(False)
         self.trans_ftp_button.setToolTip("Type at least 3 characters")
-        self.trans_ftp_button.clicked.connect(self.Eadd_person)
+        self.trans_ftp_button.clicked.connect(self.Eadd_ftperson)
         grid_new_person.addWidget(self.trans_ftp_button, 1, 0)
 
         self.trans_whyp_button = QPushButton(ENG.APP_BUTTON_NEW_TRANSACTION_ADD_PERSON_WHYP, self)
         self.trans_whyp_button.setEnabled(False)
         self.trans_whyp_button.setToolTip("Type at least 3 characters")
-        self.trans_whyp_button.clicked.connect(self.Eadd_person)
+        self.trans_whyp_button.clicked.connect(self.Eadd_whyperson)
         grid_new_person.addWidget(self.trans_whyp_button, 1, 1)
 
         self.trans_reset_button = QPushButton(ENG.APP_BUTTON_NEW_TRANSACTION_RESET_PERSON, self)
@@ -244,27 +221,6 @@ class Window(QDialog):
         grid_person.addWidget(groupbox_person_new, 1, 0, 2, 0)
         groupbox_person.setLayout(grid_person)
         self.layout_transaction.addWidget(groupbox_person)
-
-
-    def addCategoryToCombos(self, category_text):
-        new_cat_set = False
-        for combo in self.category_boxes:
-            combo.addItem(category_text)
-            if new_cat_set == False and combo.currentText() == ENG.APP_NEW_TRANSACTION_DEFAULT_CATEGORY:
-                new_cat_set = True
-                combo.setCurrentText(category_text)
-        self.sortCombos()
-
-    def sortCombos(self):
-        categories = [self.category_boxes[0].itemText(i) for i in range(self.category_boxes[0].count())]
-        categories.sort(key=lambda x: "0" if x == ENG.APP_NEW_TRANSACTION_DEFAULT_CATEGORY else x.lower())
-        for combo in self.category_boxes:
-            combo.currentTextChanged.disconnect(self.Ecategory_choosed)
-            text = combo.currentText()
-            combo.clear()
-            combo.addItems(categories)
-            combo.setCurrentText(text)
-            combo.currentTextChanged.connect(self.Ecategory_choosed)
 
 
     def Eenter_only_numbers(self):
@@ -336,65 +292,29 @@ class Window(QDialog):
     def Ecategory_choosed(self):
         activated_cat = self.sender()
         text = activated_cat.currentText()
-        if text == ENG.APP_NEW_TRANSACTION_DEFAULT_CATEGORY:
+        if not self.CatCombo.isNoDefault():
             return
-        for combo in self.category_boxes:
-            if combo.currentText() == ENG.APP_NEW_TRANSACTION_DEFAULT_CATEGORY:
-                return
             
-        if CONSTANTS.MAX_CATEGORIES > len(self.category_boxes):
-            category = QComboBox(self)
-            category.setMaxVisibleItems(20)
-            category.setStyleSheet("combobox-popup: 0;")
-            category.addItem(ENG.APP_NEW_TRANSACTION_DEFAULT_CATEGORY)
-            category.setCurrentText(ENG.APP_NEW_TRANSACTION_DEFAULT_CATEGORY)
-            category.addItems(self.backend.getCategories())
-            category.currentTextChanged.connect(self.Ecategory_choosed)
-            self.vbox_cat.addWidget(category)
-
-            self.category_boxes.append(category)
+        if CONSTANTS.MAX_CATEGORIES > self.CatCombo.getLen():
+            self.CatCombo.addComboBox()
 
     def Eftperson_choosed(self):
         activated_ftperson = self.sender()
         text = activated_ftperson.currentText()
-        if text == ENG.APP_NEW_TRANSACTION_DEFAULT_FTPERSON:
+        if not self.FtpCombo.isNoDefault():
             return
-        for combo in self.ftperson_boxes:
-            if combo.currentText() == ENG.APP_NEW_TRANSACTION_DEFAULT_FTPERSON:
-                return
             
-        if CONSTANTS.MAX_PERSONS > len(self.ftperson_boxes):
-            ftperson = QComboBox(self)
-            ftperson.setMaxVisibleItems(20)
-            ftperson.setStyleSheet("combobox-popup: 0;")
-            ftperson.addItem(ENG.APP_NEW_TRANSACTION_DEFAULT_FTPERSON)
-            ftperson.setCurrentText(ENG.APP_NEW_TRANSACTION_DEFAULT_FTPERSON)
-            ftperson.addItems(self.backend.getPersons())
-            ftperson.currentTextChanged.connect(self.Eftperson_choosed)
-            self.vbox_ftp.addWidget(ftperson)
-
-            self.ftperson_boxes.append(ftperson)
+        if CONSTANTS.MAX_PERSONS > self.FtpCombo.getLen():
+            self.FtpCombo.addComboBox()
     
     def Ewhyperson_choosed(self):
         activated_whyperson = self.sender()
         text = activated_whyperson.currentText()
-        if text == ENG.APP_NEW_TRANSACTION_DEFAULT_WHYPERSON:
+        if not self.WhyCombo.isNoDefault():
             return
-        for combo in self.whyperson_boxes:
-            if combo.currentText() == ENG.APP_NEW_TRANSACTION_DEFAULT_WHYPERSON:
-                return
             
-        if CONSTANTS.MAX_PERSONS > len(self.whyperson_boxes):
-            whyperson = QComboBox(self)
-            whyperson.setMaxVisibleItems(20)
-            whyperson.setStyleSheet("combobox-popup: 0;")
-            whyperson.addItem(ENG.APP_NEW_TRANSACTION_DEFAULT_WHYPERSON)
-            whyperson.setCurrentText(ENG.APP_NEW_TRANSACTION_DEFAULT_WHYPERSON)
-            whyperson.addItems(self.backend.getPersons())
-            whyperson.currentTextChanged.connect(self.Ewhyperson_choosed)
-            self.vbox_whyp.addWidget(whyperson)
-
-            self.whyperson_boxes.append(whyperson)
+        if CONSTANTS.MAX_PERSONS > self.WhyCombo.getLen():
+            self.WhyCombo.addComboBox()
 
     def Echange_cat_text(self):
         text = self.sender().text()
@@ -404,7 +324,13 @@ class Window(QDialog):
             self.trans_cat_button.setEnabled(False)
 
     def Echange_person_text(self):
-        pass
+        text = self.sender().text()
+        if len(text) - text.count(" ") >= 3:
+            self.trans_ftp_button.setEnabled(True)
+            self.trans_whyp_button.setEnabled(True)
+        else:
+            self.trans_ftp_button.setEnabled(False)
+            self.trans_whyp_button.setEnabled(False)
 
     def Eadd_category(self):
         text = self.trans_cat_edit.text()
@@ -417,18 +343,38 @@ class Window(QDialog):
             msgbox.exec()
             return
         
-        self.addCategoryToCombos(text)
+        self.CatCombo.addItem(text)
 
     def Ereset_category(self):
-        combo1 = self.category_boxes[0]
-        combo1.setCurrentText(ENG.APP_NEW_TRANSACTION_DEFAULT_CATEGORY)
-        for combo in self.category_boxes[1:]:
-            self.vbox_cat.removeWidget(combo)
-            combo.deleteLater()
-        self.category_boxes = [combo1]
+        self.CatCombo.reset()
 
-    def Eadd_person(self):
-        pass
+    def Eadd_ftperson(self):
+        text = self.trans_person_edit.text()
+        accepted = self.backend.addPerson(text)
+        if accepted == False:
+            msgbox = QMessageBox(self)
+            msgbox.setIcon(QMessageBox.Critical)
+            msgbox.setWindowTitle("Person is not accepted")
+            msgbox.setText(self.backend.getError())
+            msgbox.exec()
+            return
+        
+        self.FtpCombo.addItem(text)
+        self.WhyCombo.addItem(text, set_item=False)
+    
+    def Eadd_whyperson(self):
+        text = self.trans_person_edit.text()
+        accepted = self.backend.addPerson(text)
+        if accepted == False:
+            msgbox = QMessageBox(self)
+            msgbox.setIcon(QMessageBox.Critical)
+            msgbox.setWindowTitle("Person is not accepted")
+            msgbox.setText(self.backend.getError())
+            msgbox.exec()
+            return
+        
+        self.FtpCombo.addItem(text, set_item=False)
+        self.WhyCombo.addItem(text)
 
     def Ereset_person(self):
         pass

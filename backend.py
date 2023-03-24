@@ -16,3 +16,6 @@ class Backend:
 
     def getPersons(self):
         return ["per"+str(i) for i in range(20)] + ["z1"]
+
+    def addPerson(self, person_text):
+        return True
