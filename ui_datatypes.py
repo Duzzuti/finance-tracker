@@ -38,7 +38,7 @@ class Combo:
         if not(default):
             while (self.default in items):
                 items.remove(self.default)
-        assert(type(items) == list and all(map(lambda x: type(x) == str, items))), STRINGS.ERROR_WRONG_RETURN_ITEMS_TYPE+str(items)
+        assert(type(items) == list and all(map(lambda x: type(x) == str, items))), STRINGS.getListTypeErrorString(items, "items", str)
         return items
 
     def sort(self):
@@ -90,13 +90,14 @@ class Combo:
         for box in self.boxes:
             if box.currentText() != self.default:
                 res.append(box.currentText())
-        assert(type(res) == list and all(map(lambda x: type(x) == str, res))), STRINGS.ERROR_WRONG_RETURN_RES_TYPE+str(res)
+        
+        assert(type(res) == list and all(map(lambda x: type(x) == str, res))), STRINGS.getListTypeErrorString(res, "res", str)
         return res
 
 
 class Inputs:
     def __init__(self, input_list, true_func, false_func):
-        assert(type(input_list) == list and all(map(lambda x: type(x) == str, input_list))), STRINGS.ERROR_WRONG_INPUT_LIST_TYPE+str(input_list)
+        assert(type(input_list) == list and all(map(lambda x: type(x) == str, input_list))), STRINGS.getListTypeErrorString(input_list, "input_list", str)
         assert(callable(true_func)), STRINGS.getTypeErrorString(true_func, "true_func", "function")
         assert(callable(false_func)), STRINGS.getTypeErrorString(false_func, "false_func", "function")
         self.input_dict = {}

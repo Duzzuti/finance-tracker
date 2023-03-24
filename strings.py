@@ -2,6 +2,9 @@ class ENG:
     def getTypeErrorString(arg, arg_name,  _type):
         return f"The argument '{arg_name}' is not of type {_type}: {arg}"
 
+    def getListTypeErrorString(arg, arg_name, inner_type):
+        return f"The list '{arg_name}' is not of type list or/and the contents are not of type {inner_type}: {arg}"
+
 
     APP_TITLE = "Finance tracker"
     APP_ICON = "media/icon.png"
@@ -50,12 +53,16 @@ class ENG:
     ERROR_NO_BOXES = "No items to get, sort or reset, because there are no boxes. Please add a box first"
     ERROR_CHOOSED_TEXT_NOT_IN_ITEMS = "The choosed item in the ComboBox is not in the items list: "
     ERROR_INPUT_NOT_IN_INPUTDICT = "Input is not in input dict (input): "
+    ERROR_DATE_OUT_OF_RANGE = "The provided date is in the future: "
+    ERROR_PRODUCT_CONTAINS_NO_CHAR = "The product contains no visible characters: "
+    ERROR_NUMBER_ZERO_OR_LESS = "The number of products is not greater than zero: "
+    ERROR_CASHFLOW_ZERO = "The given Cashflow is zero: "
+    ERROR_NOT_ALL_CATEGORIES_ARE_VALID = "There are some categories, which are not in the database: "
+    ERROR_NOT_ALL_FTPERSONS_ARE_VALID = "There are some from/to persons, which are not in the database: "
+    ERROR_NOT_ALL_WHYPERSONS_ARE_VALID = "There are some why persons, which are not in the database: "
 
     ERROR_WRONG_CF_DATA = "Got wrong cashflow data: "
     ERROR_WRONG_FORMAT_GEOMETRY = "geometry is in a wrong format: "
     ERROR_WRONG_SENDER_TYPE = "The slot is connected to the wrong type (slot, type): "
     ERROR_WRONG_SENDER = "The slot is connected to the wrong sender (slot, sender): "
     ERROR_WRONG_SIGN_CONTENT = "The content of sign is not valid. Should be: "+APP_LABEL_NEW_TRANSACTION_CF_SIGN_MINUS+" or "+APP_LABEL_NEW_TRANSACTION_CF_SIGN_PLUS+" but its: "
-    ERROR_WRONG_RETURN_ITEMS_TYPE = "The list 'items' is not of type list or/and the contents are not of type str: "
-    ERROR_WRONG_RETURN_RES_TYPE = "The list 'res' is not of type list or/and the contents are not of type str: "
-    ERROR_WRONG_INPUT_LIST_TYPE = "The list 'input_list' is not of type list or/and the contents are not of type str: "
