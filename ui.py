@@ -1,3 +1,4 @@
+import inspect
 from strings import ENG as STRINGS
 from fonts import FONTS
 from constants import CONSTANTS
@@ -12,6 +13,8 @@ from PyQt5.QtCore import QDate
 class Window(QDialog):
     def __init__(self, geometry=(100, 100, 600, 400)):
         super().__init__()
+
+        assert(len(geometry) == 4 and all(map(lambda x: int == type(x), geometry)) == True), STRINGS.ERROR_WRONG_FORMAT_GEOMETRY+str(geometry)
 
         self.title = STRINGS.APP_TITLE
         self.icon = QtGui.QIcon(STRINGS.APP_ICON)
@@ -240,16 +243,16 @@ class Window(QDialog):
 
     def Echanged_cashflow(self):
         try:
-            ppp = float(self.trans_ppp_edit.text())
-            if ppp > 0:
+            fullp = float(self.trans_fullp_edit.text())
+            if fullp > 0:
                 self.Inputs.setInput(STRINGS.APP_NEW_TRANSACTION_CASHFLOW_INPUT, True)
             else:
                 raise ValueError
         except:
             self.Inputs.setInput(STRINGS.APP_NEW_TRANSACTION_CASHFLOW_INPUT, False)
-            return
 
     def Echange_product_text(self):
+        assert(type(self.sender()) == QLineEdit), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
         text = self.sender().text()
         if len(text) - text.count(" ") > 0:
             self.Inputs.setInput(STRINGS.APP_NEW_TRANSACTION_PRODUCT_INPUT, True)
@@ -257,6 +260,7 @@ class Window(QDialog):
             self.Inputs.setInput(STRINGS.APP_NEW_TRANSACTION_PRODUCT_INPUT, False)
 
     def Eenter_only_numbers(self):
+        assert(type(self.sender()) == QLineEdit), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
         edit = self.sender()
         if edit.text() == "":
             return
@@ -272,6 +276,7 @@ class Window(QDialog):
             return
 
     def Esync_cashflows(self):
+        assert(self.sender() in (self.trans_ppp_edit, self.trans_fullp_edit, self.trans_number_spin_box)), STRINGS.ERROR_WRONG_SENDER+inspect.stack()[0][3]+", "+self.sender()
         edit = self.sender()
         if edit == self.trans_ppp_edit:
             try:
@@ -286,6 +291,7 @@ class Window(QDialog):
 
             self.trans_fullp_edit.textChanged.disconnect(self.Esync_cashflows)
             self.trans_ppp_edit.textChanged.disconnect(self.Esync_cashflows)
+            assert(type(value) in (float, int) and type(number) in (float, int)), STRINGS.ERROR_NOT_TYPE_NUM+str(number)+", "+str(value)
             self.trans_fullp_edit.setText(str(value*number))
             self.trans_fullp_edit.textChanged.connect(self.Esync_cashflows)
             self.trans_ppp_edit.textChanged.connect(self.Esync_cashflows)
@@ -303,6 +309,7 @@ class Window(QDialog):
 
             self.trans_fullp_edit.textChanged.disconnect(self.Esync_cashflows)
             self.trans_ppp_edit.textChanged.disconnect(self.Esync_cashflows)
+            assert(type(value) in (float, int) and type(number) in (float, int)), STRINGS.ERROR_NOT_TYPE_NUM+str(number)+", "+str(value)
             self.trans_ppp_edit.setText(str(value/number))
             self.trans_fullp_edit.textChanged.connect(self.Esync_cashflows)
             self.trans_ppp_edit.textChanged.connect(self.Esync_cashflows)
@@ -320,13 +327,13 @@ class Window(QDialog):
 
             self.trans_fullp_edit.textChanged.disconnect(self.Esync_cashflows)
             self.trans_ppp_edit.textChanged.disconnect(self.Esync_cashflows)
+            assert(type(value) in (float, int) and type(number) in (float, int)), STRINGS.ERROR_NOT_TYPE_NUM+str(number)+", "+str(value)
             self.trans_fullp_edit.setText(str(value*number))
             self.trans_fullp_edit.textChanged.connect(self.Esync_cashflows)
             self.trans_ppp_edit.textChanged.connect(self.Esync_cashflows)
     
     def Ecategory_choosed(self):
-        activated_cat = self.sender()
-        text = activated_cat.currentText()
+        assert(type(self.sender()) == QComboBox), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
         if not self.CatCombo.isNoDefault():
             return
             
@@ -334,8 +341,7 @@ class Window(QDialog):
             self.CatCombo.addComboBox()
 
     def Eftperson_choosed(self):
-        activated_ftperson = self.sender()
-        text = activated_ftperson.currentText()
+        assert(type(self.sender()) == QComboBox), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
         if not self.FtpCombo.isNoDefault():
             return
             
@@ -343,8 +349,7 @@ class Window(QDialog):
             self.FtpCombo.addComboBox()
     
     def Ewhyperson_choosed(self):
-        activated_whyperson = self.sender()
-        text = activated_whyperson.currentText()
+        assert(type(self.sender()) == QComboBox), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
         if not self.WhyCombo.isNoDefault():
             return
             
@@ -352,6 +357,7 @@ class Window(QDialog):
             self.WhyCombo.addComboBox()
 
     def Echange_cat_text(self):
+        assert(type(self.sender()) == QLineEdit), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
         text = self.sender().text()
         if len(text) - text.count(" ") >= 3:
             self.trans_cat_button.setEnabled(True)
@@ -359,6 +365,7 @@ class Window(QDialog):
             self.trans_cat_button.setEnabled(False)
 
     def Echange_person_text(self):
+        assert(type(self.sender()) == QLineEdit), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
         text = self.sender().text()
         if len(text) - text.count(" ") >= 3:
             self.trans_ftp_button.setEnabled(True)
@@ -368,6 +375,7 @@ class Window(QDialog):
             self.trans_whyp_button.setEnabled(False)
 
     def Eadd_category(self):
+        assert(type(self.sender()) == QPushButton), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
         text = self.trans_cat_edit.text()
         accepted = self.backend.addCategory(text)
         if accepted == False:
@@ -381,9 +389,11 @@ class Window(QDialog):
         self.CatCombo.addItem(text)
 
     def Ereset_category(self):
+        assert(type(self.sender()) == QPushButton), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
         self.CatCombo.reset()
 
     def Eadd_ftperson(self):
+        assert(type(self.sender()) == QPushButton), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
         text = self.trans_person_edit.text()
         accepted = self.backend.addPerson(text)
         if accepted == False:
@@ -398,6 +408,7 @@ class Window(QDialog):
         self.WhyCombo.addItem(text, set_item=False)
     
     def Eadd_whyperson(self):
+        assert(type(self.sender()) == QPushButton), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
         text = self.trans_person_edit.text()
         accepted = self.backend.addPerson(text)
         if accepted == False:
@@ -412,14 +423,17 @@ class Window(QDialog):
         self.WhyCombo.addItem(text)
 
     def Ereset_person(self):
+        assert(type(self.sender()) == QPushButton), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
         self.WhyCombo.reset()
         self.FtpCombo.reset()
 
     def Esubmit_transaction(self):
+        assert(type(self.sender()) == QPushButton), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
         date = self.trans_date_edit.selectedDate().toPyDate()
         number = int(self.trans_number_spin_box.text())
         product = self.trans_product_edit.text()
         sign = self.trans_sign.currentText()
+        assert(sign in (STRINGS.APP_LABEL_NEW_TRANSACTION_CF_SIGN_MINUS, STRINGS.APP_LABEL_NEW_TRANSACTION_CF_SIGN_PLUS)), STRINGS.ERROR_WRONG_SIGN_CONTENT+sign
         try:
             full_cashflow = float(self.trans_fullp_edit.text())
         except:
