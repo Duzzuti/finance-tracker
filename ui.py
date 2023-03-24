@@ -2,7 +2,7 @@ from strings import ENG
 from fonts import FONTS
 from constants import CONSTANTS
 from backend import Backend
-from ui_datatypes import Combo
+from ui_datatypes import Combo, Inputs
 
 from PyQt5.QtWidgets import QRadioButton, QGridLayout, QLabel, QGroupBox, QVBoxLayout, QHBoxLayout, QPushButton, QDialog
 from PyQt5.QtWidgets import QSpinBox, QCalendarWidget, QLineEdit, QCompleter, QComboBox, QMessageBox
@@ -23,11 +23,11 @@ class Window(QDialog):
 
         self.backend = Backend()
 
-        self.CatCombo = Combo(ENG.APP_NEW_TRANSACTION_DEFAULT_CATEGORY, self.Ecategory_choosed, self.backend)
-        self.FtpCombo = Combo(ENG.APP_NEW_TRANSACTION_DEFAULT_FTPERSON, self.Eftperson_choosed, self.backend)
-        self.WhyCombo = Combo(ENG.APP_NEW_TRANSACTION_DEFAULT_WHYPERSON, self.Ewhyperson_choosed, self.backend)
+        self.CatCombo = Combo(ENG.APP_NEW_TRANSACTION_DEFAULT_CATEGORY, self.Ecategory_choosed, self.backend.getCategories)
+        self.FtpCombo = Combo(ENG.APP_NEW_TRANSACTION_DEFAULT_FTPERSON, self.Eftperson_choosed, self.backend.getPersons)
+        self.WhyCombo = Combo(ENG.APP_NEW_TRANSACTION_DEFAULT_WHYPERSON, self.Ewhyperson_choosed, self.backend.getPersons)
 
-        
+        self.Inputs = Inputs(["product", "cashflow"], self.activateTransSubmitButton, self.deactivateTransSubmitButton)
 
         self.InitWindow()
 
@@ -75,6 +75,7 @@ class Window(QDialog):
         self.trans_product_edit = QLineEdit(self)
         self.trans_product_completer = QCompleter(self.backend.getProductNames())
         self.trans_product_edit.setCompleter(self.trans_product_completer)
+        self.trans_product_edit.textChanged.connect(self.Echange_product_text)
         hgrid_prod_num.addWidget(self.trans_product_edit, 1, 0)
 
         #********************NUMBER OF PRODUCTS**********************
@@ -118,11 +119,13 @@ class Window(QDialog):
         self.trans_ppp_edit = QLineEdit(self)
         self.trans_ppp_edit.textChanged.connect(self.Eenter_only_numbers)
         self.trans_ppp_edit.textChanged.connect(self.Esync_cashflows)
+        self.trans_ppp_edit.textChanged.connect(self.Echanged_cashflow)
         grid_cf.addWidget(self.trans_ppp_edit, 3, 1)
 
         self.trans_fullp_edit = QLineEdit(self)
         self.trans_fullp_edit.textChanged.connect(self.Eenter_only_numbers)
         self.trans_fullp_edit.textChanged.connect(self.Esync_cashflows)
+        self.trans_fullp_edit.textChanged.connect(self.Echanged_cashflow)
         grid_cf.addWidget(self.trans_fullp_edit, 3, 2)
 
         groupbox_cf_full.setLayout(grid_cf)
@@ -222,6 +225,37 @@ class Window(QDialog):
         groupbox_person.setLayout(grid_person)
         self.layout_transaction.addWidget(groupbox_person)
 
+        self.submit_button = QPushButton(ENG.APP_BUTTON_NEW_TRANSACTION_SUBMIT)
+        self.submit_button.setFont(FONTS.APP_NEW_TRANSACTION_SUBMIT)
+        self.submit_button.setEnabled(False)
+        self.submit_button.setToolTip("Fill out the form and submit with this button")
+        self.submit_button.clicked.connect(self.Esubmit_transaction)
+        self.layout_transaction.addWidget(self.submit_button)
+
+    def activateTransSubmitButton(self):
+        self.submit_button.setEnabled(True)
+
+    def deactivateTransSubmitButton(self):
+        self.submit_button.setEnabled(False)
+
+
+    def Echanged_cashflow(self):
+        try:
+            ppp = float(self.trans_ppp_edit.text())
+            if ppp > 0:
+                self.Inputs.setInput("cashflow", True)
+            else:
+                raise ValueError
+        except:
+            self.Inputs.setInput("cashflow", False)
+            return
+
+    def Echange_product_text(self):
+        text = self.sender().text()
+        if len(text) - text.count(" ") > 0:
+            self.Inputs.setInput("product", True)
+        else:
+            self.Inputs.setInput("product", False)
 
     def Eenter_only_numbers(self):
         self.comma = '.'
@@ -238,7 +272,7 @@ class Window(QDialog):
         if not last_char in map(lambda x: str(x), range(10)):
             edit.setText(edit.text()[:-1])
             return
-      
+
     def Esync_cashflows(self):
         edit = self.sender()
         if edit == self.trans_ppp_edit:
@@ -247,7 +281,8 @@ class Window(QDialog):
             except:
                 if not edit.text() in [".", ""]:
                     print("Could not convert str to int "+edit.text())
-                return
+                    return
+                value = 0
             
             number = self.trans_number_spin_box.value()
 
@@ -261,9 +296,10 @@ class Window(QDialog):
             try:
                 value = float(edit.text())
             except:
-                if not edit.text() in ["-", ""]:
+                if not edit.text() in [".", ""]:
                     print("Could not convert str to int "+edit.text())
-                return
+                    return
+                value = 0
             
             number = self.trans_number_spin_box.value()
 
@@ -277,9 +313,10 @@ class Window(QDialog):
             try:
                 value = float(self.trans_ppp_edit.text())
             except:
-                if not self.trans_ppp_edit.text() in ["-", ""]:
+                if not self.trans_ppp_edit.text() in [".", ""]:
                     print("Could not convert str to int "+self.trans_ppp_edit.text())
-                return
+                    return
+                value = 0
             
             number = edit.value()
 
@@ -377,4 +414,25 @@ class Window(QDialog):
         self.WhyCombo.addItem(text)
 
     def Ereset_person(self):
-        pass
+        self.WhyCombo.reset()
+        self.FtpCombo.reset()
+
+    def Esubmit_transaction(self):
+        date = self.trans_date_edit.selectedDate().toPyDate()
+        number = int(self.trans_number_spin_box.text())
+        product = self.trans_product_edit.text()
+        sign = self.trans_sign.currentText()
+        try:
+            full_cashflow = float(self.trans_fullp_edit.text())
+        except:
+            raise ValueError(f"got wrong cashflow data: {self.trans_fullp_edit.text()}")
+        
+        if sign == ENG.APP_LABEL_NEW_TRANSACTION_CF_SIGN_MINUS:
+            full_cashflow = -full_cashflow
+
+        categories = self.CatCombo.getChoosenItems()
+        ftpersons = self.FtpCombo.getChoosenItems()
+        whypersons = self.WhyCombo.getChoosenItems()
+
+        self.backend.addTransaction(date, product, number, full_cashflow, categories, ftpersons, whypersons)
+
