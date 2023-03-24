@@ -19,25 +19,25 @@ class ENG:
     APP_BUTTON_NEW_TRANSACTION_ADD_PERSON_WHYP = "Add why person"
     APP_BUTTON_NEW_TRANSACTION_ADD_PERSON_FTP = "Add from/to person"
     APP_BUTTON_NEW_TRANSACTION_RESET_PERSON = "Reset persons"
-
     APP_BUTTON_NEW_TRANSACTION_SUBMIT = "Add transaction"
 
     APP_NEW_TRANSACTION_DEFAULT_CATEGORY = "Without category"
     APP_NEW_TRANSACTION_DEFAULT_FTPERSON = "No from/to person"
     APP_NEW_TRANSACTION_DEFAULT_WHYPERSON = "No why person"
-    
 
-    INVALID_DATA_TITLE = "Invalid data"
-    INVALID_DATA_MESSAGE = "You provided some invalid data. Try again"
+    APP_NEW_TRANSACTION_PRODUCT_INPUT = "product"
+    APP_NEW_TRANSACTION_CASHFLOW_INPUT = "product"
 
-    MAIN_MENU_TITLE = "Main Menu"
-    MAIN_MENU_MESSAGE = "Choose an action"
-    
-    MAIN_MENU_CHOICE_ADD_TRANSACTION = "Add transcaction"
+    COMMA = "."
+    COMMAS = [".", ","]
+    ZERO_STRINGS = ["", " ", "."]
 
-    ADD_TRANSACTION_TITLE = "Add transaction"
-    ADD_TRANSACTION_MESSAGE = "Enter the details about the transaction"
+    #tooltips
+    TOOLTIP_SUBMIT_BUTTON = "Fill out the form and submit with this button"
+    TOOLTIP_TYPE_3_CHARS =  "Type at least 3 characters"
 
-    ADD_TRANSACTION_ENTER_DATE = "Date (YYYY-MM-DD): "
-    ADD_TRANSACTION_ENTER_NUMBER = "Number of products: "
-    ADD_TRANSACTION_ENTER_CASHFLOW_PER_PRODUCT = "Cashflow per product (gain(+) or buy(-)): "
+    #errors
+    ERROR_CONVERT_STRING_TO_INT =  "Could not convert str to int: "
+    ERROR_CATEGORY_NOT_ACCEPTED = "Category is not accepted"
+    ERROR_PERSON_NOT_ACCEPTED = "Person is not accepted"
+    ERROR_WRONG_CF_DATA = "got wrong cashflow data: "

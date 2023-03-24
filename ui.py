@@ -4,11 +4,10 @@ from constants import CONSTANTS
 from backend import Backend
 from ui_datatypes import Combo, Inputs
 
-from PyQt5.QtWidgets import QRadioButton, QGridLayout, QLabel, QGroupBox, QVBoxLayout, QHBoxLayout, QPushButton, QDialog
+from PyQt5.QtWidgets import QGridLayout, QLabel, QGroupBox, QVBoxLayout, QHBoxLayout, QPushButton, QDialog
 from PyQt5.QtWidgets import QSpinBox, QCalendarWidget, QLineEdit, QCompleter, QComboBox, QMessageBox
-from PyQt5 import QtGui, QtCore, QtWidgets
-from PyQt5.QtCore import QRect, QDate, Qt
-from PyQt5.QtGui import QPixmap, QFont
+from PyQt5 import QtGui, QtWidgets
+from PyQt5.QtCore import QDate
 
 class Window(QDialog):
     def __init__(self, geometry=(100, 100, 600, 400)):
@@ -27,7 +26,7 @@ class Window(QDialog):
         self.FtpCombo = Combo(ENG.APP_NEW_TRANSACTION_DEFAULT_FTPERSON, self.Eftperson_choosed, self.backend.getPersons)
         self.WhyCombo = Combo(ENG.APP_NEW_TRANSACTION_DEFAULT_WHYPERSON, self.Ewhyperson_choosed, self.backend.getPersons)
 
-        self.Inputs = Inputs(["product", "cashflow"], self.activateTransSubmitButton, self.deactivateTransSubmitButton)
+        self.Inputs = Inputs([ENG.APP_NEW_TRANSACTION_PRODUCT_INPUT, ENG.APP_NEW_TRANSACTION_CASHFLOW_INPUT], self.activateTransSubmitButton, self.deactivateTransSubmitButton)
 
         self.InitWindow()
 
@@ -155,7 +154,7 @@ class Window(QDialog):
 
         self.trans_cat_button = QPushButton(ENG.APP_BUTTON_NEW_TRANSACTION_ADD_CAT, self)
         self.trans_cat_button.setEnabled(False)
-        self.trans_cat_button.setToolTip("Type at least 3 characters")
+        self.trans_cat_button.setToolTip(ENG.TOOLTIP_TYPE_3_CHARS)
         self.trans_cat_button.clicked.connect(self.Eadd_category)
         vbox_new_cat.addWidget(self.trans_cat_button)
 
@@ -206,13 +205,13 @@ class Window(QDialog):
 
         self.trans_ftp_button = QPushButton(ENG.APP_BUTTON_NEW_TRANSACTION_ADD_PERSON_FTP, self)
         self.trans_ftp_button.setEnabled(False)
-        self.trans_ftp_button.setToolTip("Type at least 3 characters")
+        self.trans_ftp_button.setToolTip(ENG.TOOLTIP_TYPE_3_CHARS)
         self.trans_ftp_button.clicked.connect(self.Eadd_ftperson)
         grid_new_person.addWidget(self.trans_ftp_button, 1, 0)
 
         self.trans_whyp_button = QPushButton(ENG.APP_BUTTON_NEW_TRANSACTION_ADD_PERSON_WHYP, self)
         self.trans_whyp_button.setEnabled(False)
-        self.trans_whyp_button.setToolTip("Type at least 3 characters")
+        self.trans_whyp_button.setToolTip(ENG.TOOLTIP_TYPE_3_CHARS)
         self.trans_whyp_button.clicked.connect(self.Eadd_whyperson)
         grid_new_person.addWidget(self.trans_whyp_button, 1, 1)
 
@@ -228,7 +227,7 @@ class Window(QDialog):
         self.submit_button = QPushButton(ENG.APP_BUTTON_NEW_TRANSACTION_SUBMIT)
         self.submit_button.setFont(FONTS.APP_NEW_TRANSACTION_SUBMIT)
         self.submit_button.setEnabled(False)
-        self.submit_button.setToolTip("Fill out the form and submit with this button")
+        self.submit_button.setToolTip(ENG.TOOLTIP_SUBMIT_BUTTON)
         self.submit_button.clicked.connect(self.Esubmit_transaction)
         self.layout_transaction.addWidget(self.submit_button)
 
@@ -243,29 +242,28 @@ class Window(QDialog):
         try:
             ppp = float(self.trans_ppp_edit.text())
             if ppp > 0:
-                self.Inputs.setInput("cashflow", True)
+                self.Inputs.setInput(ENG.APP_NEW_TRANSACTION_CASHFLOW_INPUT, True)
             else:
                 raise ValueError
         except:
-            self.Inputs.setInput("cashflow", False)
+            self.Inputs.setInput(ENG.APP_NEW_TRANSACTION_CASHFLOW_INPUT, False)
             return
 
     def Echange_product_text(self):
         text = self.sender().text()
         if len(text) - text.count(" ") > 0:
-            self.Inputs.setInput("product", True)
+            self.Inputs.setInput(ENG.APP_NEW_TRANSACTION_PRODUCT_INPUT, True)
         else:
-            self.Inputs.setInput("product", False)
+            self.Inputs.setInput(ENG.APP_NEW_TRANSACTION_PRODUCT_INPUT, False)
 
     def Eenter_only_numbers(self):
-        self.comma = '.'
         edit = self.sender()
         if edit.text() == "":
             return
         last_char = edit.text()[-1]
-        if last_char in [".", ","]:
-            if edit.text()[:-1].count(self.comma) == 0:
-                edit.setText(edit.text()[:-1] + self.comma)
+        if last_char in ENG.COMMAS:
+            if edit.text()[:-1].count(ENG.COMMA) == 0:
+                edit.setText(edit.text()[:-1] + ENG.COMMA)
             else:
                 edit.setText(edit.text()[:-1])
             return
@@ -279,8 +277,8 @@ class Window(QDialog):
             try:
                 value = float(edit.text())
             except:
-                if not edit.text() in [".", ""]:
-                    print("Could not convert str to int "+edit.text())
+                if not edit.text() in ENG.ZERO_STRINGS:
+                    print(ENG.ERROR_CONVERT_STRING_TO_INT+edit.text())
                     return
                 value = 0
             
@@ -296,8 +294,8 @@ class Window(QDialog):
             try:
                 value = float(edit.text())
             except:
-                if not edit.text() in [".", ""]:
-                    print("Could not convert str to int "+edit.text())
+                if not edit.text() in ENG.ZERO_STRINGS:
+                    print(ENG.ERROR_CONVERT_STRING_TO_INT+edit.text())
                     return
                 value = 0
             
@@ -313,8 +311,8 @@ class Window(QDialog):
             try:
                 value = float(self.trans_ppp_edit.text())
             except:
-                if not self.trans_ppp_edit.text() in [".", ""]:
-                    print("Could not convert str to int "+self.trans_ppp_edit.text())
+                if not self.trans_ppp_edit.text() in ENG.ZERO_STRINGS:
+                    print(ENG.ERROR_CONVERT_STRING_TO_INT+self.trans_ppp_edit.text())
                     return
                 value = 0
             
@@ -375,7 +373,7 @@ class Window(QDialog):
         if accepted == False:
             msgbox = QMessageBox(self)
             msgbox.setIcon(QMessageBox.Critical)
-            msgbox.setWindowTitle("Category is not accepted")
+            msgbox.setWindowTitle(ENG.ERROR_CATEGORY_NOT_ACCEPTED)
             msgbox.setText(self.backend.getError())
             msgbox.exec()
             return
@@ -391,7 +389,7 @@ class Window(QDialog):
         if accepted == False:
             msgbox = QMessageBox(self)
             msgbox.setIcon(QMessageBox.Critical)
-            msgbox.setWindowTitle("Person is not accepted")
+            msgbox.setWindowTitle(ENG.ERROR_PERSON_NOT_ACCEPTED)
             msgbox.setText(self.backend.getError())
             msgbox.exec()
             return
@@ -405,7 +403,7 @@ class Window(QDialog):
         if accepted == False:
             msgbox = QMessageBox(self)
             msgbox.setIcon(QMessageBox.Critical)
-            msgbox.setWindowTitle("Person is not accepted")
+            msgbox.setWindowTitle(ENG.ERROR_PERSON_NOT_ACCEPTED)
             msgbox.setText(self.backend.getError())
             msgbox.exec()
             return
@@ -425,7 +423,7 @@ class Window(QDialog):
         try:
             full_cashflow = float(self.trans_fullp_edit.text())
         except:
-            raise ValueError(f"got wrong cashflow data: {self.trans_fullp_edit.text()}")
+            raise ValueError(ENG.ERROR_WRONG_CF_DATA+self.trans_fullp_edit.text())
         
         if sign == ENG.APP_LABEL_NEW_TRANSACTION_CF_SIGN_MINUS:
             full_cashflow = -full_cashflow
