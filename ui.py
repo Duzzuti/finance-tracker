@@ -37,15 +37,15 @@ class Window(QDialog):
         self.width = geometry[2]
         self.height = geometry[3]
 
-        self.backend = Backend()    #sets up the backend object to perform backend requests in the ui
+        self.backend = Backend(self)    #sets up the backend object to perform backend requests in the ui
 
         #sets up the ComboBox Objects
         #if you choose a category or a person a new ComboBox is spawning
         #if you add a category, its added on all category comboBoxes
         #these functionalities are encapsulated in these objects
         self.CatCombo = Combo(STRINGS.APP_NEW_TRANSACTION_DEFAULT_CATEGORY, self.Ecategory_choosed, self.backend.getCategories)
-        self.FtpCombo = Combo(STRINGS.APP_NEW_TRANSACTION_DEFAULT_FTPERSON, self.Eftperson_choosed, self.backend.getPersons)
-        self.WhyCombo = Combo(STRINGS.APP_NEW_TRANSACTION_DEFAULT_WHYPERSON, self.Ewhyperson_choosed, self.backend.getPersons)
+        self.FtpCombo = Combo(STRINGS.APP_NEW_TRANSACTION_DEFAULT_FTPERSON, self.Eftperson_choosed, self.backend.getPersonNames)
+        self.WhyCombo = Combo(STRINGS.APP_NEW_TRANSACTION_DEFAULT_WHYPERSON, self.Ewhyperson_choosed, self.backend.getPersonNames)
 
         #input object is responsible for activating the submit button if all required inputs are given
         self.Inputs = Inputs([STRINGS.APP_NEW_TRANSACTION_PRODUCT_INPUT, STRINGS.APP_NEW_TRANSACTION_CASHFLOW_INPUT], self.activateTransSubmitButton, self.deactivateTransSubmitButton)

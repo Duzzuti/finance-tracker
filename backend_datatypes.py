@@ -4,7 +4,7 @@ class PersonCategory:
 
 
 class Person:
-    def __init__(self, name, person_categories):
+    def __init__(self, name, person_categories=[]):
         self.name = name
         self.person_categories = person_categories
     
@@ -12,27 +12,21 @@ class Person:
         self.person_categories.append(person_category)
 
 
-class Category:
-    def __init__(self, category_name, under_categories=False):
-        self.name = category_name
-        self.under_categories = under_categories
-
-
 class Product:
-    def __init__(self, product_name, category):
+    def __init__(self, product_name, categories=[]):
         self.name = product_name
-        self.category = category
+        self.categories = categories
 
 
 class Transaction:
-    def __init__(self, date, product, number, price_per_product, from_to_person, why_person):
+    def __init__(self, date, product, number, cashflow, from_to_persons, why_persons):
         """
         
         """
         self.date = date
         self.number = number
         self.product = product
-        self.price_per_product = price_per_product
-        self.full_price = self.price_per_product * self.number
-        self.from_to_person = from_to_person
-        self.why_person = why_person
+        self.cashflow = cashflow
+        self.cashflow_per_product = self.cashflow / self.number
+        self.from_to_persons = from_to_persons
+        self.why_persons = why_persons

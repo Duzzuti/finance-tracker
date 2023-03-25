@@ -43,6 +43,12 @@ class ENG:
     TOOLTIP_SUBMIT_BUTTON = "Fill out the form and submit with this button"
     TOOLTIP_TYPE_3_CHARS =  "Type at least 3 characters"
 
+    #questions
+    QUESTION_OVERRIDE_OTHER_PRODUCT_CATEGORIES = "Do you wanna override the categories of ALL previous products?"
+
+    #info
+    INFO_TRANSACTION_WAS_NOT_ADDED = "The transaction was not added"
+
     #errors
     ERROR_GRID_NOT_DEFINED = "The basic layout aka 'grid' is not defined. Please make sure to call InitWindow() first"
 
@@ -57,15 +63,19 @@ class ENG:
     ERROR_INPUT_NOT_IN_INPUTDICT = "Input is not in input dict (input): "
     ERROR_DATE_OUT_OF_RANGE = "The provided date is in the future: "
     ERROR_PRODUCT_CONTAINS_NO_CHAR = "The product contains no visible characters: "
+    ERROR_CATEGORY_CONTAINS_NOT_ENOUGH_CHAR = "The category contains less than 3 visible characters: "
+    ERROR_PERSON_CONTAINS_NOT_ENOUGH_CHAR = "The person contains less than 3 visible characters: "
     ERROR_NUMBER_ZERO_OR_LESS = "The number of products is not greater than zero: "
     ERROR_CASHFLOW_ZERO = "The given Cashflow is zero: "
     ERROR_NOT_ALL_CATEGORIES_ARE_VALID = "There are some categories, which are not in the database: "
     ERROR_NOT_ALL_FTPERSONS_ARE_VALID = "There are some from/to persons, which are not in the database: "
     ERROR_NOT_ALL_WHYPERSONS_ARE_VALID = "There are some why persons, which are not in the database: "
     ERROR_GEOMETRY_LESS_ZERO = "Not all values in geometry are greater than zero: "
+    ERROR_PRODUCT_CATEGORIES_DONT_MATCH = "product categories dont match with the previous products"
 
     ERROR_WRONG_CF_DATA = "Got wrong cashflow data: "
     ERROR_WRONG_FORMAT_GEOMETRY = "geometry is in a wrong format: "
     ERROR_WRONG_SENDER_TYPE = "The slot is connected to the wrong type (slot, type): "
     ERROR_WRONG_SENDER = "The slot is connected to the wrong sender (slot, sender): "
     ERROR_WRONG_SIGN_CONTENT = "The content of sign is not valid. Should be: "+APP_LABEL_NEW_TRANSACTION_CF_SIGN_MINUS+" or "+APP_LABEL_NEW_TRANSACTION_CF_SIGN_PLUS+" but its: "
+    ERROR_WRONG_PRODUCT_NAME_FORMAT = "The provided product name is not lowercase: "
