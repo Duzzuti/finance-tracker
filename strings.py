@@ -44,6 +44,8 @@ class ENG:
     TOOLTIP_TYPE_3_CHARS =  "Type at least 3 characters"
 
     #errors
+    ERROR_GRID_NOT_DEFINED = "The basic layout aka 'grid' is not defined. Please make sure to call InitWindow() first"
+
     ERROR_CONVERT_STRING_TO_INT =  "Could not convert str to int: "
     ERROR_NOT_TYPE_NUM = "The number is not of type int or float: "
     ERROR_CATEGORY_NOT_ACCEPTED = "Category is not accepted"
@@ -60,6 +62,7 @@ class ENG:
     ERROR_NOT_ALL_CATEGORIES_ARE_VALID = "There are some categories, which are not in the database: "
     ERROR_NOT_ALL_FTPERSONS_ARE_VALID = "There are some from/to persons, which are not in the database: "
     ERROR_NOT_ALL_WHYPERSONS_ARE_VALID = "There are some why persons, which are not in the database: "
+    ERROR_GEOMETRY_LESS_ZERO = "Not all values in geometry are greater than zero: "
 
     ERROR_WRONG_CF_DATA = "Got wrong cashflow data: "
     ERROR_WRONG_FORMAT_GEOMETRY = "geometry is in a wrong format: "
