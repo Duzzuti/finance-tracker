@@ -49,9 +49,8 @@ class Combo:
         box = QComboBox()
         box.setMaxVisibleItems(20)
         box.setStyleSheet("combobox-popup: 0;")
-        box.addItem(self.default)
+        box.addItems(self.getAvailableItems()) #gets all available items from the function
         box.setCurrentText(self.default)
-        box.addItems(self.func_get_items() if self.boxes == [] else self.getAllItems()) #gets all items from a other box or from the function
         box.currentTextChanged.connect(self.choosed_event_func) #set the event handler
         self.layout.addWidget(box)
         self.boxes.append(box)
@@ -79,38 +78,75 @@ class Combo:
         :return: void
         """
         assert(self.boxes != []), STRINGS.ERROR_NO_BOXES
-        items = self.getAllItems(default=True)  #gets all items
-        items.sort(key=lambda x: "0" if x == self.default else x.lower())   #sorts them
         for box in self.boxes:
+            items = self.getAvailableItems()  #gets all available items
+            text = box.currentText()    #saves the choosed item
+            if text != self.default:
+                items.append(text)          #adds the current items to the available items, if its not the default
+            items.sort(key=lambda x: "0" if x == self.default else x.lower())   #sorts them
             #diconnect from the event handler first to avoid unexpected results
             box.currentTextChanged.disconnect(self.choosed_event_func)
-            text = box.currentText()    #saves the choosed item
             assert(text in items), STRINGS.ERROR_CHOOSED_TEXT_NOT_IN_ITEMS+text
             box.clear()         #clear the items
             box.addItems(items) #add the sorted item list
             box.setCurrentText(text)
             box.currentTextChanged.connect(self.choosed_event_func) #connect the event handler again
 
-    def addItem(self, item, set_item=True, sort=True):
+    def getAvailableItems(self):
+        """
+        gets all available items, that are all items that are not currently choosen by a combo box
+        :return: list<str<available item1>, ...>
+        """
+        items = self.func_get_items()   #gets all items 
+        items.append(self.default)      #adds the default item
+        for selected_item in self.getChoosenItems():
+            try:
+                items.remove(selected_item)     #removes all choosen items
+            except:
+                pass
+        return items
+
+    def updateItems(self):
+        """
+        sets the items correctly for each box, gets all available items and sets them for each box
+        :return: void
+        """
+        items = self.getAvailableItems()
+        for box in self.boxes:
+            set_item = box.currentText()    #the current item is obviously needed
+            #diconnect from the event handler first to avoid unexpected results
+            box.currentTextChanged.disconnect(self.choosed_event_func)
+            box.clear()         #clear the items
+            if set_item != self.default:
+                box.addItems(items + [set_item]) #add the items and the current item
+            else:
+                #if the default item is choosen, its not going to be added a second time
+                box.addItems(items)
+            box.setCurrentText(set_item)
+            box.currentTextChanged.connect(self.choosed_event_func) #connect the event handler again
+        self.sort()
+
+    def addItem(self, item, set_item=True):
         """
         add a new item in all boxes
         :param set_item: bool<should the new added item be choosed from one box, which has the default option choosed?>
-        :param set_item: bool<should the method sort the items in the box?>
         :return: void
         """
         assert(type(item) == str), STRINGS.getTypeErrorString(item, "item", str)
         assert(type(set_item) == bool), STRINGS.getTypeErrorString(set_item, "set_item", bool)
-        assert(type(sort) == bool), STRINGS.getTypeErrorString(sort, "sort", bool)
         new_item_set = False    #has the new item already been selected?
         for box in self.boxes:
-            box.addItem(item)   #add the new item
             if set_item and new_item_set == False and box.currentText() == self.default:
                 #if the new item has not been set and the user wants to set it and the current text is the default option
                 new_item_set = True
+                box.addItem(item)   #add the new item
                 box.setCurrentText(item)    #set the item
-        if sort:
-            #sort the items if sort=True
-            self.sort()
+                break
+        else:
+            for box in self.boxes:
+                box.addItem(item)   #add the new item
+ 
+        self.sort()     #sorts all items
     
     def isNoDefault(self):
         """
@@ -143,6 +179,7 @@ class Combo:
             self.layout.removeWidget(box)
             box.deleteLater()
         self.boxes = [box1]
+        self.updateItems()      #sets the items up correctly (if you reset, you can choose all items with box 1)
 
     def getChoosenItems(self):
         """

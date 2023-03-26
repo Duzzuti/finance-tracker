@@ -480,6 +480,7 @@ class Window(QDialog):
         assert(type(self.sender()) == QComboBox), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
         if not self.CatCombo.isNoDefault():
             #if there are some ComboBoxes with the default category, no further boxes are added
+            self.CatCombo.updateItems()    #sets the items correctly (you can only choose every option once) 
             return
             
         if CONSTANTS.MAX_CATEGORIES > self.CatCombo.getLen():
@@ -496,6 +497,7 @@ class Window(QDialog):
         assert(type(self.sender()) == QComboBox), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
         if not self.FtpCombo.isNoDefault():
             #if there are some ComboBoxes with the default category, no further boxes are added
+            self.FtpCombo.updateItems()    #sets the items correctly (you can only choose every option once) 
             return
             
         if CONSTANTS.MAX_PERSONS > self.FtpCombo.getLen():
@@ -512,6 +514,7 @@ class Window(QDialog):
         assert(type(self.sender()) == QComboBox), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
         if not self.WhyCombo.isNoDefault():
             #if there are some ComboBoxes with the default category, no further boxes are added
+            self.WhyCombo.updateItems()    #sets the items correctly (you can only choose every option once) 
             return
             
         if CONSTANTS.MAX_PERSONS > self.WhyCombo.getLen():
