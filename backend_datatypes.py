@@ -26,7 +26,7 @@ class Transaction:
         self.date = date
         self.number = number
         self.product = product
-        self.cashflow = cashflow
-        self.cashflow_per_product = self.cashflow / self.number
+        self.cashflow = round(cashflow, 2)
+        self.cashflow_per_product = round(self.cashflow / self.number, 2)
         self.from_to_persons = from_to_persons
         self.why_persons = why_persons

@@ -6,13 +6,14 @@ class ENG:
         return f"The list '{arg_name}' is not of type list or/and the contents are not of type {inner_type}: {arg}"
 
 
+    CURRENCY = "€"
     APP_TITLE = "Finance tracker"
     APP_ICON = "media/icon.png"
     
     APP_LABEL_NEW_TRANSACTION = "Add new transaction"
     APP_LABEL_NEW_TRANSACTION_CF = "Enter the gain or loss of the transaction:"
-    APP_LABEL_NEW_TRANSACTION_CF_PP = "Per product (in €):"
-    APP_LABEL_NEW_TRANSACTION_CF_FULL = "For the full transaction (in €):"
+    APP_LABEL_NEW_TRANSACTION_CF_PP = f"Per product (in {CURRENCY}):"
+    APP_LABEL_NEW_TRANSACTION_CF_FULL = f"For the full transaction (in {CURRENCY}):"
     APP_LABEL_NEW_TRANSACTION_CF_SIGN = "Sign:"
     APP_LABEL_NEW_TRANSACTION_CF_SIGN_PLUS = "+ (Gain)"
     APP_LABEL_NEW_TRANSACTION_CF_SIGN_MINUS = "- (Loss)"
@@ -20,6 +21,8 @@ class ENG:
     APP_LABEL_NEW_TRANSACTION_CAT = "Add a new category:"
     APP_LABEL_NEW_TRANSACTION_NUMBER = "Number of products:"
     APP_LABEL_NEW_TRANSACTION_PERSON = "Add a new person:"
+
+    APP_LABEL_LAST_TRANSACTIONS = "Your last transactions"
     
     APP_BUTTON_NEW_TRANSACTION_ADD_CAT = "Add"
     APP_BUTTON_NEW_TRANSACTION_RESET_CAT = "Reset Categories"

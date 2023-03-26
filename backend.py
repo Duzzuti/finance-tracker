@@ -54,6 +54,15 @@ class Backend:
         """
         return sorted(map(lambda x: x.name, self.persons), key=lambda x: x.lower())
 
+    def getTransactions(self):
+        """
+        generator for all transactions
+        :return: Generator<object<Transaction>>
+        """
+        yield Transaction(datetime.date.today(), Product("product1", categories=["cat1", "cat2", "cat3"]), 5, 7.25, [Person("pers1"), Person("pers2")], [Person("pers3"), Person("pers4")])
+        for trans in self.transactions:
+            yield trans
+
     def addCategory(self, category):
         """
         adds a new category to the existing ones
