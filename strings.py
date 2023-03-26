@@ -72,6 +72,13 @@ class ENG:
     ERROR_NOT_ALL_WHYPERSONS_ARE_VALID = "There are some why persons, which are not in the database: "
     ERROR_GEOMETRY_LESS_ZERO = "Not all values in geometry are greater than zero: "
     ERROR_PRODUCT_CATEGORIES_DONT_MATCH = "product categories dont match with the previous products"
+    ERROR_CATEGORY_NOT_UNIQUE = "There are two or more non unique categories choosen: "
+    ERROR_FTPERSON_NOT_UNIQUE = "There are two or more non unique from/to persons choosen: "
+    ERROR_WHYPERSON_NOT_UNIQUE = "There are two or more non unique why persons choosen: "
+    ERROR_NOT_KNOWN_FTPERSON_CHOOSEN = "The user choosed a from/to person not known to the system: "
+    ERROR_NOT_KNOWN_WHYPERSON_CHOOSEN = "The user choosed a why person not known to the system: "
+    ERROR_PRODUCT_ALREADY_KNOWN = "The product that should be added is already known to the system: "
+    ERROR_NO_PRODUCT_FOUND = "No product found with name: "
 
     ERROR_WRONG_CF_DATA = "Got wrong cashflow data: "
     ERROR_WRONG_FORMAT_GEOMETRY = "geometry is in a wrong format: "
