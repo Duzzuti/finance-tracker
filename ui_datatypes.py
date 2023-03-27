@@ -263,17 +263,20 @@ class TransactionList:
     The PushButtons should represent the transactions the user has taken
     The user should be able to click on these buttons to view and edit that transaction
     """
-    def __init__(self, func_get_transactions):
+    def __init__(self, func_get_transactions, func_event_handler):
         """
         basic constructor is setting up the TransactionList datatype, 
-        you have to provide a function that returns a list of transactions which are displayed
+        you have to provide a function that returns a list of transactions which are displayed and an event handler for the buttons
         :param func_get_transactions: function<gets list of transaction objects>
+        :param func_event_handler: function<event handler for pressing a button>
         :return: void
         """
         assert(callable(func_get_transactions)), STRINGS.getTypeErrorString(func_get_transactions, "func_get_transactions", "function")
         self.buttons = []   #list of PushButtons
+        self.transactions = []  #list of Transaction objects coresponding to the button with the same index
         self.layout = None  #the layout that is used to add the PushButtons
         self.func_get_transactions = func_get_transactions
+        self.func_event_handler = func_event_handler
     
     def setLayout(self, layout):
         """
@@ -289,19 +292,33 @@ class TransactionList:
         updates the buttons by getting the new transaction data from the backend
         :return: void
         """
+        #WORK better system here, dont need to delete every button every time
         #deletes all current buttons
         for i in reversed(range(self.layout.count())): 
             widget = self.layout.itemAt(i).widget()
             if widget is not None:
                 widget.deleteLater()
         self.buttons = []
+        self.transactions = []
 
         for transaction in self.func_get_transactions():
             #for each transaction get a PushButton object and add it to the layout
             element_button = self._getTransactionButton(transaction)
             self.layout.addWidget(element_button)  
             self.buttons.append(element_button)
+            self.transactions.append(transaction)
         #self.scrollarea.setMinimumWidth(int(element_button.size().width()*1.1))  
+
+    def getTransactionForButton(self, button):
+        """
+        getter for a transaction object coresponding to a given button
+        :param button: object<PushButton>
+        :return: object<Transaction>
+        """
+        assert(button in self.buttons), STRINGS.ERROR_BUTTON_NOT_FOUND
+        ind = self.buttons.index(button)
+        assert(len(self.transactions) >= ind+1), STRINGS.ERROR_TRANSACTION_OUT_OF_RANGE
+        return self.transactions[ind]
 
     def _getTransactionButton(self, transaction):
         """
@@ -321,4 +338,5 @@ class TransactionList:
 
         element_button.setLayout(element_layout)
         element_button.adjustSize() #makes the content fit
+        element_button.clicked.connect(self.func_event_handler)    #connect with event handler
         return element_button

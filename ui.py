@@ -7,6 +7,7 @@ from strings import ENG as STRINGS
 from fonts import FONTS
 from constants import CONSTANTS
 from backend import Backend
+from backend_datatypes import Transaction
 from ui_datatypes import Combo, Inputs, TransactionList
 
 from PyQt5.QtWidgets import QGridLayout, QLabel, QGroupBox, QVBoxLayout, QHBoxLayout, QPushButton, QDialog, QWidget
@@ -51,7 +52,7 @@ class Window(QDialog):
         self.Inputs = Inputs([STRINGS.APP_NEW_TRANSACTION_PRODUCT_INPUT, STRINGS.APP_NEW_TRANSACTION_CASHFLOW_INPUT], self.activateTransSubmitButton, self.deactivateTransSubmitButton)
 
         #transaction list object handles the scrollable transaction list ui component
-        self.TransList = TransactionList(self.backend.getTransactions)
+        self.TransList = TransactionList(self.backend.getTransactions, self.Elast_trans_button_pressed)
 
         #build the window
         self.InitWindow()
@@ -710,4 +711,63 @@ class Window(QDialog):
         #sends the data to the backend
         self.backend.addTransaction(date, product, number, full_cashflow, categories, ftpersons, whypersons)
         self.TransList.updateLastTrans()    #update the buttons in the scrollarea showing the last transactions
+
+    def Elast_trans_button_pressed(self):
+        """
+        event handler
+        activates if a transaction button from the scrollarea is pressed
+        gets the transaction conencted to that button and opens a view/edit transaction window
+        :return: void
+        """
+        assert(type(self.sender()) == QPushButton), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
+        but = self.sender()
+        trans = self.TransList.getTransactionForButton(but)
+        TransactionWindow(trans)
+
+
+class TransactionWindow(QDialog):
+    """
+    The TransactionWindow class contains the Window used for view/edit transactions
+    the TransactionWindow class takes a transaction object as a input to work with
+    """
+    def __init__(self, transaction):
+        """
+        basic constructor is building the window. Takes a transaction object that is used for viewing
+        :param transaction: object<Transaction>
+        :return: void
+        """
+        assert(type(transaction) == Transaction), STRINGS.getTypeErrorString(transaction, "transaction", Transaction)
+        super().__init__()  #initializes the Base Class (QDialog)
+
+        self.title = STRINGS.TWINDOW_TITLE
+        self.icon = QtGui.QIcon(STRINGS.TWINDOW_ICON)
+
+        self.transaction = transaction
+
+        #build the window
+        self.InitWindow()
+
+    def InitWindow(self):
+        """
+        this method is building the window
+        :return: void
+        """
+        self.setWindowTitle(self.title)
+        self.setWindowIcon(self.icon)
+        self.grid = QGridLayout()       #sets the layout of the complete window
+
+        self.createLayout()             #create the layout with all components
+
+        self.setLayout(self.grid)
+
+        self.exec() #show the window on top and make all other windows not clickable
+    
+    def createLayout(self):
+        """
+        creates layout components and add UI components to that layout
+        build the window
+        :return: void
+        """
+        assert("grid" in map(lambda x: x[0], vars(self).items())), STRINGS.ERROR_GRID_NOT_DEFINED
+
 

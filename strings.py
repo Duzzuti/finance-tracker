@@ -6,7 +6,13 @@ class ENG:
         return f"The list '{arg_name}' is not of type list or/and the contents are not of type {inner_type}: {arg}"
 
 
+    #META Strings
     CURRENCY = "€"
+    COMMA = "."
+    COMMAS = [".", ","]
+    ZERO_STRINGS = ["", " ", "."]
+
+    #Main Window Strings
     APP_TITLE = "Finance tracker"
     APP_ICON = "media/icon.png"
     
@@ -23,7 +29,7 @@ class ENG:
     APP_LABEL_NEW_TRANSACTION_PERSON = "Add a new person:"
 
     APP_LABEL_LAST_TRANSACTIONS = "Your last transactions"
-    
+
     APP_BUTTON_NEW_TRANSACTION_ADD_CAT = "Add"
     APP_BUTTON_NEW_TRANSACTION_RESET_CAT = "Reset Categories"
     APP_BUTTON_NEW_TRANSACTION_ADD_PERSON_WHYP = "Add why person"
@@ -38,9 +44,10 @@ class ENG:
     APP_NEW_TRANSACTION_PRODUCT_INPUT = "product"
     APP_NEW_TRANSACTION_CASHFLOW_INPUT = "cashflow"
 
-    COMMA = "."
-    COMMAS = [".", ","]
-    ZERO_STRINGS = ["", " ", "."]
+    #TransactionWindow Strings
+    TWINDOW_TITLE = "View transaction"
+    TWINDOW_ICON = "media/icon.png"
+
 
     #tooltips
     TOOLTIP_SUBMIT_BUTTON = "Fill out the form and submit with this button"
@@ -82,6 +89,8 @@ class ENG:
     ERROR_NOT_KNOWN_WHYPERSON_CHOOSEN = "The user choosed a why person not known to the system: "
     ERROR_PRODUCT_ALREADY_KNOWN = "The product that should be added is already known to the system: "
     ERROR_NO_PRODUCT_FOUND = "No product found with name: "
+    ERROR_BUTTON_NOT_FOUND = "The provided button is not found in the button list"
+    ERROR_TRANSACTION_OUT_OF_RANGE = "the transaction index is out of range, should be as long as buttons"
 
     ERROR_WRONG_CF_DATA = "Got wrong cashflow data: "
     ERROR_WRONG_FORMAT_GEOMETRY = "geometry is in a wrong format: "

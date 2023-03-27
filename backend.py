@@ -59,6 +59,7 @@ class Backend:
         generator for all transactions
         :return: Generator<object<Transaction>>
         """
+        #WORK should be returned sorted by date
         yield Transaction(datetime.date.today(), Product("product1", categories=["cat1", "cat2", "cat3"]), 5, 7.25, [Person("pers1"), Person("pers2")], [Person("pers3"), Person("pers4")])
         for trans in self.transactions:
             yield trans
