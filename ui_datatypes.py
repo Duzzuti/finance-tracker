@@ -1,7 +1,8 @@
 """
 This module provides the datatypes used by the ui
 """
-from PyQt5.QtWidgets import QComboBox, QVBoxLayout
+from PyQt5.QtWidgets import QComboBox, QVBoxLayout, QPushButton, QLabel
+from backend_datatypes import Transaction
 from strings import ENG as STRINGS
 from constants import CONSTANTS
 
@@ -254,3 +255,70 @@ class Inputs:
             if self.input_dict[input] == False:
                 return False
         return True
+
+
+class TransactionList:
+    """
+    The TransactionList class sets up a list of PushButton objects, that are added in a scrollarea
+    The PushButtons should represent the transactions the user has taken
+    The user should be able to click on these buttons to view and edit that transaction
+    """
+    def __init__(self, func_get_transactions):
+        """
+        basic constructor is setting up the TransactionList datatype, 
+        you have to provide a function that returns a list of transactions which are displayed
+        :param func_get_transactions: function<gets list of transaction objects>
+        :return: void
+        """
+        assert(callable(func_get_transactions)), STRINGS.getTypeErrorString(func_get_transactions, "func_get_transactions", "function")
+        self.buttons = []   #list of PushButtons
+        self.layout = None  #the layout that is used to add the PushButtons
+        self.func_get_transactions = func_get_transactions
+    
+    def setLayout(self, layout):
+        """
+        sets the layout which holds the PushButtons, has to be done before using this object
+        :param layout: Some pyqt5 layout type<layout in which the buttons are added and removed>
+        :return: void
+        """
+        assert(type(layout) == QVBoxLayout), STRINGS.getTypeErrorString(layout, "layout", QVBoxLayout)
+        self.layout = layout
+
+    def updateLastTrans(self):
+        """
+        updates the buttons by getting the new transaction data from the backend
+        :return: void
+        """
+        #deletes all current buttons
+        for i in reversed(range(self.layout.count())): 
+            widget = self.layout.itemAt(i).widget()
+            if widget is not None:
+                widget.deleteLater()
+        self.buttons = []
+
+        for transaction in self.func_get_transactions():
+            #for each transaction get a PushButton object and add it to the layout
+            element_button = self._getTransactionButton(transaction)
+            self.layout.addWidget(element_button)  
+            self.buttons.append(element_button)
+        #self.scrollarea.setMinimumWidth(int(element_button.size().width()*1.1))  
+
+    def _getTransactionButton(self, transaction):
+        """
+        gets a PushButton object created using a transaction object. This method is labeling a button with transaction data
+        :param transaction: object<Transaction>
+        :return: object<PushButton>
+        """
+        assert(self.layout != False), STRINGS.ERROR_NO_LAYOUT
+        assert(type(transaction) == Transaction), STRINGS.getTypeErrorString(transaction, "transaction", Transaction)
+        element_button = QPushButton()
+        element_layout = QVBoxLayout()  #layout for the button
+
+        #some label with transaction data
+        label = QLabel(transaction.date.strftime("[%d %b %Y]")+"\t"+str(transaction.cashflow)+STRINGS.CURRENCY+"\t"+transaction.product.name)
+
+        element_layout.addWidget(label)
+
+        element_button.setLayout(element_layout)
+        element_button.adjustSize() #makes the content fit
+        return element_button

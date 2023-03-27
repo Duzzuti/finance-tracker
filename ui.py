@@ -7,7 +7,7 @@ from strings import ENG as STRINGS
 from fonts import FONTS
 from constants import CONSTANTS
 from backend import Backend
-from ui_datatypes import Combo, Inputs
+from ui_datatypes import Combo, Inputs, TransactionList
 
 from PyQt5.QtWidgets import QGridLayout, QLabel, QGroupBox, QVBoxLayout, QHBoxLayout, QPushButton, QDialog, QWidget
 from PyQt5.QtWidgets import QSpinBox, QCalendarWidget, QLineEdit, QCompleter, QComboBox, QMessageBox, QScrollArea, QSizePolicy
@@ -49,6 +49,9 @@ class Window(QDialog):
 
         #input object is responsible for activating the submit button if all required inputs are given
         self.Inputs = Inputs([STRINGS.APP_NEW_TRANSACTION_PRODUCT_INPUT, STRINGS.APP_NEW_TRANSACTION_CASHFLOW_INPUT], self.activateTransSubmitButton, self.deactivateTransSubmitButton)
+
+        #transaction list object handles the scrollable transaction list ui component
+        self.TransList = TransactionList(self.backend.getTransactions)
 
         #build the window
         self.InitWindow()
@@ -323,44 +326,30 @@ class Window(QDialog):
         self.layout_transaction.addWidget(self.submit_button)
 
     def addWidgetsLastTrans(self):
+        """
+        adds the Widgets to the "last transactions" part of the window. The buttons are handled in a datatype
+        builds up the "last transactions" part of the window and connects these widgets with the backend
+        handles the behavior of these widgets too
+        :return: void
+        """
+        #creates a scrollarea with a vertical scroll bar and no horizontal scroll bar
         self.scrollarea = QScrollArea()
         self.scrollarea.setWidgetResizable(True)
         self.scrollarea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.scrollarea.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
 
-        self.scroll_widget = QWidget()
-        self.scroll_vbox = QVBoxLayout()
-        self.scroll_vbox.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.scroll_widget = QWidget()      #inner widget, holds the buttons
+        self.scroll_vbox = QVBoxLayout()    #layout for the inner widget
+        self.scroll_vbox.setAlignment(Qt.AlignmentFlag.AlignTop)    #buttons should build up from the top
 
-        self.updateLastTrans()
+        self.TransList.setLayout(self.scroll_vbox)  #sets the layout inside the datatype
+        self.TransList.updateLastTrans()            #loads the buttons from the backend
 
+        #sets the layout of the inner widget and sets this widget in the scrollarea, finally adds the scrollarea to the main layout
         self.scroll_widget.setLayout(self.scroll_vbox)
         self.scrollarea.setWidget(self.scroll_widget)
         self.layout_lastTransaction.addWidget(self.scrollarea)
 
-    def updateLastTrans(self):
-
-        for i in reversed(range(self.scroll_vbox.count())): 
-            widget = self.scroll_vbox.itemAt(i).widget()
-            if widget is not None:
-                widget.deleteLater()
-
-        for transaction in self.backend.getTransactions():
-            element_button = self.getTransactionButton(transaction)
-            self.scroll_vbox.addWidget(element_button)  
-        #self.scrollarea.setMinimumWidth(int(element_button.size().width()*1.1))  
-   
-    def getTransactionButton(self, transaction):
-        element_button = QPushButton()
-        element_layout = QGridLayout()
-
-        label = QLabel(transaction.date.strftime("[%d %b %Y]")+"\t"+str(transaction.cashflow)+STRINGS.CURRENCY+"\t"+transaction.product.name, self)
-
-        element_layout.addWidget(label, 0, 0)
-
-        element_button.setLayout(element_layout)
-        element_button.adjustSize()
-        return element_button
 
     def activateTransSubmitButton(self):
         """
@@ -720,5 +709,5 @@ class Window(QDialog):
 
         #sends the data to the backend
         self.backend.addTransaction(date, product, number, full_cashflow, categories, ftpersons, whypersons)
-        self.updateLastTrans()
+        self.TransList.updateLastTrans()    #update the buttons in the scrollarea showing the last transactions
 
