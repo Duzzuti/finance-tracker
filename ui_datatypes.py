@@ -1,7 +1,7 @@
 """
 This module provides the datatypes used by the ui
 """
-from PyQt5.QtWidgets import QComboBox, QVBoxLayout, QPushButton, QLabel
+from PyQt5.QtWidgets import QComboBox, QVBoxLayout, QPushButton, QLabel, QHBoxLayout
 from backend_datatypes import Transaction
 from strings import ENG as STRINGS
 from constants import CONSTANTS
@@ -344,13 +344,22 @@ class TransactionList:
         """
         assert(self.layout != False), STRINGS.ERROR_NO_LAYOUT
         assert(type(transaction) == Transaction), STRINGS.getTypeErrorString(transaction, "transaction", Transaction)
+        
         element_button = QPushButton()
-        element_layout = QVBoxLayout()  #layout for the button
+        element_layout = QHBoxLayout()  #layout for the button
+        element_layout.setContentsMargins(10, 3, 10, 3)     #CHANGE
 
         #some label with transaction data
-        label = QLabel(transaction.date.strftime("[%d %b %Y]")+"\t"+str(transaction.cashflow)+STRINGS.CURRENCY+"\t"+transaction.product.name)
+        date_string = transaction.date.strftime('[%d %b %Y]')
+        cashflow_string = str(transaction.cashflow)+STRINGS.CURRENCY
+        product_string = transaction.product.name
+        date_label = QLabel(date_string)
+        cashflow_label = QLabel(cashflow_string)
+        product_label = QLabel(product_string)
 
-        element_layout.addWidget(label)
+        element_layout.addWidget(date_label, 1)
+        element_layout.addWidget(cashflow_label, 1)
+        element_layout.addWidget(product_label, 1)
 
         element_button.setLayout(element_layout)
         element_button.adjustSize() #makes the content fit

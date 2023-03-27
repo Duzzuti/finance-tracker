@@ -44,6 +44,12 @@ class ENG:
     APP_NEW_TRANSACTION_PRODUCT_INPUT = "product"
     APP_NEW_TRANSACTION_CASHFLOW_INPUT = "cashflow"
 
+    #edit mode
+    APP_LABEL_EDIT_TRANSACTION = "Edit transaction"
+    APP_BUTTON_EDIT_TRANSACTION_SUBMIT = "Save changes"
+    APP_BUTTON_EDIT_TRANSACTION_DELETE = "Delete transaction"
+    APP_BUTTON_EDIT_TRANSACTION_CANCEL = "Cancel"
+
     #TransactionWindow Strings
     TWINDOW_TITLE = "View transaction"
     TWINDOW_ICON = "media/icon.png"
@@ -91,6 +97,9 @@ class ENG:
     ERROR_NO_PRODUCT_FOUND = "No product found with name: "
     ERROR_BUTTON_NOT_FOUND = "The provided button is not found in the button list"
     ERROR_TRANSACTION_OUT_OF_RANGE = "the transaction index is out of range, should be as long as buttons"
+    ERROR_NOT_IN_EDIT_MODE = "The action cannot be done because the window is not in edit mode"
+    ERROR_IN_EDIT_MODE = "The action cannot be done because the window is in edit mode"
+    ERROR_NO_TRANSACTION_BUTTON_SET = "There is no active transaction button set"
 
     ERROR_WRONG_CF_DATA = "Got wrong cashflow data: "
     ERROR_WRONG_FORMAT_GEOMETRY = "geometry is in a wrong format: "

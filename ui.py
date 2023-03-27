@@ -38,6 +38,9 @@ class Window(QDialog):
         self.width = geometry[2]
         self.height = geometry[3]
 
+        self.edit_mode = False  #form is in edit mode?
+        self.choosed_trans_button = False   #the button, which transaction is currently choosen
+
         self.backend = Backend(self)    #sets up the backend object to perform backend requests in the ui
 
         #sets up the ComboBox Objects
@@ -113,7 +116,7 @@ class Window(QDialog):
         """
 
         #********************CALENDAR********************************
-        self.trans_date_edit = QCalendarWidget(self)
+        self.trans_date_edit = QCalendarWidget()
         self.trans_date_edit.setMinimumDate(QDate(1900, 1, 1))
         self.trans_date_edit.setMaximumDate(QDate.currentDate())
         #removes the vertical header (week of the year) to save space
@@ -131,7 +134,7 @@ class Window(QDialog):
         hgrid_prod_num.addWidget(self.trans_product_label, 0, 0)
 
         #product input
-        self.trans_product_edit = QLineEdit(self)
+        self.trans_product_edit = QLineEdit()
         self.trans_product_completer = QCompleter(self.backend.getProductNames())
         self.trans_product_edit.setCompleter(self.trans_product_completer)      #add an autocompleter
         self.trans_product_edit.textChanged.connect(self.Echange_product_text)
@@ -143,7 +146,7 @@ class Window(QDialog):
         hgrid_prod_num.addWidget(self.trans_number_label, 0, 1)
 
         #number of products input
-        self.trans_number_spin_box = QSpinBox(self)
+        self.trans_number_spin_box = QSpinBox()
         self.trans_number_spin_box.setValue(1)
         self.trans_number_spin_box.setMinimum(1)        #set minimum and maximum values
         self.trans_number_spin_box.setMaximum(1000000)
@@ -169,7 +172,7 @@ class Window(QDialog):
         grid_cf.addWidget(self.trans_sign_label, 2, 0)
 
         #sign input
-        self.trans_sign = QComboBox(self)
+        self.trans_sign = QComboBox()
         self.trans_sign.setStyleSheet("combobox-popup: 0;")
         self.trans_sign.addItems([STRINGS.APP_LABEL_NEW_TRANSACTION_CF_SIGN_PLUS, STRINGS.APP_LABEL_NEW_TRANSACTION_CF_SIGN_MINUS])
         self.trans_sign.setCurrentText(STRINGS.APP_LABEL_NEW_TRANSACTION_CF_SIGN_MINUS)
@@ -184,14 +187,14 @@ class Window(QDialog):
         grid_cf.addWidget(self.trans_fullp_label, 2, 2)
 
         #price per product input
-        self.trans_ppp_edit = QLineEdit(self)
+        self.trans_ppp_edit = QLineEdit()
         self.trans_ppp_edit.textChanged.connect(self.Eenter_only_numbers)
         self.trans_ppp_edit.textChanged.connect(self.Esync_cashflows)
         self.trans_ppp_edit.textChanged.connect(self.Echanged_cashflow)
         grid_cf.addWidget(self.trans_ppp_edit, 3, 1)
 
         #full price input
-        self.trans_fullp_edit = QLineEdit(self)
+        self.trans_fullp_edit = QLineEdit()
         self.trans_fullp_edit.textChanged.connect(self.Eenter_only_numbers)
         self.trans_fullp_edit.textChanged.connect(self.Esync_cashflows)
         self.trans_fullp_edit.textChanged.connect(self.Echanged_cashflow)
@@ -223,12 +226,12 @@ class Window(QDialog):
         vbox_new_cat.addWidget(self.trans_cat_label)
 
         #add new category input
-        self.trans_cat_edit = QLineEdit(self)
+        self.trans_cat_edit = QLineEdit()
         self.trans_cat_edit.textChanged.connect(self.Echange_cat_text)
         vbox_new_cat.addWidget(self.trans_cat_edit)
 
         #add new category button
-        self.trans_cat_button = QPushButton(STRINGS.APP_BUTTON_NEW_TRANSACTION_ADD_CAT, self)
+        self.trans_cat_button = QPushButton(STRINGS.APP_BUTTON_NEW_TRANSACTION_ADD_CAT)
         #at default the button is disabled, you need to type at least 3 characters to activate it
         self.trans_cat_button.setEnabled(False)     
         self.trans_cat_button.setToolTip(STRINGS.TOOLTIP_TYPE_3_CHARS)
@@ -236,7 +239,7 @@ class Window(QDialog):
         vbox_new_cat.addWidget(self.trans_cat_button)
 
         #reset category button
-        self.trans_reset_button = QPushButton(STRINGS.APP_BUTTON_NEW_TRANSACTION_RESET_CAT, self)
+        self.trans_reset_button = QPushButton(STRINGS.APP_BUTTON_NEW_TRANSACTION_RESET_CAT)
         self.trans_reset_button.clicked.connect(self.Ereset_category)
         vbox_new_cat.addWidget(self.trans_reset_button)
 
@@ -317,6 +320,8 @@ class Window(QDialog):
 
         #********************SUBMIT_BUTTON***************************
         #submit transaction button
+        self.submit_widget = QWidget()
+        self.submit_layout = QHBoxLayout()
         self.submit_button = QPushButton(STRINGS.APP_BUTTON_NEW_TRANSACTION_SUBMIT)
         self.submit_button.setFont(FONTS.APP_NEW_TRANSACTION_SUBMIT)
         #at default the button is disabled, you need to fill out all required fields to activate it
@@ -324,7 +329,9 @@ class Window(QDialog):
         self.submit_button.setEnabled(False)
         self.submit_button.setToolTip(STRINGS.TOOLTIP_SUBMIT_BUTTON)
         self.submit_button.clicked.connect(self.Esubmit_transaction)
-        self.layout_transaction.addWidget(self.submit_button)
+        self.submit_layout.addWidget(self.submit_button)
+        self.submit_widget.setLayout(self.submit_layout)
+        self.layout_transaction.addWidget(self.submit_widget)
 
     def addWidgetsLastTrans(self):
         """
@@ -351,18 +358,20 @@ class Window(QDialog):
         self.scrollarea.setWidget(self.scroll_widget)
         self.layout_lastTransaction.addWidget(self.scrollarea)
 
-    def enableEditMode(self, sender_button:QPushButton, transaction:Transaction):
+    def enableEditMode(self, transaction:Transaction):
         """
         sets the window into edit mode
         That means it will load the transaction data into the form and change some button labels and event handlers
         it will add some buttons for canceling edit or accepting it (and leaving edit mode)
         Moreover there will be some style changes to tell the user that its edit mode
-        :param sender_button: object<PushButton> button, that triggered the event
         :param transaction: object<Transaction> transaction to load
         :return: void
         """
         assert(type(transaction) == Transaction), STRINGS.getTypeErrorString(transaction, "transaction", Transaction)
-        assert(type(sender_button) == QPushButton), STRINGS.getTypeErrorString(sender_button, "sender_button", QPushButton)
+        assert(self.choosed_trans_button != False), STRINGS.ERROR_NO_TRANSACTION_BUTTON_SET
+        assert(type(self.choosed_trans_button) == QPushButton), STRINGS.getTypeErrorString(self.choosed_trans_button, "self.sender_button", QPushButton)
+        assert(not self.edit_mode), STRINGS.ERROR_IN_EDIT_MODE
+        self.edit_mode = True
         #loads the transaction data into the form
         self.trans_date_edit.setSelectedDate(QDate(transaction.date.year, transaction.date.month, transaction.date.day))    #date
         self.trans_product_edit.setText(transaction.product.name)   #product name
@@ -373,6 +382,72 @@ class Window(QDialog):
         self.FtpCombo.setItems(transaction.getFtPersonNames())          #from/to persons
         self.WhyCombo.setItems(transaction.getWhyPersonNames())         #why persons
 
+        #make the gui look like edit mode
+        self.choosed_trans_button.setStyleSheet("QPushButton {background-color:red;}")
+        self.choosed_trans_button.adjustSize()
+        self.groupBox_transaction.setStyleSheet("QGroupBox {background-color:#ffcccc;}")
+        self.groupBox_transaction_label.setText(STRINGS.APP_LABEL_EDIT_TRANSACTION)
+
+        self.submit_button.setText(STRINGS.APP_BUTTON_EDIT_TRANSACTION_SUBMIT)
+        #adding some new buttons, and connecting to the right event handler
+        self.submit_button.clicked.disconnect()
+        self.submit_button.setEnabled(False)    #the user has to make changes to activate this button
+
+        delete_button = QPushButton(STRINGS.APP_BUTTON_EDIT_TRANSACTION_DELETE)
+        delete_button.setFont(FONTS.APP_NEW_TRANSACTION_SUBMIT)
+        delete_button.setStyleSheet("color:red")
+        self.submit_layout.addWidget(delete_button)
+
+        cancel_button = QPushButton(STRINGS.APP_BUTTON_EDIT_TRANSACTION_CANCEL)
+        cancel_button.setFont(FONTS.APP_NEW_TRANSACTION_SUBMIT)
+        self.submit_layout.addWidget(cancel_button)
+
+        #connect with event handler
+        self.choosed_trans_button.clicked.disconnect()      #the choosen transaction should work as a cancel button too
+        self.choosed_trans_button.clicked.connect(self.Eedit_cancel)
+        self.submit_button.clicked.connect(self.Eedit_save_changes)
+        delete_button.clicked.connect(self.Eedit_delete_transaction)
+        cancel_button.clicked.connect(self.Eedit_cancel)
+
+    def disableEditMode(self):
+        """
+        leaves the edit mode
+        that means that the gui is looking normal again and all data inside the form gets wiped
+        the event handlers will be connected correct again
+        :return: void
+        """
+        assert(self.edit_mode), STRINGS.ERROR_NOT_IN_EDIT_MODE
+        self.edit_mode = False
+
+        #lets wipe some form data
+        self.trans_date_edit.setSelectedDate(QDate.currentDate())
+        self.trans_product_edit.setText("")
+        self.trans_number_spin_box.setValue(1)
+        self.trans_fullp_edit.setText("0.0")           #due to syncing the cashflow per product is automatically set to 0
+        self.trans_sign.setCurrentText(STRINGS.APP_LABEL_NEW_TRANSACTION_CF_SIGN_MINUS)     #standard is a loss :(
+        self.CatCombo.reset()
+        self.FtpCombo.reset()
+        self.WhyCombo.reset()
+
+        #lets change the looking of the gui
+        self.choosed_trans_button.setStyleSheet("")
+        self.choosed_trans_button.adjustSize()
+        self.groupBox_transaction.setStyleSheet("")
+        self.groupBox_transaction_label.setText(STRINGS.APP_LABEL_NEW_TRANSACTION)
+
+        self.submit_button.setText(STRINGS.APP_BUTTON_NEW_TRANSACTION_SUBMIT)
+        for button in self.submit_widget.children():
+            if button != None and button != self.submit_button and button != self.submit_layout:
+                button.deleteLater()
+        
+        #connect to the right event handler
+        self.choosed_trans_button.clicked.disconnect()
+        self.choosed_trans_button.clicked.connect(self.Elast_trans_button_pressed)
+        self.submit_button.clicked.disconnect()
+        self.submit_button.clicked.connect(self.Esubmit_transaction)
+
+        self.choosed_trans_button = False           #this transaction button is no more active
+        self.adjustSize()
 
     def activateTransSubmitButton(self):
         """
@@ -744,7 +819,28 @@ class Window(QDialog):
         assert(type(self.sender()) == QPushButton), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
         but = self.sender()
         trans = self.TransList.getTransactionForButton(but)
-        self.enableEditMode(but, trans)
+        if self.edit_mode:
+            #an other transaction was choosen, so we wanna switch to that
+            self.disableEditMode()
+        self.choosed_trans_button = but
+        self.enableEditMode(trans)
+
+    def Eedit_cancel(self):
+        """
+        event handler 
+        activates if the user presses the cancel button
+        leaves edit mode, clears the form
+        :return: void
+        """
+        assert(type(self.sender()) == QPushButton), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
+        self.disableEditMode()
+
+    def Eedit_save_changes(self):
+        pass
+
+    def Eedit_delete_transaction(self):
+        pass
+
 
 class TransactionWindow(QDialog):
     """
