@@ -351,16 +351,18 @@ class Window(QDialog):
         self.scrollarea.setWidget(self.scroll_widget)
         self.layout_lastTransaction.addWidget(self.scrollarea)
 
-    def enableEditMode(self, transaction):
+    def enableEditMode(self, sender_button:QPushButton, transaction:Transaction):
         """
         sets the window into edit mode
         That means it will load the transaction data into the form and change some button labels and event handlers
         it will add some buttons for canceling edit or accepting it (and leaving edit mode)
         Moreover there will be some style changes to tell the user that its edit mode
+        :param sender_button: object<PushButton> button, that triggered the event
         :param transaction: object<Transaction> transaction to load
         :return: void
         """
         assert(type(transaction) == Transaction), STRINGS.getTypeErrorString(transaction, "transaction", Transaction)
+        assert(type(sender_button) == QPushButton), STRINGS.getTypeErrorString(sender_button, "sender_button", QPushButton)
         #loads the transaction data into the form
         self.trans_date_edit.setSelectedDate(QDate(transaction.date.year, transaction.date.month, transaction.date.day))    #date
         self.trans_product_edit.setText(transaction.product.name)   #product name
@@ -370,6 +372,7 @@ class Window(QDialog):
         self.CatCombo.setItems(transaction.product.categories)          #categories
         self.FtpCombo.setItems(transaction.getFtPersonNames())          #from/to persons
         self.WhyCombo.setItems(transaction.getWhyPersonNames())         #why persons
+
 
     def activateTransSubmitButton(self):
         """
@@ -741,8 +744,7 @@ class Window(QDialog):
         assert(type(self.sender()) == QPushButton), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
         but = self.sender()
         trans = self.TransList.getTransactionForButton(but)
-        self.enableEditMode(trans)
-
+        self.enableEditMode(but, trans)
 
 class TransactionWindow(QDialog):
     """

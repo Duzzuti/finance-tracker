@@ -13,7 +13,7 @@ class Combo:
     the user can add an item to all Boxes at the same time
     These functionalities are provided in this class
     """
-    def __init__(self, default_item, choosed_event_func, func_get_items):
+    def __init__(self, default_item:str, choosed_event_func:callable, func_get_items:callable):
         """
         basic constructor is setting up the Combo datatype
         :param default_item: str<Item which should be choosed at default and does not have any meaning (some descriptor string)>
@@ -30,7 +30,7 @@ class Combo:
         self.layout = False     #no layout specified
         self.func_get_items = func_get_items
     
-    def setLayout(self, layout):
+    def setLayout(self, layout:QVBoxLayout):
         """
         sets the layout which holds the ComboBoxes, has to be done before using this object
         :param layout: Some pyqt5 layout type<layout in which the boxes are added and removed>
@@ -56,7 +56,7 @@ class Combo:
         self.layout.addWidget(box)
         self.boxes.append(box)
     
-    def getAllItems(self, default=False):
+    def getAllItems(self, default:bool=False):
         """
         gets all items from the first box
         :param default: bool<should the default item be included?>
@@ -127,9 +127,10 @@ class Combo:
             box.currentTextChanged.connect(self.choosed_event_func) #connect the event handler again
         self.sort()
 
-    def addItem(self, item, set_item=True):
+    def addItem(self, item:str, set_item:bool=True):
         """
         add a new item in all boxes
+        :param item: str<item, that should be added>
         :param set_item: bool<should the new added item be choosed from one box, which has the default option choosed?>
         :return: void
         """
@@ -197,7 +198,7 @@ class Combo:
         assert(type(res) == list and all(map(lambda x: type(x) == str, res))), STRINGS.getListTypeErrorString(res, "res", str)
         return res
 
-    def setItems(self, items):
+    def setItems(self, items:list[str]):
         """
         clears the current choosen items and chooses the given items
         :param items: list<str<item1>, ...> has to be in func_get_items
@@ -218,7 +219,7 @@ class Inputs:
     The Inputs class sets up a dictionary to track whether something, depending on requirements, is possible
     You can set up some requirements and set them to true or false. You can check whether all requirements are true or not
     """
-    def __init__(self, input_list, true_func, false_func):
+    def __init__(self, input_list:list[str], true_func:callable, false_func:callable):
         """
         basic constructor is setting up the inputs datatype, you can provide a list with requirements and
         some functions to execute, if all requirements are met or not
@@ -240,7 +241,7 @@ class Inputs:
         for i in input_list:
             self.input_dict[i] = False  #sets all requirements to false
     
-    def setInput(self, input, status):
+    def setInput(self, input:str, status:bool):
         """
         set a requirement (input) to status
         :param input: str<requirement>
@@ -278,7 +279,7 @@ class TransactionList:
     The PushButtons should represent the transactions the user has taken
     The user should be able to click on these buttons to view and edit that transaction
     """
-    def __init__(self, func_get_transactions, func_event_handler):
+    def __init__(self, func_get_transactions:callable, func_event_handler:callable):
         """
         basic constructor is setting up the TransactionList datatype, 
         you have to provide a function that returns a list of transactions which are displayed and an event handler for the buttons
@@ -293,7 +294,7 @@ class TransactionList:
         self.func_get_transactions = func_get_transactions
         self.func_event_handler = func_event_handler
     
-    def setLayout(self, layout):
+    def setLayout(self, layout:QVBoxLayout):
         """
         sets the layout which holds the PushButtons, has to be done before using this object
         :param layout: Some pyqt5 layout type<layout in which the buttons are added and removed>
@@ -324,7 +325,7 @@ class TransactionList:
             self.transactions.append(transaction)
         #self.scrollarea.setMinimumWidth(int(element_button.size().width()*1.1))  
 
-    def getTransactionForButton(self, button):
+    def getTransactionForButton(self, button:QPushButton):
         """
         getter for a transaction object coresponding to a given button
         :param button: object<PushButton>
@@ -335,7 +336,7 @@ class TransactionList:
         assert(len(self.transactions) >= ind+1), STRINGS.ERROR_TRANSACTION_OUT_OF_RANGE
         return self.transactions[ind]
 
-    def _getTransactionButton(self, transaction):
+    def _getTransactionButton(self, transaction:Transaction):
         """
         gets a PushButton object created using a transaction object. This method is labeling a button with transaction data
         :param transaction: object<Transaction>

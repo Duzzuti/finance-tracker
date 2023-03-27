@@ -68,7 +68,7 @@ class Backend:
         for trans in self.transactions:
             yield trans
 
-    def addCategory(self, category):
+    def addCategory(self, category:str):
         """
         adds a new category to the existing ones
         returns a bool, whether the category was added or not
@@ -84,7 +84,7 @@ class Backend:
         self.categories.append(category)
         return True
 
-    def addPerson(self, person_text):
+    def addPerson(self, person_text:str):
         """
         adds a new person to the existing ones
         returns a bool, whether the person was added or not
@@ -100,7 +100,8 @@ class Backend:
         self.persons.append(Person(person_text))
         return True
 
-    def addTransaction(self, date, product_name, number, full_cf, categories, ftpersons, whypersons):
+    def addTransaction(self, date:datetime.date, product_name:str, number:int, full_cf:float, 
+                       categories:list[str], ftpersons:list[str], whypersons:list[str]):
         """
         adds a new transaction to the existing ones
         :param date: datetime.date<date of the transaction>
@@ -186,7 +187,7 @@ class Backend:
         #add the validated transaction
         self._addTransaction(date, product_obj, number, full_cf, ftperson_objects, whyperson_objects)
     
-    def _getProductByName(self, product_name):
+    def _getProductByName(self, product_name:str):
         """
         getter for a product object, that corresponds to a given name
         :param product_name: str<name of the product>
@@ -197,7 +198,7 @@ class Backend:
                 return product
         return False
 
-    def _setCategoriesToProduct(self, product_name, categories):
+    def _setCategoriesToProduct(self, product_name:str, categories:list[str]):
         """
         sets a new set of categories to a product given by a name
         :param product_name: str<name of the product>
@@ -211,7 +212,7 @@ class Backend:
         assert(product != False), STRINGS.ERROR_NO_PRODUCT_FOUND+str(product_name)
         product.categories = categories
 
-    def _addProduct(self, product_name, categories):
+    def _addProduct(self, product_name:str, categories:list[str]):
         """
         add a new product with a given name and categories
         returns the object of the new added product
@@ -227,7 +228,8 @@ class Backend:
         self.products.append(product_obj)
         return product_obj
 
-    def _addTransaction(self, date, product_obj, product_number, fullcf, ftperson_objects, whyperson_objects):
+    def _addTransaction(self, date:datetime.date, product_obj:Product, product_number:int, fullcf:float, 
+                        ftperson_objects:list[Person], whyperson_objects:list[Person]):
         """
         add a new transaction with already validated data
         :param date: datetime.date<date of the transaction>
