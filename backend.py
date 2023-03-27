@@ -26,6 +26,10 @@ class Backend:
         self.persons = []       #a list that holds person objects of all known persons
         self.transactions = []  #a list that holds transaction objects of all known transactions
 
+        self.categories=["cat1", "cat2", "cat3"]
+        self.persons = [Person("pers1"), Person("pers2")]
+        self.persons += [Person("pers3"), Person("pers4")]
+
     def getError(self):
         """
         gets a message of the last occured error (or declining some action, like adding a new category)
@@ -60,7 +64,7 @@ class Backend:
         :return: Generator<object<Transaction>>
         """
         #WORK should be returned sorted by date
-        yield Transaction(datetime.date.today(), Product("product1", categories=["cat1", "cat2", "cat3"]), 5, 7.25, [Person("pers1"), Person("pers2")], [Person("pers3"), Person("pers4")])
+        yield Transaction(datetime.date(2022, 1, 1), Product("product1", categories=["cat1", "cat2", "cat3"]), 5, 7.25, [Person("pers1"), Person("pers2")], [Person("pers3"), Person("pers4")])
         for trans in self.transactions:
             yield trans
 

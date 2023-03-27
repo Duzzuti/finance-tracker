@@ -30,3 +30,9 @@ class Transaction:
         self.cashflow_per_product = round(self.cashflow / self.number, 2)
         self.from_to_persons = from_to_persons
         self.why_persons = why_persons
+    
+    def getFtPersonNames(self):
+        return sorted(map(lambda x: x.name, self.from_to_persons))
+
+    def getWhyPersonNames(self):
+        return sorted(map(lambda x: x.name, self.why_persons))

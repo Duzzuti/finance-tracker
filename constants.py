@@ -1,4 +1,3 @@
 
 class CONSTANTS:
-    MAX_CATEGORIES = 5
-    MAX_PERSONS = 5
+    MAX_COMBOS = 5

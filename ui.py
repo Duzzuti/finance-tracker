@@ -351,6 +351,25 @@ class Window(QDialog):
         self.scrollarea.setWidget(self.scroll_widget)
         self.layout_lastTransaction.addWidget(self.scrollarea)
 
+    def enableEditMode(self, transaction):
+        """
+        sets the window into edit mode
+        That means it will load the transaction data into the form and change some button labels and event handlers
+        it will add some buttons for canceling edit or accepting it (and leaving edit mode)
+        Moreover there will be some style changes to tell the user that its edit mode
+        :param transaction: object<Transaction> transaction to load
+        :return: void
+        """
+        assert(type(transaction) == Transaction), STRINGS.getTypeErrorString(transaction, "transaction", Transaction)
+        #loads the transaction data into the form
+        self.trans_date_edit.setSelectedDate(QDate(transaction.date.year, transaction.date.month, transaction.date.day))    #date
+        self.trans_product_edit.setText(transaction.product.name)   #product name
+        self.trans_number_spin_box.setValue(transaction.number)     #product count
+        self.trans_sign.setCurrentText(STRINGS.APP_LABEL_NEW_TRANSACTION_CF_SIGN_PLUS if transaction.cashflow > 0 else STRINGS.APP_LABEL_NEW_TRANSACTION_CF_SIGN_MINUS)
+        self.trans_fullp_edit.setText(str(abs(transaction.cashflow)))   #full cashflow (cashflow per product is autmotically synced)
+        self.CatCombo.setItems(transaction.product.categories)          #categories
+        self.FtpCombo.setItems(transaction.getFtPersonNames())          #from/to persons
+        self.WhyCombo.setItems(transaction.getWhyPersonNames())         #why persons
 
     def activateTransSubmitButton(self):
         """
@@ -522,7 +541,7 @@ class Window(QDialog):
             self.CatCombo.updateItems()    #sets the items correctly (you can only choose every option once) 
             return
             
-        if CONSTANTS.MAX_CATEGORIES > self.CatCombo.getLen():
+        if CONSTANTS.MAX_COMBOS > self.CatCombo.getLen():
             #add a new box, if the max boxes are not reached yet
             self.CatCombo.addComboBox()
 
@@ -539,7 +558,7 @@ class Window(QDialog):
             self.FtpCombo.updateItems()    #sets the items correctly (you can only choose every option once) 
             return
             
-        if CONSTANTS.MAX_PERSONS > self.FtpCombo.getLen():
+        if CONSTANTS.MAX_COMBOS > self.FtpCombo.getLen():
             #add a new box, if the max boxes are not reached yet
             self.FtpCombo.addComboBox()
     
@@ -556,7 +575,7 @@ class Window(QDialog):
             self.WhyCombo.updateItems()    #sets the items correctly (you can only choose every option once) 
             return
             
-        if CONSTANTS.MAX_PERSONS > self.WhyCombo.getLen():
+        if CONSTANTS.MAX_COMBOS > self.WhyCombo.getLen():
             #add a new box, if the max boxes are not reached yet
             self.WhyCombo.addComboBox()
 
@@ -722,7 +741,7 @@ class Window(QDialog):
         assert(type(self.sender()) == QPushButton), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
         but = self.sender()
         trans = self.TransList.getTransactionForButton(but)
-        TransactionWindow(trans)
+        self.enableEditMode(trans)
 
 
 class TransactionWindow(QDialog):

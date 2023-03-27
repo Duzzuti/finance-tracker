@@ -45,7 +45,7 @@ class Combo:
         :return: void
         """
         assert(self.layout != False), STRINGS.ERROR_NO_LAYOUT
-        assert(self.getLen() < max(CONSTANTS.MAX_PERSONS, CONSTANTS.MAX_CATEGORIES)), STRINGS.ERROR_TOO_MANY_COMBOS + f"({self.getLen()}, {max(CONSTANTS.MAX_PERSONS, CONSTANTS.MAX_CATEGORIES)})"
+        assert(self.getLen() < CONSTANTS.MAX_COMBOS), STRINGS.ERROR_TOO_MANY_COMBOS + f"({self.getLen()}, {CONSTANTS.MAX_COMBOS})"
         #generates the ComboBox with the right settings
         box = QComboBox()
         box.setMaxVisibleItems(20)
@@ -197,6 +197,21 @@ class Combo:
         assert(type(res) == list and all(map(lambda x: type(x) == str, res))), STRINGS.getListTypeErrorString(res, "res", str)
         return res
 
+    def setItems(self, items):
+        """
+        clears the current choosen items and chooses the given items
+        :param items: list<str<item1>, ...> has to be in func_get_items
+        :return: void
+        """
+        assert(len(items) <= CONSTANTS.MAX_COMBOS), STRINGS.ERROR_TOO_MANY_COMBOS+str(items)+", "+str(CONSTANTS.MAX_COMBOS)
+        assert(type(items) == list and all(map(lambda x: type(x) == str, items))), STRINGS.getListTypeErrorString(items, "items", str)
+        self.reset()
+        for i in range(len(items)):
+            try:
+                self.boxes[i].setCurrentText(items[i])
+            except:
+                raise ValueError(STRINGS.ERROR_CHOOSED_TEXT_NOT_IN_ITEMS)+str(items[i])
+        self.updateItems()  #sets the comboBox choices depending on the other comboBox' choosed items
 
 class Inputs:
     """

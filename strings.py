@@ -67,7 +67,7 @@ class ENG:
     ERROR_CATEGORY_NOT_ACCEPTED = "Category is not accepted"
     ERROR_PERSON_NOT_ACCEPTED = "Person is not accepted"
     ERROR_NO_LAYOUT = "No layout set. Set a layout with setLayout() first"
-    ERROR_TOO_MANY_COMBOS = "You tried to add a ComboBox, but the maximum was reached (current boxxes, maximum): "
+    ERROR_TOO_MANY_COMBOS = "You tried to add a ComboBox, but the maximum was reached (current boxes, maximum): "
     ERROR_NO_BOXES = "No items to get, sort or reset, because there are no boxes. Please add a box first"
     ERROR_CHOOSED_TEXT_NOT_IN_ITEMS = "The choosed item in the ComboBox is not in the items list: "
     ERROR_INPUT_NOT_IN_INPUTDICT = "Input is not in input dict (input): "
