@@ -421,14 +421,7 @@ class Window(QDialog):
         self.edit_mode = False
 
         #lets wipe some form data
-        self.trans_date_edit.setSelectedDate(QDate.currentDate())
-        self.trans_product_edit.setText("")
-        self.trans_number_spin_box.setValue(1)
-        self.trans_fullp_edit.setText("0.0")           #due to syncing the cashflow per product is automatically set to 0
-        self.trans_sign.setCurrentText(STRINGS.APP_LABEL_NEW_TRANSACTION_CF_SIGN_MINUS)     #standard is a loss :(
-        self.CatCombo.reset()
-        self.FtpCombo.reset()
-        self.WhyCombo.reset()
+        self.clearForm()
 
         #lets change the looking of the gui
         self.choosed_trans_button.setStyleSheet("")
@@ -471,12 +464,16 @@ class Window(QDialog):
     def addTransactionFromForm(self):
         """
         gets all data from the form and sends it to the backend as a new transaction
-        :return: void
+        :return: bool<success?>
         """
         transaction = self.getTransactionFromForm()
         if transaction != False:
             self.backend.addTransaction(transaction)
+            ret = True
+        else:
+            ret = False
         self.TransList.updateLastTrans()    #update the buttons in the scrollarea showing the last transactions
+        return ret
 
     def addTransactionFromTransaction(self, transaction:Transaction):
         """
@@ -513,6 +510,22 @@ class Window(QDialog):
 
         #sends the data to the backend
         return self.backend.getTransactionObject(date, product, number, full_cashflow, categories, ftpersons, whypersons)
+
+    def clearForm(self, clear_date:bool=True):
+        """
+        clears the form, resets all components, you can flag, whether the date in the calendar should be reseted as well
+        :param clear_date: bool<should the date also be cleared?>
+        :return: void
+        """
+        if clear_date:
+            self.trans_date_edit.setSelectedDate(QDate.currentDate())
+        self.trans_product_edit.setText("")
+        self.trans_number_spin_box.setValue(1)
+        self.trans_fullp_edit.setText("0.0")           #due to syncing the cashflow per product is automatically set to 0
+        self.trans_sign.setCurrentText(STRINGS.APP_LABEL_NEW_TRANSACTION_CF_SIGN_MINUS)     #standard is a loss :(
+        self.CatCombo.reset()
+        self.FtpCombo.reset()
+        self.WhyCombo.reset()
 
 
     def Echanged_cashflow(self):
@@ -838,7 +851,8 @@ class Window(QDialog):
         """
         assert(type(self.sender()) == QPushButton), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
         assert(not self.edit_mode), STRINGS.ERROR_IN_EDIT_MODE
-        self.addTransactionFromForm()
+        if self.addTransactionFromForm():
+            self.clearForm(clear_date=False)
 
     def Elast_trans_button_pressed(self):
         """

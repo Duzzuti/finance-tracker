@@ -3,9 +3,21 @@ this module is handling the backend of the application
 it is providing some api methods, that are used by the frontend
 """
 import datetime
+import pickle
 from strings import ENG as STRINGS
 from PyQt5.QtWidgets import QMessageBox
 from backend_datatypes import Product, Person, Transaction
+
+
+def Dsave(func):
+    """
+    decorator, which runs the function and executes a save afterwards
+    """
+    def wrapper(self, *args):
+        ret = func(self, *args)
+        self._save()
+        return ret
+    return wrapper
 
 class Backend:
     """
@@ -13,7 +25,7 @@ class Backend:
     the object are passed to the frontend classes that uses the backend to encapsulate it
     this class uses some extern datatypes defined in backend_datatypes
     """
-    def __init__(self, ui):
+    def __init__(self, ui, load:bool=True):
         """
         basic constructor is setting up the objects needed in the backend
         :param ui: object<Window>, we need some ui, to display messages like errors or information
@@ -26,7 +38,11 @@ class Backend:
         self.persons = []       #a list that holds person objects of all known persons
         self.transactions = []  #a list that holds transaction objects of all known transactions
 
-        self.transactions.append(Transaction(datetime.date(2022, 1, 1), Product("product1", categories=["cat1", "cat2", "cat3"]), 5, 7.25, [Person("pers1"), Person("pers2")], [Person("pers3"), Person("pers4")]))
+        if load:
+            self._load()
+
+    def test(self): #DEBUGONLY
+        self.transactions = (Transaction(datetime.date(2022, 1, 1), Product("product1", categories=["cat1", "cat2", "cat3"]), 5, 7.25, [Person("pers1"), Person("pers2")], [Person("pers3"), Person("pers4")]))
         self.categories=["cat1", "cat2", "cat3"]
         self.persons = [Person("pers1"), Person("pers2")]
         self.persons += [Person("pers3"), Person("pers4")]
@@ -68,6 +84,7 @@ class Backend:
         for trans in self.transactions:
             yield trans
 
+    @Dsave
     def addCategory(self, category:str):
         """
         adds a new category to the existing ones
@@ -84,6 +101,7 @@ class Backend:
         self.categories.append(category)
         return True
 
+    @Dsave
     def addPerson(self, person_text:str):
         """
         adds a new person to the existing ones
@@ -176,7 +194,8 @@ class Backend:
             #add the choosen product if its not known
             product_obj = self._addProduct(product_name, categories)
         return Transaction(date, product_obj, number, full_cf, ftperson_objects, whyperson_objects)
-        
+    
+    @Dsave
     def addTransaction(self, transaction:Transaction):
         """
         adds a new transaction to the existing ones, pls validate it first with getTransactionObject
@@ -188,6 +207,7 @@ class Backend:
         #add the validated transaction
         self.transactions.append(transaction)
     
+    @Dsave
     def deleteTransaction(self, transaction:Transaction):
         """
         deletes a given transaction from the system
@@ -209,6 +229,7 @@ class Backend:
                 return product
         return False
 
+    @Dsave
     def _setCategoriesToProduct(self, product_name:str, categories:list[str]):
         """
         sets a new set of categories to a product given by a name
@@ -223,6 +244,7 @@ class Backend:
         assert(product != False), STRINGS.ERROR_NO_PRODUCT_FOUND+str(product_name)
         product.categories = categories
 
+    @Dsave
     def _addProduct(self, product_name:str, categories:list[str]):
         """
         add a new product with a given name and categories
@@ -238,3 +260,26 @@ class Backend:
         product_obj = Product(product_name, categories)
         self.products.append(product_obj)
         return product_obj
+    
+    def _save(self):
+        """
+        saves, the backend object in a file
+        :return: void
+        """
+        pickle.dump([self.products, self.categories, self.persons, self.transactions], open("data.pkl", "wb"))
+
+    def _load(self):
+        """
+        loads, the backend object from a file
+        :return: void
+        """
+        try:
+            saved = pickle.load(open("data.pkl", "rb"))
+            self.products = saved[0]
+            self.categories = saved[1]
+            self.persons =  saved[2]
+            self.transactions = saved[3]
+        except:
+            print("no file to load from found")
+            self.__init__(self.ui, load=False)
+
