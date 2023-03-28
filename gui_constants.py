@@ -14,6 +14,9 @@ class FONTS:
     APP_LAST_TRANSACTION_SORT_ACTIVE.setBold(True)
 
 class ICONS:
+    def compare(icon1:QIcon, icon2:QIcon):
+        return icon1.pixmap(128, 128).toImage() == icon2.pixmap(128, 128).toImage()
+    
     SORT_DEFAULT = QIcon("media/sort_default.png")
     SORT_UP = QIcon("media/sort_up.png")
     SORT_DOWN = QIcon("media/sort_down.png")

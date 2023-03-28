@@ -4,11 +4,11 @@ This module provides the ui of the programm
 
 import inspect
 from strings import ENG as STRINGS
-from fonts import FONTS
+from gui_constants import FONTS, ICONS
 from constants import CONSTANTS
 from backend import Backend
 from backend_datatypes import Transaction
-from ui_datatypes import Combo, Inputs, TransactionList
+from ui_datatypes import Combo, Inputs, TransactionList, SortEnum
 
 from PyQt5.QtWidgets import QGridLayout, QLabel, QGroupBox, QVBoxLayout, QHBoxLayout, QPushButton, QDialog, QWidget
 from PyQt5.QtWidgets import QSpinBox, QCalendarWidget, QLineEdit, QCompleter, QComboBox, QMessageBox, QScrollArea, QSizePolicy
@@ -340,6 +340,25 @@ class Window(QDialog):
         handles the behavior of these widgets too
         :return: void
         """
+        #creates the sort buttons
+        layout_sort = QHBoxLayout()
+        widget_sort = QWidget()
+        
+        self.scroll_sort_date_button = QPushButton(STRINGS.APP_BUTTON_LAST_TRANSACTIONS_DATE)
+        self.scroll_sort_cf_button = QPushButton(STRINGS.APP_BUTTON_LAST_TRANSACTIONS_CASHFLOW)
+        self.scroll_sort_product_button = QPushButton(STRINGS.APP_BUTTON_LAST_TRANSACTIONS_PRODUCT)
+
+        self.sort_buttons = [self.scroll_sort_date_button, self.scroll_sort_cf_button, self.scroll_sort_product_button]
+        
+        for sort_button in self.sort_buttons:
+            sort_button.setFont(FONTS.APP_LAST_TRANSACTION_SORT)
+            sort_button.setIcon(ICONS.SORT_DEFAULT)
+            layout_sort.addWidget(sort_button)
+            sort_button.clicked.connect(self.Esort_transactions)
+
+        widget_sort.setLayout(layout_sort)
+        self.layout_lastTransaction.addWidget(widget_sort)
+
         #creates a scrollarea with a vertical scroll bar and no horizontal scroll bar
         self.scrollarea = QScrollArea()
         self.scrollarea.setWidgetResizable(True)
@@ -351,7 +370,7 @@ class Window(QDialog):
         self.scroll_vbox.setAlignment(Qt.AlignmentFlag.AlignTop)    #buttons should build up from the top
 
         self.TransList.setLayout(self.scroll_vbox)  #sets the layout inside the datatype
-        self.TransList.updateLastTrans()            #loads the buttons from the backend
+        self.sortTransactions(SortEnum.DATE, True)            #loads the buttons from the backend
 
         #sets the layout of the inner widget and sets this widget in the scrollarea, finally adds the scrollarea to the main layout
         self.scroll_widget.setLayout(self.scroll_vbox)
@@ -459,6 +478,23 @@ class Window(QDialog):
         """
         assert(not self.edit_mode), STRINGS.ERROR_IN_EDIT_MODE
         self.submit_button.setEnabled(False)
+
+    def sortTransactions(self, sortElement:SortEnum, up:bool=True):
+        """
+        this method sets the right icon for the sort buttons and makes sure the transactions are sorted
+        :param sortElement: object<SortEnum> after which category should be sorted?
+        :param up: bool<from A-Z, new-old, or small-big>
+        :return: void
+        """
+        #sets all icons to the default
+        for sort_button in self.sort_buttons:
+            sort_button.setIcon(ICONS.SORT_DEFAULT)
+
+        #gets the right icon depending on the sort order
+        icon = ICONS.SORT_UP if up else ICONS.SORT_DOWN
+        self.sort_buttons[sortElement.value].setIcon(icon)    #sets that icon to the right button
+        self.backend.sortTransactions(sortElement, up)  #sets the sort rule in the backend
+        self.TransList.updateLastTrans()                #gets the new data from the backend and display it
 
 
     def addTransactionFromForm(self):
@@ -916,6 +952,22 @@ class Window(QDialog):
         self.backend.deleteTransaction(self.TransList.getTransactionForButton(self.choosed_trans_button))
         self.disableEditMode()
         self.TransList.updateLastTrans()
+
+    def Esort_transactions(self):
+        """
+        event handler
+        activates if the user clicks a button, which should sort the transactions
+        the handler calculates how the transaction should be sorted depending on the current states
+        :return: void
+        """
+        assert(type(self.sender()) == QPushButton), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
+        assert(self.sender() in self.sort_buttons), STRINGS.ERROR_SENDER_NOT_IN_SORT_BUTTONS
+        assert(not self.edit_mode), STRINGS.ERROR_IN_EDIT_MODE
+        sortElement:SortEnum = SortEnum(self.sort_buttons.index(self.sender()))
+        up = True   #sort ascending
+        if ICONS.compare(self.sender().icon(), ICONS.SORT_UP):
+            up = False    #last time we sorted asc, so now we sort descending
+        self.sortTransactions(sortElement, up)
 
 
 class TransactionWindow(QDialog):

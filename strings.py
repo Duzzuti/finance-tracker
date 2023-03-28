@@ -37,6 +37,10 @@ class ENG:
     APP_BUTTON_NEW_TRANSACTION_RESET_PERSON = "Reset persons"
     APP_BUTTON_NEW_TRANSACTION_SUBMIT = "Add transaction"
 
+    APP_BUTTON_LAST_TRANSACTIONS_DATE = "Date "
+    APP_BUTTON_LAST_TRANSACTIONS_CASHFLOW = "Cashflow "
+    APP_BUTTON_LAST_TRANSACTIONS_PRODUCT = "Product "
+
     APP_NEW_TRANSACTION_DEFAULT_CATEGORY = "Without category"
     APP_NEW_TRANSACTION_DEFAULT_FTPERSON = "No from/to person"
     APP_NEW_TRANSACTION_DEFAULT_WHYPERSON = "No why person"
@@ -92,7 +96,7 @@ class ENG:
     ERROR_FTPERSON_NOT_UNIQUE = "There are two or more non unique from/to persons choosen: "
     ERROR_WHYPERSON_NOT_UNIQUE = "There are two or more non unique why persons choosen: "
     ERROR_NOT_KNOWN_FTPERSON_CHOOSEN = "The user choosed a from/to person not known to the system: "
-    ERROR_NOT_KNOWN_WHYPERSON_CHOOSEN = "The user choosed a why person not known to the system: "
+    ERROR_NOT_KNOWN_WHYPERSON_CHOOSEN = "The user choosedall qtwidgets a why person not known to the system: "
     ERROR_PRODUCT_ALREADY_KNOWN = "The product that should be added is already known to the system: "
     ERROR_NO_PRODUCT_FOUND = "No product found with name: "
     ERROR_BUTTON_NOT_FOUND = "The provided button is not found in the button list"
@@ -101,6 +105,8 @@ class ENG:
     ERROR_IN_EDIT_MODE = "The action cannot be done because the window is in edit mode"
     ERROR_NO_TRANSACTION_BUTTON_SET = "There is no active transaction button set"
     ERROR_TRANSACTION_NOT_IN_LIST = "The given transaction is not found in the transaction list: "
+    ERROR_SENDER_NOT_IN_SORT_BUTTONS = "The sender button is not part of the sort button list"
+    ERROR_SORTELEMENT_OUT_OF_RANGE = "The sort element has some invalid data or is out of range: "
 
     ERROR_WRONG_CF_DATA = "Got wrong cashflow data: "
     ERROR_WRONG_FORMAT_GEOMETRY = "geometry is in a wrong format: "

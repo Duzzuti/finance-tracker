@@ -7,6 +7,7 @@ import pickle
 from strings import ENG as STRINGS
 from PyQt5.QtWidgets import QMessageBox
 from backend_datatypes import Product, Person, Transaction
+from ui_datatypes import SortEnum
 
 
 def Dsave(func):
@@ -16,6 +17,16 @@ def Dsave(func):
     def wrapper(self, *args):
         ret = func(self, *args)
         self._save()
+        return ret
+    return wrapper
+
+def Dsort(func):
+    """
+    decorator, which runs the function and executes a sort afterwards
+    """
+    def wrapper(self, *args):
+        ret = func(self, *args)
+        self.sortTransactions(self.sortCriteria[0], self.sortCriteria[1])
         return ret
     return wrapper
 
@@ -37,6 +48,8 @@ class Backend:
         self.categories = []    #a list that holds some strings representing all known categories
         self.persons = []       #a list that holds person objects of all known persons
         self.transactions = []  #a list that holds transaction objects of all known transactions
+
+        self.sortCriteria = [SortEnum.DATE.value, True]
 
         if load:
             self._load()
@@ -196,6 +209,7 @@ class Backend:
         return Transaction(date, product_obj, number, full_cf, ftperson_objects, whyperson_objects)
     
     @Dsave
+    @Dsort
     def addTransaction(self, transaction:Transaction):
         """
         adds a new transaction to the existing ones, pls validate it first with getTransactionObject
@@ -208,6 +222,7 @@ class Backend:
         self.transactions.append(transaction)
     
     @Dsave
+    @Dsort
     def deleteTransaction(self, transaction:Transaction):
         """
         deletes a given transaction from the system
@@ -217,6 +232,23 @@ class Backend:
         assert(type(transaction) == Transaction), STRINGS.getTypeErrorString(transaction, "transaction", Transaction)
         assert(transaction in self.transactions), STRINGS.ERROR_TRANSACTION_NOT_IN_LIST+str(transaction)+str(self.transactions)
         self.transactions.remove(transaction)
+
+    def sortTransactions(self, sortElement:SortEnum, up:bool):
+        """
+        sorts the transactions given the sort criteria. should also sort new adds too
+        :param sortElement: object<SortEnum>
+        :param up: bool<ascending?>
+        :return: void
+        """
+        self.sortCriteria = [sortElement, up]
+        if sortElement == SortEnum.PRODUCT:
+            self.transactions.sort(key=lambda x: x.product.name, reverse=not(up))
+        elif sortElement == SortEnum.CASHFLOW:
+            self.transactions.sort(key=lambda x: x.cashflow, reverse=up)
+        elif sortElement == SortEnum.DATE:
+            self.transactions.sort(key=lambda x: x.date, reverse=up)
+        else:
+            assert(False), STRINGS.ERROR_SORTELEMENT_OUT_OF_RANGE+str(sortElement)
 
     def _getProductByName(self, product_name:str):
         """

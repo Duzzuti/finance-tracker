@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import QComboBox, QVBoxLayout, QPushButton, QLabel, QHBoxLa
 from backend_datatypes import Transaction
 from strings import ENG as STRINGS
 from constants import CONSTANTS
+from enum import Enum
 
 class Combo:
     """
@@ -310,6 +311,7 @@ class TransactionList:
         """
         #WORK better system here, dont need to delete every button every time
         #deletes all current buttons
+        assert(self.layout != False), STRINGS.ERROR_NO_LAYOUT
         for i in reversed(range(self.layout.count())): 
             widget = self.layout.itemAt(i).widget()
             if widget is not None:
@@ -323,8 +325,7 @@ class TransactionList:
             self.layout.addWidget(element_button)  
             self.buttons.append(element_button)
             self.transactions.append(transaction)
-        #self.scrollarea.setMinimumWidth(int(element_button.size().width()*1.1))  
-
+        
     def getTransactionForButton(self, button:QPushButton):
         """
         getter for a transaction object coresponding to a given button
@@ -357,11 +358,20 @@ class TransactionList:
         cashflow_label = QLabel(cashflow_string)
         product_label = QLabel(product_string)
 
-        element_layout.addWidget(date_label, 1)
-        element_layout.addWidget(cashflow_label, 1)
-        element_layout.addWidget(product_label, 1)
+        element_layout.addWidget(date_label)
+        element_layout.addWidget(cashflow_label)
+        element_layout.addWidget(product_label)
 
         element_button.setLayout(element_layout)
         element_button.adjustSize() #makes the content fit
         element_button.clicked.connect(self.func_event_handler)    #connect with event handler
         return element_button
+
+
+class SortEnum(Enum):
+    """
+    this enum holds the flags for the sort criteria
+    """
+    DATE = 0
+    CASHFLOW = 1
+    PRODUCT = 2
