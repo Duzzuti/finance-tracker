@@ -372,6 +372,7 @@ class Window(QDialog):
         assert(type(self.choosed_trans_button) == QPushButton), STRINGS.getTypeErrorString(self.choosed_trans_button, "self.sender_button", QPushButton)
         assert(not self.edit_mode), STRINGS.ERROR_IN_EDIT_MODE
         self.edit_mode = True
+
         #loads the transaction data into the form
         self.trans_date_edit.setSelectedDate(QDate(transaction.date.year, transaction.date.month, transaction.date.day))    #date
         self.trans_product_edit.setText(transaction.product.name)   #product name
@@ -391,7 +392,7 @@ class Window(QDialog):
         self.submit_button.setText(STRINGS.APP_BUTTON_EDIT_TRANSACTION_SUBMIT)
         #adding some new buttons, and connecting to the right event handler
         self.submit_button.clicked.disconnect()
-        self.submit_button.setEnabled(False)    #the user has to make changes to activate this button
+        self.submit_button.setEnabled(True)
 
         delete_button = QPushButton(STRINGS.APP_BUTTON_EDIT_TRANSACTION_DELETE)
         delete_button.setFont(FONTS.APP_NEW_TRANSACTION_SUBMIT)
@@ -444,6 +445,7 @@ class Window(QDialog):
         self.choosed_trans_button.clicked.disconnect()
         self.choosed_trans_button.clicked.connect(self.Elast_trans_button_pressed)
         self.submit_button.clicked.disconnect()
+        self.submit_button.setEnabled(False)
         self.submit_button.clicked.connect(self.Esubmit_transaction)
 
         self.choosed_trans_button = False           #this transaction button is no more active
@@ -454,6 +456,7 @@ class Window(QDialog):
         activates the button which submits a new transaction
         :return: void
         """
+        assert(not self.edit_mode), STRINGS.ERROR_IN_EDIT_MODE
         self.submit_button.setEnabled(True)
 
     def deactivateTransSubmitButton(self):
@@ -461,7 +464,55 @@ class Window(QDialog):
         deactivates the button which submits a new transaction
         :return: void
         """
+        assert(not self.edit_mode), STRINGS.ERROR_IN_EDIT_MODE
         self.submit_button.setEnabled(False)
+
+
+    def addTransactionFromForm(self):
+        """
+        gets all data from the form and sends it to the backend as a new transaction
+        :return: void
+        """
+        transaction = self.getTransactionFromForm()
+        if transaction != False:
+            self.backend.addTransaction(transaction)
+        self.TransList.updateLastTrans()    #update the buttons in the scrollarea showing the last transactions
+
+    def addTransactionFromTransaction(self, transaction:Transaction):
+        """
+        adds a given transaction to the system
+        :return: void
+        """
+        assert(type(transaction) == Transaction), STRINGS.getTypeErrorString(transaction, "transaction", Transaction)
+        self.backend.addTransaction(transaction)
+        self.TransList.updateLastTrans()    #update the buttons in the scrollarea showing the last transactions
+
+    def getTransactionFromForm(self):
+        """
+        gets all data from the form and returns a transaction object
+        :return: object<Transaction> or bool<False> if its not valid
+        """
+        date = self.trans_date_edit.selectedDate().toPyDate()       #gets the date and convert it to datetime.date
+        number = int(self.trans_number_spin_box.text())             #gets number of products
+        product = self.trans_product_edit.text()                    #gets name of product
+        sign = self.trans_sign.currentText()                        #gets sign of the cashflow
+        assert(sign in (STRINGS.APP_LABEL_NEW_TRANSACTION_CF_SIGN_MINUS, STRINGS.APP_LABEL_NEW_TRANSACTION_CF_SIGN_PLUS)), STRINGS.ERROR_WRONG_SIGN_CONTENT+sign
+        try:
+            #gets cashflow
+            full_cashflow = float(self.trans_fullp_edit.text())
+        except:
+            #cashflow is not a float, should not trigger, because if its not a float the submit button should be deactivated
+            raise ValueError(STRINGS.ERROR_WRONG_CF_DATA+self.trans_fullp_edit.text())
+        
+        if sign == STRINGS.APP_LABEL_NEW_TRANSACTION_CF_SIGN_MINUS:
+            full_cashflow = -full_cashflow  #if the sign is negative, the cashflow is negative xd
+
+        categories = self.CatCombo.getChoosenItems()    #getting the categories and persons
+        ftpersons = self.FtpCombo.getChoosenItems()
+        whypersons = self.WhyCombo.getChoosenItems()
+
+        #sends the data to the backend
+        return self.backend.getTransactionObject(date, product, number, full_cashflow, categories, ftpersons, whypersons)
 
 
     def Echanged_cashflow(self):
@@ -786,28 +837,8 @@ class Window(QDialog):
         :return: void
         """
         assert(type(self.sender()) == QPushButton), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
-        date = self.trans_date_edit.selectedDate().toPyDate()       #gets the date and convert it to datetime.date
-        number = int(self.trans_number_spin_box.text())             #gets number of products
-        product = self.trans_product_edit.text()                    #gets name of product
-        sign = self.trans_sign.currentText()                        #gets sign of the cashflow
-        assert(sign in (STRINGS.APP_LABEL_NEW_TRANSACTION_CF_SIGN_MINUS, STRINGS.APP_LABEL_NEW_TRANSACTION_CF_SIGN_PLUS)), STRINGS.ERROR_WRONG_SIGN_CONTENT+sign
-        try:
-            #gets cashflow
-            full_cashflow = float(self.trans_fullp_edit.text())
-        except:
-            #cashflow is not a float, should not trigger, because if its not a float the submit button should be deactivated
-            raise ValueError(STRINGS.ERROR_WRONG_CF_DATA+self.trans_fullp_edit.text())
-        
-        if sign == STRINGS.APP_LABEL_NEW_TRANSACTION_CF_SIGN_MINUS:
-            full_cashflow = -full_cashflow  #if the sign is negative, the cashflow is negative xd
-
-        categories = self.CatCombo.getChoosenItems()    #getting the categories and persons
-        ftpersons = self.FtpCombo.getChoosenItems()
-        whypersons = self.WhyCombo.getChoosenItems()
-
-        #sends the data to the backend
-        self.backend.addTransaction(date, product, number, full_cashflow, categories, ftpersons, whypersons)
-        self.TransList.updateLastTrans()    #update the buttons in the scrollarea showing the last transactions
+        assert(not self.edit_mode), STRINGS.ERROR_IN_EDIT_MODE
+        self.addTransactionFromForm()
 
     def Elast_trans_button_pressed(self):
         """
@@ -833,13 +864,44 @@ class Window(QDialog):
         :return: void
         """
         assert(type(self.sender()) == QPushButton), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
+        assert(self.edit_mode), STRINGS.ERROR_NOT_IN_EDIT_MODE
         self.disableEditMode()
 
     def Eedit_save_changes(self):
-        pass
-
+        """
+        event handler
+        activates if the user wanna save the changes while editing a transaction
+        its just deleting the transaction currently choosed from the system and adds a new one, with the current options
+        :return: void
+        """
+        assert(type(self.sender()) == QPushButton), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
+        assert(type(self.choosed_trans_button) == QPushButton), STRINGS.ERROR_NO_TRANSACTION_BUTTON_SET
+        assert(self.edit_mode), STRINGS.ERROR_NOT_IN_EDIT_MODE
+        #delete the old transaction
+        old_trans = self.TransList.getTransactionForButton(self.choosed_trans_button)
+        new_trans = self.getTransactionFromForm()
+        if new_trans == False:
+            print("transaction could not be added")
+            return
+        self.backend.deleteTransaction(old_trans)
+        self.disableEditMode()
+        #add the new one
+        self.addTransactionFromTransaction(new_trans)
+        self.TransList.updateLastTrans()
+        
     def Eedit_delete_transaction(self):
-        pass
+        """
+        event handler
+        activates if the user clicks a delete transaction button
+        its just deleting the transaction currently choosed from the system
+        :return: void
+        """
+        assert(type(self.sender()) == QPushButton), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
+        assert(type(self.choosed_trans_button) == QPushButton), STRINGS.ERROR_NO_TRANSACTION_BUTTON_SET
+        assert(self.edit_mode), STRINGS.ERROR_NOT_IN_EDIT_MODE
+        self.backend.deleteTransaction(self.TransList.getTransactionForButton(self.choosed_trans_button))
+        self.disableEditMode()
+        self.TransList.updateLastTrans()
 
 
 class TransactionWindow(QDialog):
@@ -886,5 +948,3 @@ class TransactionWindow(QDialog):
         :return: void
         """
         assert("grid" in map(lambda x: x[0], vars(self).items())), STRINGS.ERROR_GRID_NOT_DEFINED
-
-

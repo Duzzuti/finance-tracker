@@ -26,6 +26,7 @@ class Backend:
         self.persons = []       #a list that holds person objects of all known persons
         self.transactions = []  #a list that holds transaction objects of all known transactions
 
+        self.transactions.append(Transaction(datetime.date(2022, 1, 1), Product("product1", categories=["cat1", "cat2", "cat3"]), 5, 7.25, [Person("pers1"), Person("pers2")], [Person("pers3"), Person("pers4")]))
         self.categories=["cat1", "cat2", "cat3"]
         self.persons = [Person("pers1"), Person("pers2")]
         self.persons += [Person("pers3"), Person("pers4")]
@@ -64,7 +65,6 @@ class Backend:
         :return: Generator<object<Transaction>>
         """
         #WORK should be returned sorted by date
-        yield Transaction(datetime.date(2022, 1, 1), Product("product1", categories=["cat1", "cat2", "cat3"]), 5, 7.25, [Person("pers1"), Person("pers2")], [Person("pers3"), Person("pers4")])
         for trans in self.transactions:
             yield trans
 
@@ -100,10 +100,10 @@ class Backend:
         self.persons.append(Person(person_text))
         return True
 
-    def addTransaction(self, date:datetime.date, product_name:str, number:int, full_cf:float, 
+    def getTransactionObject(self, date:datetime.date, product_name:str, number:int, full_cf:float, 
                        categories:list[str], ftpersons:list[str], whypersons:list[str]):
         """
-        adds a new transaction to the existing ones
+        verifys the given data and returns a Transaction object to that data
         :param date: datetime.date<date of the transaction>
         :param product_name: str<name of the product>
         :param number: int<product count>
@@ -111,7 +111,7 @@ class Backend:
         :param categories: list<str<category choosed1>, ...>
         :param ftpersons: list<str<ftperson choosed1>, ...>
         :param whypersons: list<str<whyperson choosed1>, ...>
-        :return: void
+        :return: object<Transaction> or bool<False> if its not valid
         """
         assert(type(date) == datetime.date), STRINGS.getTypeErrorString(date, "date", datetime.date)
         assert(date <= datetime.date.today()), STRINGS.ERROR_DATE_OUT_OF_RANGE+str(date)
@@ -130,15 +130,6 @@ class Backend:
         assert(len(set(categories)) == len(categories)), STRINGS.ERROR_CATEGORY_NOT_UNIQUE+str(categories)
         assert(len(set(ftpersons)) == len(ftpersons)), STRINGS.ERROR_FTPERSON_NOT_UNIQUE+str(ftpersons)
         assert(len(set(whypersons)) == len(whypersons)), STRINGS.ERROR_WHYPERSON_NOT_UNIQUE+str(whypersons)
-        
-        #DEBUGONLY
-        print(f"DATE: {date}")
-        print(f"PRODUCT: {product_name}")
-        print(f"NUMBER: {number}")
-        print(f"FULL CASHFLOW: {full_cf}")
-        print(f"CATEGORIES: {categories}")
-        print(f"FTPERSONS: {ftpersons}")
-        print(f"WHYPERSONS: {whypersons}")
 
         product_obj = self._getProductByName(product_name)
         if product_obj != False:
@@ -154,7 +145,7 @@ class Backend:
                     msgbox = QMessageBox(self.ui)
                     msgbox.setText(STRINGS.INFO_TRANSACTION_WAS_NOT_ADDED)
                     msgbox.exec()
-                    return
+                    return False
                 
         #stores the person objects that are choosen by the user
         ftperson_objects = []
@@ -184,9 +175,29 @@ class Backend:
         if product_obj == False:
             #add the choosen product if its not known
             product_obj = self._addProduct(product_name, categories)
+        return Transaction(date, product_obj, number, full_cf, ftperson_objects, whyperson_objects)
+        
+    def addTransaction(self, transaction:Transaction):
+        """
+        adds a new transaction to the existing ones, pls validate it first with getTransactionObject
+        :param transaction: object<Transaction>
+        :return: void
+        """
+        assert(type(transaction) == Transaction), STRINGS.getTypeErrorString(transaction, "transaction", Transaction)
+
         #add the validated transaction
-        self._addTransaction(date, product_obj, number, full_cf, ftperson_objects, whyperson_objects)
+        self.transactions.append(transaction)
     
+    def deleteTransaction(self, transaction:Transaction):
+        """
+        deletes a given transaction from the system
+        :param transaction: object<Transaction>
+        :return: void
+        """
+        assert(type(transaction) == Transaction), STRINGS.getTypeErrorString(transaction, "transaction", Transaction)
+        assert(transaction in self.transactions), STRINGS.ERROR_TRANSACTION_NOT_IN_LIST+str(transaction)+str(self.transactions)
+        self.transactions.remove(transaction)
+
     def _getProductByName(self, product_name:str):
         """
         getter for a product object, that corresponds to a given name
@@ -227,17 +238,3 @@ class Backend:
         product_obj = Product(product_name, categories)
         self.products.append(product_obj)
         return product_obj
-
-    def _addTransaction(self, date:datetime.date, product_obj:Product, product_number:int, fullcf:float, 
-                        ftperson_objects:list[Person], whyperson_objects:list[Person]):
-        """
-        add a new transaction with already validated data
-        :param date: datetime.date<date of the transaction>
-        :param product_obj: object<Product>
-        :param product_number: int<product count>
-        :param fullcf: float<cashflow that are occured due to the transaction>
-        :param ftperson_objects: list<object<Person1>, ...>
-        :param whyperson_objects: list<object<Person1>, ...>
-        :return: void
-        """
-        self.transactions.append(Transaction(date, product_obj, product_number, fullcf, ftperson_objects, whyperson_objects))

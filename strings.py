@@ -100,6 +100,7 @@ class ENG:
     ERROR_NOT_IN_EDIT_MODE = "The action cannot be done because the window is not in edit mode"
     ERROR_IN_EDIT_MODE = "The action cannot be done because the window is in edit mode"
     ERROR_NO_TRANSACTION_BUTTON_SET = "There is no active transaction button set"
+    ERROR_TRANSACTION_NOT_IN_LIST = "The given transaction is not found in the transaction list: "
 
     ERROR_WRONG_CF_DATA = "Got wrong cashflow data: "
     ERROR_WRONG_FORMAT_GEOMETRY = "geometry is in a wrong format: "
