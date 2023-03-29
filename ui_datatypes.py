@@ -2,10 +2,11 @@
 This module provides the datatypes used by the ui
 """
 from PyQt5.QtWidgets import QComboBox, QVBoxLayout, QPushButton, QLabel, QHBoxLayout
-from backend_datatypes import Transaction
+from PyQt5.QtCore import QDate
+from backend_datatypes import Transaction, Person
 from strings import ENG as STRINGS
 from constants import CONSTANTS
-from enum import Enum
+
 
 class Combo:
     """
@@ -215,6 +216,7 @@ class Combo:
                 raise ValueError(STRINGS.ERROR_CHOOSED_TEXT_NOT_IN_ITEMS)+str(items[i])
         self.updateItems()  #sets the comboBox choices depending on the other comboBox' choosed items
 
+
 class Inputs:
     """
     The Inputs class sets up a dictionary to track whether something, depending on requirements, is possible
@@ -368,10 +370,171 @@ class TransactionList:
         return element_button
 
 
-class SortEnum(Enum):
+class Filter:
     """
-    this enum holds the flags for the sort criteria
+    the filter class is containing filter settings for transactions
+    its used to filter or search for specific transactions
     """
-    DATE = 0
-    CASHFLOW = 1
-    PRODUCT = 2
+    def __init__(self):
+        """
+        basic constructor, just sets up an open filter (all transactions are fullfilling this filter)
+        :return: void
+        """
+        self.reset()
+    
+    def isStandard(self):
+        """
+        this method checks whether the current filter is open (all transactions are fullfilling this filter)
+        :return: bool<is open/standard?>
+        """
+        return (self.minDate == QDate(1900, 1, 1) and
+        self.maxDate == QDate.currentDate() and
+        self.minCashflow == False and
+        self.maxCashflow == False and
+        self.minCashflowPerProduct == False and
+        self.maxCashflowPerProduct == False and
+        self.absoluteValues == True and
+        self.contains == "" and
+        self.startswith == "" and
+        self.categories == [] and
+        self.ftpersons == [] and
+        self.whypersons == [] and
+        self.persons == [])
+    
+    def reset(self):
+        """
+        resets the filter to the standard settings (all transactions are fullfilling this filter)
+        :return: void
+        """
+        self.minDate = QDate(1900, 1, 1)
+        self.maxDate = QDate.currentDate()
+        self.minCashflow = False
+        self.maxCashflow = False
+        self.minCashflowPerProduct = False
+        self.maxCashflowPerProduct = False
+        self.absoluteValues = True
+        self.contains = ""
+        self.startswith = ""
+        self.categories = []
+        self.ftpersons = []
+        self.whypersons = []
+        self.persons = []
+
+    def setMinDate(self, minDate:QDate):
+        """
+        setter for the minDate filter
+        :param minDate: QDate<minimum Date for a transaction>
+        :return: void
+        """
+        assert(type(minDate) == QDate), STRINGS.getTypeErrorString(minDate, "minDate", QDate)
+        assert(QDate.currentDate() >= minDate >= QDate(1900, 1, 1)), STRINGS.ERROR_DATE_OUT_OF_RANGE+str(minDate)
+        self.minDate = minDate
+    
+    def setMaxDate(self, maxDate:QDate):
+        """
+        setter for the maxDate filter
+        :param maxDate: QDate<maximum Date for a transaction>
+        :return: void
+        """
+        assert(type(maxDate) == QDate), STRINGS.getTypeErrorString(maxDate, "maxDate", QDate)
+        assert(QDate.currentDate() >= maxDate >= QDate(1900, 1, 1)), STRINGS.ERROR_DATE_OUT_OF_RANGE+str(maxDate)
+        self.maxDate = maxDate
+    
+    def setMinCashflow(self, minCashflow:float):
+        """
+        setter for the minCashflow filter
+        :param minCashflow: float<minimum Cashflow, that a transaction needs to have>
+        :return: void
+        """
+        assert(type(minCashflow) == float), STRINGS.getTypeErrorString(minCashflow, "minCashflow", float)
+        self.minCashflow = minCashflow
+
+    def setMaxCashflow(self, maxCashflow:float):
+        """
+        setter for the maxCashflow filter
+        :param maxCashflow: float<maximum Cashflow, that a transaction should have>
+        :return: void
+        """
+        assert(type(maxCashflow) == float), STRINGS.getTypeErrorString(maxCashflow, "maxCashflow", float)
+        self.maxCashflow = maxCashflow
+
+    def setMinCashflowPerProduct(self, minCashflowPerProduct:float):
+        """
+        setter for the minCashflowPerProduct filter
+        :param minCashflowPerProduct: float<minimum Cashflow per product, that a transaction needs to have>
+        :return: void
+        """
+        assert(type(minCashflowPerProduct) == float), STRINGS.getTypeErrorString(minCashflowPerProduct, "minCashflowPerProduct", float)
+        self.minCashflowPerProduct = minCashflowPerProduct
+
+    def setMaxCashflowPerProduct(self, maxCashflowPerProduct:float):
+        """
+        setter for the maxCashflowPerProduct filter
+        :param maxCashflowPerProduct: float<maximum Cashflow per product, that a transaction should have>
+        :return: void
+        """
+        assert(type(maxCashflowPerProduct) == float), STRINGS.getTypeErrorString(maxCashflowPerProduct, "maxCashflowPerProduct", float)
+        self.maxCashflowPerProduct = maxCashflowPerProduct
+
+    def setAbsoluteValues(self, absoluteValues:bool):
+        """
+        setter for the absoluteValues filter
+        :param absoluteValues: bool<should be used absolute values for the cashflow filters?>
+        :return: void
+        """
+        assert(type(absoluteValues) == bool), STRINGS.getTypeErrorString(absoluteValues, "absoluteValues", bool)
+        self.absoluteValues = absoluteValues
+
+    def setContains(self, contains:str):
+        """
+        setter for the contains filter
+        :param contains: str<substring that the transaction needs to contain>
+        :return: void
+        """
+        assert(type(contains) == str), STRINGS.getTypeErrorString(contains, "contains", str)
+        self.contains = contains
+    
+    def setStartsWith(self, startswith:str):
+        """
+        setter for the startswith filter
+        :param startswith: str<string that the transaction needs to start with>
+        :return: void
+        """
+        assert(type(startswith) == str), STRINGS.getTypeErrorString(startswith, "startswith", str)
+        self.startswith = startswith
+    
+    def setCategories(self, categories:list[str]):
+        """
+        setter for the categories filter
+        :param categories: list<str<category that needs to be set in that transaction1>, ...>
+        :return: void
+        """
+        assert(type(categories) == list and all(map(lambda x: type(x) == str, categories))), STRINGS.getListTypeErrorString(categories, "categories", str)
+        self.categories = categories
+    
+    def setFtPersons(self, ftpersons:list[Person]):
+        """
+        setter for the ftpersons filter
+        :param ftpersons: list<object<Person, that needs to be set as a from/to person1>, ...>
+        :return: void
+        """
+        assert(type(ftpersons) == list and all(map(lambda x: type(x) == Person, ftpersons))), STRINGS.getListTypeErrorString(ftpersons, "ftpersons", Person)
+        self.ftpersons = ftpersons
+    
+    def setWhyPersons(self, whypersons:list[Person]):
+        """
+        setter for the whypersons filter
+        :param whypersons: list<object<Person, that needs to be set as a why person1>, ...>
+        :return: void
+        """
+        assert(type(whypersons) == list and all(map(lambda x: type(x) == Person, whypersons))), STRINGS.getListTypeErrorString(whypersons, "whypersons", Person)
+        self.whypersons = whypersons
+    
+    def setPersons(self, persons:list[Person]):
+        """
+        setter for the persons filter
+        :param persons: list<object<Person, that needs to be set as a from/to or why person1>, ...>
+        :return: void
+        """
+        assert(type(persons) == list and all(map(lambda x: type(x) == Person, persons))), STRINGS.getListTypeErrorString(persons, "persons", Person)
+        self.persons = persons

@@ -7,7 +7,7 @@ import pickle
 from strings import ENG as STRINGS
 from PyQt5.QtWidgets import QMessageBox
 from backend_datatypes import Product, Person, Transaction
-from ui_datatypes import SortEnum
+from fullstack_utils import SortEnum
 
 
 def Dsave(func):
