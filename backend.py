@@ -30,6 +30,7 @@ def Dsort(func):
         return ret
     return wrapper
 
+
 class Backend:
     """
     the backend class holds all backend functionalities as well as the api methods to the frontend
@@ -53,6 +54,7 @@ class Backend:
 
         if load:
             self._load()
+        self.clean(full=True)
 
     def test(self): #DEBUGONLY
         self.transactions = (Transaction(datetime.date(2022, 1, 1), Product("product1", categories=["cat1", "cat2", "cat3"]), 5, 7.25, [Person("pers1"), Person("pers2")], [Person("pers3"), Person("pers4")]))
@@ -96,6 +98,19 @@ class Backend:
         #WORK should be returned sorted by date
         for trans in self.transactions:
             yield trans
+
+    def getLastTransactionByProductText(self, product_name:str):
+        """
+        gets the last (most recent) transaction with a specific product name
+        :param product_name: str<name of the product>
+        :return: object<Transaction> or bool<False> if no transaction was found
+        """
+        product_name = product_name.lower()
+        date_sorted_transactions = sorted(self.transactions, key=lambda x: x.date, reverse=True)
+        for transaction in date_sorted_transactions:
+            if transaction.product.name.lower() == product_name:
+                return transaction
+        return False
 
     @Dsave
     def addCategory(self, category:str):
@@ -232,6 +247,19 @@ class Backend:
         assert(type(transaction) == Transaction), STRINGS.getTypeErrorString(transaction, "transaction", Transaction)
         assert(transaction in self.transactions), STRINGS.ERROR_TRANSACTION_NOT_IN_LIST+str(transaction)+str(self.transactions)
         self.transactions.remove(transaction)
+        self.clean(full=False, transaction=transaction)
+
+    def deleteProduct(self, product:Product):
+        """
+        deletes the given product taking into account that we have case insensitivity
+        :param product: object<Product>
+        :return: void
+        """
+        name_lower = product.name.lower()
+        for _product in self.products:
+            if _product.name.lower() == name_lower:
+                self.products.remove(_product)
+                return
 
     def sortTransactions(self, sortElement:SortEnum, up:bool):
         """
@@ -242,13 +270,37 @@ class Backend:
         """
         self.sortCriteria = [sortElement, up]
         if sortElement == SortEnum.PRODUCT:
-            self.transactions.sort(key=lambda x: x.product.name, reverse=not(up))
+            self.transactions.sort(key=lambda x: x.product.name.lower(), reverse=not(up))
         elif sortElement == SortEnum.CASHFLOW:
             self.transactions.sort(key=lambda x: x.cashflow, reverse=up)
         elif sortElement == SortEnum.DATE:
             self.transactions.sort(key=lambda x: x.date, reverse=up)
         else:
             assert(False), STRINGS.ERROR_SORTELEMENT_OUT_OF_RANGE+str(sortElement)
+
+    def clean(self, full:bool, transaction:Transaction=None):
+        """
+        cleans up the data: deletes not longer needed products 
+        you can do a full clean or if you have a transaction that is no longer in the system, we check whether that product is anywhere else
+        :param full: bool<Full clean?>
+        :param transaction: object<Transaction>, deleted_transaction, only neccessary if full == False
+        :return: void
+        """
+        assert(type(full) == bool), STRINGS.getTypeErrorString(full, "full", bool)
+        assert(type(transaction) == Transaction or (transaction == None and full)), STRINGS.getTypeErrorString(transaction, "transaction", Transaction)
+        if full:
+            neededProducts = []
+            for _transaction in self.transactions:
+                neededProducts.append(_transaction.product.name.lower())
+            for product in self.products.copy():
+                if not product.name.lower() in neededProducts:
+                    self.deleteProduct(product)
+        else:
+            for _transaction in self.transactions:
+                if _transaction.product.name.lower() == transaction.product.name.lower():
+                    return
+            else:
+                self.deleteProduct(transaction.product)
 
     def _getProductByName(self, product_name:str):
         """

@@ -38,6 +38,8 @@ class Window(QDialog):
         self.width = geometry[2]
         self.height = geometry[3]
 
+        self.product_input_matched = False #does the user inputs a product name we already know?
+        self.product_input_matched_content = None   #the form data that was entered before the user matched some product (to restore)
         self.tooltips_set = False   #are the tooltips are already set 
         self.edit_mode = False  #form is in edit mode?
         self.choosed_trans_button = False   #the button, which transaction is currently choosen
@@ -138,6 +140,7 @@ class Window(QDialog):
         #product input
         self.trans_product_edit = QLineEdit()
         self.trans_product_completer = QCompleter(self.backend.getProductNames())
+        self.trans_product_completer.setCaseSensitivity(False)
         self.trans_product_edit.setCompleter(self.trans_product_completer)      #add an autocompleter
         self.trans_product_edit.textChanged.connect(self.Echange_product_text)
         hgrid_prod_num.addWidget(self.trans_product_edit, 1, 0)
@@ -566,9 +569,10 @@ class Window(QDialog):
         self.backend.addTransaction(transaction)
         self.TransList.updateLastTrans()    #update the buttons in the scrollarea showing the last transactions
 
-    def getTransactionFromForm(self):
+    def getTransactionFromForm(self, noexcept:bool=False):
         """
         gets all data from the form and returns a transaction object
+        :param noexcept: bool<there should not be thrown any exception (unsafe)>
         :return: object<Transaction> or bool<False> if its not valid
         """
         date = self.trans_date_edit.selectedDate().toPyDate()       #gets the date and convert it to datetime.date
@@ -581,7 +585,11 @@ class Window(QDialog):
             full_cashflow = float(self.trans_fullp_edit.text())
         except:
             #cashflow is not a float, should not trigger, because if its not a float the submit button should be deactivated
-            raise ValueError(STRINGS.ERROR_WRONG_CF_DATA+self.trans_fullp_edit.text())
+            if noexcept:
+                #if we use this method not as a event handler followup we may want this behaviour
+                full_cashflow = 0.0
+            else:
+                raise ValueError(STRINGS.ERROR_WRONG_CF_DATA+self.trans_fullp_edit.text())
         
         if sign == STRINGS.APP_LABEL_NEW_TRANSACTION_CF_SIGN_MINUS:
             full_cashflow = -full_cashflow  #if the sign is negative, the cashflow is negative xd
@@ -592,6 +600,36 @@ class Window(QDialog):
 
         #sends the data to the backend
         return self.backend.getTransactionObject(date, product, number, full_cashflow, categories, ftpersons, whypersons)
+
+    def getDictFromForm(self):
+        """
+        gets all data from the form and returns a dict, with that data
+        :return: dict<data>
+        """
+        data_dict = {}
+        data_dict["date"] = self.trans_date_edit.selectedDate().toPyDate()       #gets the date and convert it to datetime.date
+        data_dict["number"] = int(self.trans_number_spin_box.text())             #gets number of products
+        data_dict["product"] = self.trans_product_edit.text()                    #gets name of product
+        sign = self.trans_sign.currentText()                        #gets sign of the cashflow
+        assert(sign in (STRINGS.APP_LABEL_NEW_TRANSACTION_CF_SIGN_MINUS, STRINGS.APP_LABEL_NEW_TRANSACTION_CF_SIGN_PLUS)), STRINGS.ERROR_WRONG_SIGN_CONTENT+sign
+        data_dict["sign"] = sign
+        try:
+            #gets cashflow
+            data_dict["cashflow"] = float(self.trans_fullp_edit.text())
+            data_dict["cashflow_per_product"] = data_dict["cashflow"] / data_dict["number"]
+        except:
+            #cashflow data is not valid or empty, we will asume 0
+            data_dict["cashflow"] = 0.0
+            data_dict["cashflow_per_product"] = 0.0
+
+        if sign == STRINGS.APP_LABEL_NEW_TRANSACTION_CF_SIGN_MINUS:
+            data_dict["cashflow"] = -data_dict["cashflow"]  #if the sign is negative, the cashflow is negative xd
+            data_dict["cashflow_per_product"] = -data_dict["cashflow_per_product"]
+
+        data_dict["categories"] = self.CatCombo.getChoosenItems()    #getting the categories and persons
+        data_dict["ftpersons"] = self.FtpCombo.getChoosenItems()
+        data_dict["whypersons"] = self.WhyCombo.getChoosenItems()
+        return data_dict
 
     def clearForm(self, clear_date:bool=True):
         """
@@ -608,6 +646,28 @@ class Window(QDialog):
         self.CatCombo.reset()
         self.FtpCombo.reset()
         self.WhyCombo.reset()
+
+    def setForm(self, cashflow_per_product:float, categories:list[str], from_to_persons = list[str], why_persons=list[str]):
+        """
+        sets the data given into the form
+        :param cashflow_per_product: float<signed cashflow per product>
+        :param categories: list<str<category1>, ...>
+        :param from_to_persons: list<str<from/to person name 1>, ...>
+        :param why_persons: list<str<why person name 1>, ...>
+        :return: void
+        """
+        assert(type(cashflow_per_product) == float), STRINGS.getTypeErrorString(cashflow_per_product, "cashflow_per_product", float)
+        assert(type(categories) == list and all(map(lambda x: type(x) == str, categories))), STRINGS.getListTypeErrorString(categories, "categories", str)
+        assert(type(from_to_persons) == list and all(map(lambda x: type(x) == str, from_to_persons))), STRINGS.getListTypeErrorString(from_to_persons, "from_to_persons", str)
+        assert(type(why_persons) == list and all(map(lambda x: type(x) == str, why_persons))), STRINGS.getListTypeErrorString(why_persons, "why_persons", str)
+        if cashflow_per_product < 0:
+            self.trans_sign.setCurrentText(STRINGS.APP_LABEL_NEW_TRANSACTION_CF_SIGN_MINUS)
+        else:
+            self.trans_sign.setCurrentText(STRINGS.APP_LABEL_NEW_TRANSACTION_CF_SIGN_PLUS)
+        self.trans_ppp_edit.setText(str(abs(cashflow_per_product)))
+        self.CatCombo.setItems(categories)
+        self.FtpCombo.setItems(from_to_persons)
+        self.WhyCombo.setItems(why_persons)
 
 
     def Echanged_cashflow(self):
@@ -639,6 +699,30 @@ class Window(QDialog):
         text = self.sender().text()
         if len(text) - text.count(" ") > 0: #at least one visible character is required
             self.Inputs.setInput(STRINGS.APP_NEW_TRANSACTION_PRODUCT_INPUT, True)
+            if text.lower() in map(lambda x: x.lower(), self.trans_product_completer.children()[0].stringList()):
+                #the user entered a item name that is already in the system
+                self.product_input_matched = True
+                #saves the current state, we want noexcept , because it could happen that some required inputs are empty, we will set 0 for them
+                self.product_input_matched_content:dict = self.getDictFromForm()  
+                product_trans:Transaction = self.backend.getLastTransactionByProductText(text.lower())  #gets the last transaction
+                #set the loaded data into the form
+                if product_trans:
+                    ppp = product_trans.cashflow_per_product
+                    categories = product_trans.product.categories
+                    ftp = list(map(lambda x: x.name, product_trans.from_to_persons))
+                    whyp =list(map(lambda x: x.name, product_trans.why_persons))
+                    self.setForm(cashflow_per_product=ppp, categories=categories, from_to_persons=ftp, why_persons=whyp)
+            elif self.product_input_matched:
+                #we had a match but the user typed something else, we should set the form to the inputs we had before the match occured
+                ppp = self.product_input_matched_content["cashflow_per_product"]
+                categories = self.product_input_matched_content["categories"]
+                ftp = list(map(lambda x: x.name, self.product_input_matched_content["ftpersons"]))
+                whyp = list(map(lambda x: x.name, self.product_input_matched_content["whypersons"]))
+                #set the old data 
+                self.setForm(cashflow_per_product=ppp, categories=categories, from_to_persons=ftp, why_persons=whyp)
+                self.product_input_matched = False
+                self.product_input_matched_content = None
+                
         else:
             self.Inputs.setInput(STRINGS.APP_NEW_TRANSACTION_PRODUCT_INPUT, False)
 
