@@ -38,6 +38,7 @@ class Window(QDialog):
         self.width = geometry[2]
         self.height = geometry[3]
 
+        self.tooltips_set = False   #are the tooltips are already set 
         self.edit_mode = False  #form is in edit mode?
         self.choosed_trans_button = False   #the button, which transaction is currently choosen
 
@@ -97,6 +98,7 @@ class Window(QDialog):
         #adds the Widgets to the "new transaction" part of the window
         self.addWidgetsNewTrans()
         self.addWidgetsLastTrans()
+        self.setToolTips()
 
         #sets the layouts and add these to the grid
         self.groupBox_transaction.setLayout(self.layout_transaction)
@@ -163,9 +165,15 @@ class Window(QDialog):
         groupbox_cf_full = QGroupBox()
 
         #meta label for the group
+        cf_meta_widget = QWidget()
+        self.cf_meta_layout = QHBoxLayout()
+        self.cf_meta_layout.setContentsMargins(0,0,0,0)
         self.trans_cf_label = QLabel(STRINGS.APP_LABEL_NEW_TRANSACTION_CF)
         self.trans_cf_label.setFont(FONTS.APP_NEW_TRANSACTION_CF)
-        grid_cf.addWidget(self.trans_cf_label, 0, 0, 1, 3)
+        self.cf_meta_layout.addWidget(self.trans_cf_label)
+
+        cf_meta_widget.setLayout(self.cf_meta_layout)
+        grid_cf.addWidget(cf_meta_widget, 0, 0, 1, 2)
 
         #sign label
         self.trans_sign_label = QLabel(STRINGS.APP_LABEL_NEW_TRANSACTION_CF_SIGN)
@@ -222,8 +230,14 @@ class Window(QDialog):
         hbox_cat.addWidget(groupbox_cat_choose)
 
         #add new category label
+        add_cat_widget = QWidget()
+        self.add_cat_layout = QHBoxLayout()
+        self.add_cat_layout.setContentsMargins(0,0,0,0)
         self.trans_cat_label = QLabel(STRINGS.APP_LABEL_NEW_TRANSACTION_CAT)
-        vbox_new_cat.addWidget(self.trans_cat_label)
+        self.add_cat_layout.addWidget(self.trans_cat_label)
+
+        add_cat_widget.setLayout(self.add_cat_layout)
+        vbox_new_cat.addWidget(add_cat_widget)
 
         #add new category input
         self.trans_cat_edit = QLineEdit()
@@ -234,7 +248,6 @@ class Window(QDialog):
         self.trans_cat_button = QPushButton(STRINGS.APP_BUTTON_NEW_TRANSACTION_ADD_CAT)
         #at default the button is disabled, you need to type at least 3 characters to activate it
         self.trans_cat_button.setEnabled(False)     
-        self.trans_cat_button.setToolTip(STRINGS.TOOLTIP_TYPE_3_CHARS)
         self.trans_cat_button.clicked.connect(self.Eadd_category)
         vbox_new_cat.addWidget(self.trans_cat_button)
 
@@ -281,8 +294,14 @@ class Window(QDialog):
 
         #********************ADD_RESET_PERSON************************
         #add person label
-        self.trans_ftp_label = QLabel(STRINGS.APP_LABEL_NEW_TRANSACTION_PERSON)
-        grid_new_person.addWidget(self.trans_ftp_label, 0, 0)
+        add_person_widget = QWidget()
+        self.add_person_layout = QHBoxLayout()
+        self.add_person_layout.setContentsMargins(0,0,0,0)
+        self.trans_add_person_label = QLabel(STRINGS.APP_LABEL_NEW_TRANSACTION_PERSON)
+        self.add_person_layout.addWidget(self.trans_add_person_label)
+
+        add_person_widget.setLayout(self.add_person_layout)
+        grid_new_person.addWidget(add_person_widget, 0, 0)
 
         #add person input
         self.trans_person_edit = QLineEdit(self)
@@ -295,7 +314,6 @@ class Window(QDialog):
         self.trans_ftp_button = QPushButton(STRINGS.APP_BUTTON_NEW_TRANSACTION_ADD_PERSON_FTP, self)
         #at default the button is disabled, you need to type at least 3 characters to activate it
         self.trans_ftp_button.setEnabled(False) 
-        self.trans_ftp_button.setToolTip(STRINGS.TOOLTIP_TYPE_3_CHARS)
         self.trans_ftp_button.clicked.connect(self.Eadd_ftperson)
         grid_new_person.addWidget(self.trans_ftp_button, 1, 0)
 
@@ -303,7 +321,6 @@ class Window(QDialog):
         self.trans_whyp_button = QPushButton(STRINGS.APP_BUTTON_NEW_TRANSACTION_ADD_PERSON_WHYP, self)
         #at default the button is disabled, you need to type at least 3 characters to activate it
         self.trans_whyp_button.setEnabled(False)
-        self.trans_whyp_button.setToolTip(STRINGS.TOOLTIP_TYPE_3_CHARS)
         self.trans_whyp_button.clicked.connect(self.Eadd_whyperson)
         grid_new_person.addWidget(self.trans_whyp_button, 1, 1)
 
@@ -327,7 +344,6 @@ class Window(QDialog):
         #at default the button is disabled, you need to fill out all required fields to activate it
         #this is monitored by the input object
         self.submit_button.setEnabled(False)
-        self.submit_button.setToolTip(STRINGS.TOOLTIP_SUBMIT_BUTTON)
         self.submit_button.clicked.connect(self.Esubmit_transaction)
         self.submit_layout.addWidget(self.submit_button)
         self.submit_widget.setLayout(self.submit_layout)
@@ -462,6 +478,36 @@ class Window(QDialog):
 
         self.choosed_trans_button = False           #this transaction button is no more active
         self.adjustSize()
+
+    def setToolTips(self):
+        """
+        sets the tool tip for the ui components, adds icons too, you have to build the ui first
+        :return: void
+        """
+        assert(not self.tooltips_set), STRINGS.ERROR_TOOLTIPS_ALREADY_SET
+        self.tooltips_set = True
+        self.trans_cat_button.setToolTip(STRINGS.TOOLTIP_TYPE_3_CHARS)
+        self.trans_ftp_button.setToolTip(STRINGS.TOOLTIP_TYPE_3_CHARS)
+        self.submit_button.setToolTip(STRINGS.TOOLTIP_SUBMIT_BUTTON)
+        self.trans_whyp_button.setToolTip(STRINGS.TOOLTIP_TYPE_3_CHARS)
+        self.trans_date_edit.setToolTip(STRINGS.TOOLTIP_CALENDAR)
+
+        #add info icons
+        cf_info_label = QLabel()
+        cf_info_label.setPixmap(ICONS.INFO_PIXMAP.scaledToHeight(self.trans_cf_label.sizeHint().height()))
+        self.cf_meta_layout.addWidget(cf_info_label)
+        
+        cat_info_label = QLabel()
+        cat_info_label.setPixmap(ICONS.INFO_PIXMAP.scaledToHeight(self.trans_cat_label.sizeHint().height()))
+        self.add_cat_layout.addWidget(cat_info_label)
+
+        person_info_label = QLabel()
+        person_info_label.setPixmap(ICONS.INFO_PIXMAP.scaledToHeight(self.trans_add_person_label.sizeHint().height()))
+        self.add_person_layout.addWidget(person_info_label)
+
+        cf_info_label.setToolTip(STRINGS.TOOLTIP_CASHFLOW)
+        cat_info_label.setToolTip(STRINGS.TOOLTIP_CATEGORY)
+        person_info_label.setToolTip(STRINGS.TOOLTIP_PERSON)
 
     def activateTransSubmitButton(self):
         """

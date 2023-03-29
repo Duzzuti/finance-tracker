@@ -62,6 +62,10 @@ class ENG:
     #tooltips
     TOOLTIP_SUBMIT_BUTTON = "Fill out the form and submit with this button"
     TOOLTIP_TYPE_3_CHARS =  "Type at least 3 characters"
+    TOOLTIP_CALENDAR = "Please select the date of the transaction"
+    TOOLTIP_CASHFLOW = "Please provide information about the cashflow\nIf you lost money, set sign to minus, if you won choose plus\nYou can enter the cashflow per product or for the whole transaction"
+    TOOLTIP_CATEGORY = "You can add some categories to your product\nChoose them on the left side\nIf you wanna add some new ones, use the input field and add button below\nNOTES:\nCategories are case insensitive\nYou can only have one combination of categories per product"
+    TOOLTIP_PERSON = "You can add some persons related to that transaction\nChoose them above\nIf you wanna add some new ones, use the input field and add button below\nThere are TWO kinds of persons:\n1.From/To persons: A person who buys/sells the product from/to you\n2.Why persons: without this person, you would not made this transaction \nNOTES:\nPersons are case insensitive"
 
     #questions
     QUESTION_OVERRIDE_OTHER_PRODUCT_CATEGORIES = "Do you wanna override the categories of ALL previous products?"
@@ -107,6 +111,7 @@ class ENG:
     ERROR_TRANSACTION_NOT_IN_LIST = "The given transaction is not found in the transaction list: "
     ERROR_SENDER_NOT_IN_SORT_BUTTONS = "The sender button is not part of the sort button list"
     ERROR_SORTELEMENT_OUT_OF_RANGE = "The sort element has some invalid data or is out of range: "
+    ERROR_TOOLTIPS_ALREADY_SET = "The tooltips are already set"
 
     ERROR_WRONG_CF_DATA = "Got wrong cashflow data: "
     ERROR_WRONG_FORMAT_GEOMETRY = "geometry is in a wrong format: "

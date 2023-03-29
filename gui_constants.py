@@ -1,4 +1,4 @@
-from PyQt5.QtGui import QFont, QIcon
+from PyQt5.QtGui import QFont, QIcon, QPixmap
 
 class FONTS:
     APP_NEW_TRANSACTION = QFont("Arial", 18, italic=True)
@@ -20,3 +20,5 @@ class ICONS:
     SORT_DEFAULT = QIcon("media/sort_default.png")
     SORT_UP = QIcon("media/sort_up.png")
     SORT_DOWN = QIcon("media/sort_down.png")
+    INFO = QIcon("media/info.png")
+    INFO_PIXMAP = QPixmap("media/info.png")
