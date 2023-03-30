@@ -8,10 +8,11 @@ from gui_constants import FONTS, ICONS
 from constants import CONSTANTS
 from backend import Backend
 from backend_datatypes import Transaction
-from ui_datatypes import Combo, Inputs, TransactionList, SortEnum
+from ui_datatypes import Combo, Inputs, TransactionList, Filter
+from fullstack_utils import SortEnum
 
 from PyQt5.QtWidgets import QGridLayout, QLabel, QGroupBox, QVBoxLayout, QHBoxLayout, QPushButton, QDialog, QWidget
-from PyQt5.QtWidgets import QSpinBox, QCalendarWidget, QLineEdit, QCompleter, QComboBox, QMessageBox, QScrollArea, QSizePolicy
+from PyQt5.QtWidgets import QSpinBox, QCalendarWidget, QLineEdit, QCompleter, QComboBox, QMessageBox, QScrollArea
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import QDate, Qt
 
@@ -44,6 +45,7 @@ class Window(QDialog):
         self.edit_mode = False  #form is in edit mode?
         self.choosed_trans_button = False   #the button, which transaction is currently choosen
 
+        self.filter = Filter()          #sets up the filter object to filter the transactions
         self.backend = Backend(self)    #sets up the backend object to perform backend requests in the ui
 
         #sets up the ComboBox Objects
@@ -62,6 +64,7 @@ class Window(QDialog):
 
         #build the window
         self.InitWindow()
+        FilterWindow(self)
 
     def InitWindow(self):
         """
@@ -328,9 +331,9 @@ class Window(QDialog):
         grid_new_person.addWidget(self.trans_whyp_button, 1, 1)
 
         #reset persons button
-        self.trans_reset_button = QPushButton(STRINGS.APP_BUTTON_NEW_TRANSACTION_RESET_PERSON, self)
-        self.trans_reset_button.clicked.connect(self.Ereset_person)
-        grid_new_person.addWidget(self.trans_reset_button, 2, 0, 1, 2)
+        self.person_reset_button = QPushButton(STRINGS.APP_BUTTON_NEW_TRANSACTION_RESET_PERSON, self)
+        self.person_reset_button.clicked.connect(self.Ereset_person)
+        grid_new_person.addWidget(self.person_reset_button, 2, 0, 1, 2)
 
         #sets the layouts for the persons section
         groupbox_person_new.setLayout(grid_new_person)
@@ -1100,24 +1103,31 @@ class Window(QDialog):
         self.sortTransactions(sortElement, up)
 
 
-class TransactionWindow(QDialog):
+class FilterWindow(QDialog):
     """
-    The TransactionWindow class contains the Window used for view/edit transactions
-    the TransactionWindow class takes a transaction object as a input to work with
+    The FilterWindow class contains the Window used for filter transactions
+    the FilterWindow class takes the MainWindow as an object to work with
     """
-    def __init__(self, transaction):
+    def __init__(self, mainWindow:Window):
         """
-        basic constructor is building the window. Takes a transaction object that is used for viewing
-        :param transaction: object<Transaction>
+        basic constructor is building the window. Takes the main window object to communicate (communicate with the backend as well)
+        :param mainWindow: object<Window>
         :return: void
         """
-        assert(type(transaction) == Transaction), STRINGS.getTypeErrorString(transaction, "transaction", Transaction)
+        assert(type(mainWindow) == Window), STRINGS.getTypeErrorString(mainWindow, "mainWindow", Window)
         super().__init__()  #initializes the Base Class (QDialog)
 
-        self.title = STRINGS.TWINDOW_TITLE
-        self.icon = QtGui.QIcon(STRINGS.TWINDOW_ICON)
+        self.title = STRINGS.FWINDOW_TITLE
 
-        self.transaction = transaction
+        self.ui = mainWindow
+        self.backend = mainWindow.backend
+        self.filter = mainWindow.filter
+
+        self.CatCombo = Combo(STRINGS.APP_NEW_TRANSACTION_DEFAULT_CATEGORY, self.Ecategory_choosed, self.backend.getCategories)
+        self.FtpCombo = Combo(STRINGS.APP_NEW_TRANSACTION_DEFAULT_FTPERSON, self.Eftperson_choosed, self.backend.getPersonNames)
+        self.WhyCombo = Combo(STRINGS.APP_NEW_TRANSACTION_DEFAULT_WHYPERSON, self.Ewhyperson_choosed, self.backend.getPersonNames)
+        self.PersonCombo = Combo(STRINGS.APP_NEW_TRANSACTION_DEFAULT_PERSON, self.Eperson_choosed, self.backend.getPersonNames)
+
 
         #build the window
         self.InitWindow()
@@ -1128,7 +1138,6 @@ class TransactionWindow(QDialog):
         :return: void
         """
         self.setWindowTitle(self.title)
-        self.setWindowIcon(self.icon)
         self.grid = QGridLayout()       #sets the layout of the complete window
 
         self.createLayout()             #create the layout with all components
@@ -1144,3 +1153,442 @@ class TransactionWindow(QDialog):
         :return: void
         """
         assert("grid" in map(lambda x: x[0], vars(self).items())), STRINGS.ERROR_GRID_NOT_DEFINED
+        self.addWidgets()
+
+    def addWidgets(self):
+        """
+        adds the Widgets to the window
+        builds up the window and connects these widgets with there event handlers
+        handles the behavior of these widgets too
+        :return: void
+        """
+
+        main_label = QLabel(STRINGS.FWINDOW_LABEL)
+        main_label.setFont(FONTS.APP_NEW_TRANSACTION)
+        self.grid.addWidget(main_label, 0, 0)
+
+        #********************CALENDAR********************************
+        #holds the buttons connected with the CalendarWindow to choose a min and max date
+        group_date = QGroupBox()
+        layout_date = QGridLayout()
+
+        #labels
+        self.date_label = QLabel(STRINGS.FWINDOW_LABEL_DATE)
+        self.date_label.setFont(FONTS.FWINDOW)
+        layout_date.addWidget(self.date_label, 0, 0)
+
+        min_date_label = QLabel(STRINGS.FWINDOW_LABEL_MIN_DATE)
+        layout_date.addWidget(min_date_label, 1, 0)
+        max_date_label = QLabel(STRINGS.FWINDOW_LABEL_MAX_DATE)
+        layout_date.addWidget(max_date_label, 1, 1)
+
+        #calendar buttons
+        self.min_date_button = QPushButton(self.filter.minDate.toString("dd.MM.yyyy"))
+        self.min_date_button.clicked.connect(self.Eopen_calendar)
+        layout_date.addWidget(self.min_date_button, 2, 0)
+
+        self.max_date_button = QPushButton(self.filter.maxDate.toString("dd.MM.yyyy"))
+        self.max_date_button.clicked.connect(self.Eopen_calendar)
+        layout_date.addWidget(self.max_date_button, 2, 1)
+
+        group_date.setLayout(layout_date)
+        self.grid.addWidget(group_date, 1, 0)
+
+        #********************PRODUCT*********************************
+        #holds the buttons and labels for filtering by product name
+        groupbox_prod = QGroupBox()
+        grid_prod = QGridLayout()
+
+        self.product_label = QLabel(STRINGS.FWINDOW_LABEL_PRODUCT)
+        self.product_label.setFont(FONTS.FWINDOW)
+        grid_prod.addWidget(self.product_label, 0, 0)
+
+        #product label
+        self.product_contains_label = QLabel(STRINGS.FWINDOW_LABEL_PRODUCT_CONTAINS)
+        grid_prod.addWidget(self.product_contains_label, 1, 0)
+
+        #product completer
+        self.product_completer = QCompleter(self.backend.getProductNames())
+        self.product_completer.setCaseSensitivity(False)
+
+        self.product_contains_edit = QLineEdit()
+        self.product_contains_edit.setCompleter(self.product_completer)      #add an autocompleter
+        grid_prod.addWidget(self.product_contains_edit, 2, 0)
+
+        #start string filter
+        self.product_start_label = QLabel(STRINGS.FWINDOW_LABEL_PRODUCT_STARTS)
+        grid_prod.addWidget(self.product_start_label, 1, 1)
+
+        self.product_start_edit = QLineEdit()
+        self.product_start_edit.setCompleter(self.product_completer)      #add an autocompleter
+        grid_prod.addWidget(self.product_start_edit, 2, 1)
+
+        #completes this group
+        groupbox_prod.setLayout(grid_prod)
+        self.grid.addWidget(groupbox_prod, 2, 0)
+
+        #********************CASHFLOW********************************
+        #holds the buttons and labels for filtering by cashflow
+        grid_cf = QGridLayout()
+        groupbox_cf = QGroupBox()
+        grid_cf.setSpacing(20)
+
+        #meta label for the group
+        self.cashflow_label = QLabel(STRINGS.FWINDOW_LABEL_CASHFLOW)
+        self.cashflow_label.setFont(FONTS.FWINDOW)
+        grid_cf.addWidget(self.cashflow_label, 0, 0)
+
+        #absolute toggle button (should we consider absolute cashflow?)
+        self.absolute_button = QPushButton("Placeholder")
+        self.absolute_button.setCheckable(True)
+        self.absolute_button.clicked.connect(self.Etoggle_absolute)
+        grid_cf.addWidget(self.absolute_button, 2, 0)
+
+        #min cashflow label
+        self.min_cashflow_label = QLabel(STRINGS.FWINDOW_LABEL_CASHFLOW_MIN)
+        grid_cf.addWidget(self.min_cashflow_label, 3, 0)
+
+        #ax cashflow label
+        self.max_cashflow_label = QLabel(STRINGS.FWINDOW_LABEL_CASHFLOW_MAX)
+        grid_cf.addWidget(self.max_cashflow_label, 4, 0)
+
+        #price per product label
+        self.trans_ppp_label = QLabel(STRINGS.APP_LABEL_NEW_TRANSACTION_CF_PP)
+        grid_cf.addWidget(self.trans_ppp_label, 2, 1)
+
+        #full price label
+        self.trans_fullp_label = QLabel(STRINGS.APP_LABEL_NEW_TRANSACTION_CF_FULL)
+        grid_cf.addWidget(self.trans_fullp_label, 2, 2)
+
+        #price per product input (minimum)
+        self.min_ppp_edit = QLineEdit()
+        self.min_ppp_edit.textChanged.connect(self.Eenter_only_numbers)
+        grid_cf.addWidget(self.min_ppp_edit, 3, 1)
+
+        #full price input (minimum)
+        self.min_fullp_edit = QLineEdit()
+        self.min_fullp_edit.textChanged.connect(self.Eenter_only_numbers)
+        grid_cf.addWidget(self.min_fullp_edit, 3, 2)
+
+        #price per product input (maximum)
+        self.max_ppp_edit = QLineEdit()
+        self.max_ppp_edit.textChanged.connect(self.Eenter_only_numbers)
+        grid_cf.addWidget(self.max_ppp_edit, 4, 1)
+
+        #full price input (maximum)
+        self.max_fullp_edit = QLineEdit()
+        self.max_fullp_edit.textChanged.connect(self.Eenter_only_numbers)
+        grid_cf.addWidget(self.max_fullp_edit, 4, 2)
+
+        #sets up the layout for this group
+        groupbox_cf.setLayout(grid_cf)
+        self.grid.addWidget(groupbox_cf, 3, 0)
+
+        #********************CATEGORY********************************
+        groupbox_cat = QGroupBox()          #group for the whole category block
+        groupbox_cat_choose = QGroupBox()   #group for the ComboBoxes where you can choose from
+        hbox_cat = QHBoxLayout()            #layout for the whole category block
+        self.vbox_cat = QVBoxLayout()       #layout for the ComboBoxes where you can choose from
+
+        #Setting up the object for the category combo boxes
+        self.CatCombo.setLayout(self.vbox_cat)
+        self.CatCombo.addComboBox()     #adds a first box
+        self.CatCombo.sort()
+
+        #sets the layout for the ComboBoxes
+        groupbox_cat_choose.setLayout(self.vbox_cat)
+        hbox_cat.addWidget(groupbox_cat_choose)
+
+        #reset category button
+        self.cat_reset_button = QPushButton(STRINGS.APP_BUTTON_NEW_TRANSACTION_RESET_CAT)
+        self.cat_reset_button.clicked.connect(self.Ereset_category)
+        hbox_cat.addWidget(self.cat_reset_button)
+
+        #sets the layouts of the category group
+        groupbox_cat.setLayout(hbox_cat)
+        self.grid.addWidget(groupbox_cat, 4, 0)
+
+        #********************PERSONS*********************************
+        groupbox_person = QGroupBox()       #group for the whole person choose and add block
+        groupbox_ftp_choose = QGroupBox()   #group for the from/to person choose block
+        groupbox_whyp_choose = QGroupBox()  #group for the why person choose block
+        groupbox_p_choose = QGroupBox()     #group for the person choose block
+        grid_person = QGridLayout()         #layout for the whole person choose and add block
+        self.vbox_ftp = QVBoxLayout()       #layout for the from/to person choose block
+        self.vbox_whyp = QVBoxLayout()      #layout for the why person choose block
+        self.vbox_p = QVBoxLayout()         #layout for the person choose block
+
+        #********************FROM_TO_PERSON**************************
+        #Setting up the object for the from/to person combo boxes
+        self.FtpCombo.setLayout(self.vbox_ftp)
+        self.FtpCombo.addComboBox()     #add the first box
+        self.FtpCombo.sort()
+
+        #set the layout for the from/to person group
+        groupbox_ftp_choose.setLayout(self.vbox_ftp)
+        grid_person.addWidget(groupbox_ftp_choose, 0, 0)
+
+        #********************WHY_PERSON******************************
+        #Setting up the object for the why person combo boxes
+        self.WhyCombo.setLayout(self.vbox_whyp)
+        self.WhyCombo.addComboBox()     #add the first box
+        self.WhyCombo.sort()
+
+        #set the layout for the why person group
+        groupbox_whyp_choose.setLayout(self.vbox_whyp)
+        grid_person.addWidget(groupbox_whyp_choose, 0, 1)
+
+        #********************PERSON**********************************
+        #Setting up the object for the why person combo boxes
+        self.PersonCombo.setLayout(self.vbox_p)
+        self.PersonCombo.addComboBox()     #add the first box
+        self.PersonCombo.sort()
+
+        #set the layout for the why person group
+        groupbox_p_choose.setLayout(self.vbox_p)
+        grid_person.addWidget(groupbox_p_choose, 0, 2)
+
+        #********************RESET_PERSON****************************
+        #reset persons button
+        self.person_reset_button = QPushButton(STRINGS.APP_BUTTON_NEW_TRANSACTION_RESET_PERSON, self)
+        self.person_reset_button.clicked.connect(self.Ereset_person)
+        grid_person.addWidget(self.person_reset_button, 1, 0, 2, 0)
+
+        #sets the layouts for the persons section
+        groupbox_person.setLayout(grid_person)
+        self.grid.addWidget(groupbox_person, 5, 0)
+
+        #********************SUBMIT_BUTTON***************************
+        #submit transaction button
+        self.submit_widget = QWidget()
+        self.submit_layout = QHBoxLayout()
+        self.submit_button = QPushButton(STRINGS.FWINDOW_LABEL_SET_FILTER)
+        self.submit_button.setFont(FONTS.APP_NEW_TRANSACTION_SUBMIT)
+        self.submit_button.clicked.connect(self.Esubmit_filter)
+        self.submit_layout.addWidget(self.submit_button)
+        self.submit_widget.setLayout(self.submit_layout)
+        self.grid.addWidget(self.submit_widget, 6, 0)
+
+        self.update()   #updates all widgets to the filter settings
+
+    def update(self):
+        """
+        this method is updating the contents of the form based on the current filter settings
+        :return: void
+        """
+        self.min_date_button.setText(self.filter.minDate.toString("dd.MM.yyyy"))
+        self.max_date_button.setText(self.filter.maxDate.toString("dd.MM.yyyy"))
+        self.absolute_button.setText(STRINGS.FWINDOW_ABSOLUTE if self.filter.absoluteValues else STRINGS.FWINDOW_RELATIVE)
+
+
+    def Edate_range(self):
+        pass
+
+    def Eenter_only_numbers(self):
+        """
+        Event handler
+        activates if the text in an input changed
+        if a non number related symbol is entered, this handler deletes it.
+        Makes sure that the input is a non negative valid float
+        :return: void
+        """
+        assert(type(self.sender()) == QLineEdit), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
+        edit = self.sender()
+        if edit.text() == "":
+            return
+        last_char = edit.text()[-1]
+        if last_char in STRINGS.COMMAS:     #only commas are allowed 
+            #sets the right comma; the method accepts multiple commas given in COMMAS
+            #but we will display only one COMMA. (other commas are replaced)
+            if edit.text()[:-1].count(STRINGS.COMMA) == 0:
+                edit.setText(edit.text()[:-1] + STRINGS.COMMA)
+            else:
+                edit.setText(edit.text()[:-1])
+            return
+        if not last_char in map(lambda x: str(x), range(10)):   #or numbers
+            edit.setText(edit.text()[:-1])
+            return
+
+    def Ereset_category(self):
+        """
+        Event handler
+        activates if the categories are reseted
+        :return: void
+        """
+        assert(type(self.sender()) == QPushButton), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
+        self.CatCombo.reset()   #reset the ComboBoxes
+
+    def Ereset_person(self):
+        """
+        Event handler
+        activates if the persons are reseted
+        :return: void
+        """
+        assert(type(self.sender()) == QPushButton), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
+        self.WhyCombo.reset()       #reset the ComboBoxes
+        self.FtpCombo.reset()
+        self.PersonCombo.reset()
+
+    def Esubmit_filter(self):
+        self.close()
+
+    def Eopen_calendar(self):
+        """
+        event handler
+        activates if the user wants to select a date for the filter
+        :return: void
+        """
+        sender = self.sender()
+        assert(type(sender) == QPushButton), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(sender)
+        assert(sender == self.max_date_button or sender == self.min_date_button), STRINGS.ERROR_WRONG_SENDER+inspect.stack()[0][3]+", "+str(sender)
+        if sender == self.min_date_button:
+            #user selected the minimum date
+            choosed_date = CalendarWindow(self.filter.minDate).date
+            self.filter.setMinDate(choosed_date)
+        elif sender == self.max_date_button:
+            #user selected the maximum date
+            choosed_date = CalendarWindow(self.filter.maxDate).date
+            self.filter.setMaxDate(choosed_date)
+        self.update()       #updates the gui (write the new dates on the buttons)
+
+    def Etoggle_absolute(self):
+        """
+        event handler
+        activates if the user wants to switch between absolute and relative cashflow values
+        :return: void
+        """
+        sender = self.sender()
+        assert(type(sender) == QPushButton), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(sender)
+        assert(sender == self.absolute_button), STRINGS.ERROR_WRONG_SENDER+inspect.stack()[0][3]+", "+str(sender)
+        self.filter.setAbsoluteValues(not sender.isChecked())
+        self.update()
+
+    def Ecategory_choosed(self):
+        """
+        Event handler
+        activates if the user choosed a category in a ComboBox
+        adds a new ComboBox if neccessary
+        :return: void
+        """
+        assert(type(self.sender()) == QComboBox), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
+        if not self.CatCombo.isNoDefault():
+            #if there are some ComboBoxes with the default category, no further boxes are added
+            self.CatCombo.updateItems()    #sets the items correctly (you can only choose every option once) 
+            return
+            
+        if CONSTANTS.MAX_COMBOS > self.CatCombo.getLen():
+            #add a new box, if the max boxes are not reached yet
+            self.CatCombo.addComboBox()
+
+    def Eftperson_choosed(self):
+        """
+        Event handler
+        activates if the user choosed a from/to person in a ComboBox
+        adds a new ComboBox if neccessary
+        :return: void
+        """
+        assert(type(self.sender()) == QComboBox), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
+        if not self.FtpCombo.isNoDefault():
+            #if there are some ComboBoxes with the default category, no further boxes are added
+            self.FtpCombo.updateItems()    #sets the items correctly (you can only choose every option once) 
+            return
+            
+        if CONSTANTS.MAX_COMBOS > self.FtpCombo.getLen():
+            #add a new box, if the max boxes are not reached yet
+            self.FtpCombo.addComboBox()
+    
+    def Ewhyperson_choosed(self):
+        """
+        Event handler
+        activates if the user choosed a from/to person in a ComboBox
+        adds a new ComboBox if neccessary
+        :return: void
+        """
+        assert(type(self.sender()) == QComboBox), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
+        if not self.WhyCombo.isNoDefault():
+            #if there are some ComboBoxes with the default category, no further boxes are added
+            self.WhyCombo.updateItems()    #sets the items correctly (you can only choose every option once) 
+            return
+            
+        if CONSTANTS.MAX_COMBOS > self.WhyCombo.getLen():
+            #add a new box, if the max boxes are not reached yet
+            self.WhyCombo.addComboBox()
+
+    def Eperson_choosed(self):
+        """
+        Event handler
+        activates if the user choosed a person in a ComboBox
+        adds a new ComboBox if neccessary
+        :return: void
+        """
+        assert(type(self.sender()) == QComboBox), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
+        if not self.PersonCombo.isNoDefault():
+            #if there are some ComboBoxes with the default category, no further boxes are added
+            self.PersonCombo.updateItems()    #sets the items correctly (you can only choose every option once) 
+            return
+            
+        if CONSTANTS.MAX_COMBOS > self.PersonCombo.getLen():
+            #add a new box, if the max boxes are not reached yet
+            self.PersonCombo.addComboBox()
+
+
+class CalendarWindow(QDialog):
+    """
+    The CalendarWindow class contains the Window with only a calendar, that is automatically closed if a date is choosen
+    """
+    def __init__(self, startDate:QDate):
+        """
+        basic constructor is building the window.
+        :param startDate: QDate<Date that is currently selected>
+        :return: void
+        """
+        assert(type(startDate) == QDate), STRINGS.getTypeErrorString(startDate, "startDate", QDate)
+        super().__init__()  #initializes the Base Class (QDialog)
+
+        self.title = STRINGS.CWINDOW_TITLE
+
+        self.start_date = startDate
+        self.date = None
+
+        #build the window
+        self.InitWindow()
+
+        self.exec() #show the window on top and make all other windows not clickable
+        if self.date == None:
+            #user didnt select any date (just closed the window)
+            self.date = self.start_date
+
+    def InitWindow(self):
+        """
+        this method is building the window
+        :return: void
+        """
+        self.setWindowTitle(self.title)
+        self.grid = QGridLayout()       #sets the layout of the complete window
+
+        self.createLayout()             #create the layout with all components
+
+        self.setLayout(self.grid)
+    
+    def createLayout(self):
+        """
+        creates layout with only a calendar
+        :return: void
+        """
+        assert("grid" in map(lambda x: x[0], vars(self).items())), STRINGS.ERROR_GRID_NOT_DEFINED
+        self.calendar = QCalendarWidget()
+        self.calendar.setMaximumDate(QDate.currentDate())
+        self.calendar.setMinimumDate(QDate(1900, 1, 1))
+        self.calendar.setSelectedDate(self.start_date)
+        self.calendar.selectionChanged.connect(self.Eselected)
+        self.grid.addWidget(self.calendar, 0, 0)
+
+    def Eselected(self):
+        """
+        event handler 
+        activates if the user selects a date, it will save that date and close the window
+        :return: void
+        """
+        self.date = self.calendar.selectedDate()
+        self.close()
+

@@ -44,6 +44,7 @@ class ENG:
     APP_NEW_TRANSACTION_DEFAULT_CATEGORY = "Without category"
     APP_NEW_TRANSACTION_DEFAULT_FTPERSON = "No from/to person"
     APP_NEW_TRANSACTION_DEFAULT_WHYPERSON = "No why person"
+    APP_NEW_TRANSACTION_DEFAULT_PERSON = "No person"
 
     APP_NEW_TRANSACTION_PRODUCT_INPUT = "product"
     APP_NEW_TRANSACTION_CASHFLOW_INPUT = "cashflow"
@@ -54,10 +55,24 @@ class ENG:
     APP_BUTTON_EDIT_TRANSACTION_DELETE = "Delete transaction"
     APP_BUTTON_EDIT_TRANSACTION_CANCEL = "Cancel"
 
-    #TransactionWindow Strings
-    TWINDOW_TITLE = "View transaction"
-    TWINDOW_ICON = "media/icon.png"
+    #FilterWindow Strings
+    FWINDOW_TITLE = "Filter transactions"
+    FWINDOW_ABSOLUTE = "Absolute cashflow"
+    FWINDOW_RELATIVE = "Signed cashflow"
+    FWINDOW_LABEL = "Filter settings"
+    FWINDOW_LABEL_DATE = "Filter by date"
+    FWINDOW_LABEL_MIN_DATE = "Minimum Date:"
+    FWINDOW_LABEL_MAX_DATE = "Maximum Date:"
+    FWINDOW_LABEL_PRODUCT = "Filter by product name"
+    FWINDOW_LABEL_PRODUCT_CONTAINS = "Filter by substring:"
+    FWINDOW_LABEL_PRODUCT_STARTS = "Filter by start string:"
+    FWINDOW_LABEL_CASHFLOW = "Filter by cashflow"
+    FWINDOW_LABEL_CASHFLOW_MIN = "Minimum cashflow:"
+    FWINDOW_LABEL_CASHFLOW_MAX = "Maximum cashflow:"
+    FWINDOW_LABEL_SET_FILTER = "Set filter"
 
+    #CalendarWindow Strings
+    CWINDOW_TITLE = "Choose a date"
 
     #tooltips
     TOOLTIP_SUBMIT_BUTTON = "Fill out the form and submit with this button"
@@ -85,7 +100,7 @@ class ENG:
     ERROR_NO_BOXES = "No items to get, sort or reset, because there are no boxes. Please add a box first"
     ERROR_CHOOSED_TEXT_NOT_IN_ITEMS = "The choosed item in the ComboBox is not in the items list: "
     ERROR_INPUT_NOT_IN_INPUTDICT = "Input is not in input dict (input): "
-    ERROR_DATE_OUT_OF_RANGE = "The provided date is in the future: "
+    ERROR_DATE_OUT_OF_RANGE = "The provided date is in the future or too far in the past: "
     ERROR_PRODUCT_CONTAINS_NO_CHAR = "The product contains no visible characters: "
     ERROR_CATEGORY_CONTAINS_NOT_ENOUGH_CHAR = "The category contains less than 3 visible characters: "
     ERROR_PERSON_CONTAINS_NOT_ENOUGH_CHAR = "The person contains less than 3 visible characters: "
@@ -112,6 +127,7 @@ class ENG:
     ERROR_SENDER_NOT_IN_SORT_BUTTONS = "The sender button is not part of the sort button list"
     ERROR_SORTELEMENT_OUT_OF_RANGE = "The sort element has some invalid data or is out of range: "
     ERROR_TOOLTIPS_ALREADY_SET = "The tooltips are already set"
+    ERROR_NO_DATE_SELECTED = "No date has been selected"
 
     ERROR_WRONG_CF_DATA = "Got wrong cashflow data: "
     ERROR_WRONG_FORMAT_GEOMETRY = "geometry is in a wrong format: "

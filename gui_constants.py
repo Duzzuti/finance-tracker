@@ -13,6 +13,9 @@ class FONTS:
     APP_LAST_TRANSACTION_SORT_ACTIVE = QFont("Arial", 10)
     APP_LAST_TRANSACTION_SORT_ACTIVE.setBold(True)
 
+    FWINDOW = QFont("Arial", 13, italic=True)
+    FWINDOW.setUnderline(True)
+
 class ICONS:
     def compare(icon1:QIcon, icon2:QIcon):
         return icon1.pixmap(128, 128).toImage() == icon2.pixmap(128, 128).toImage()

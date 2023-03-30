@@ -57,6 +57,7 @@ class Combo:
         box.currentTextChanged.connect(self.choosed_event_func) #set the event handler
         self.layout.addWidget(box)
         self.boxes.append(box)
+        self.updateItems()
     
     def getAllItems(self, default:bool=False):
         """
