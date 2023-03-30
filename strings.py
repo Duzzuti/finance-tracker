@@ -36,6 +36,9 @@ class ENG:
     APP_BUTTON_NEW_TRANSACTION_ADD_PERSON_FTP = "Add from/to person"
     APP_BUTTON_NEW_TRANSACTION_RESET_PERSON = "Reset persons"
     APP_BUTTON_NEW_TRANSACTION_SUBMIT = "Add transaction"
+    APP_BUTTON_FILTER_OFF = "Set a filter"
+    APP_BUTTON_FILTER_ON = "Change filter"
+    APP_BUTTON_FILTER_RESET = "Reset filter"
 
     APP_BUTTON_LAST_TRANSACTIONS_DATE = "Date "
     APP_BUTTON_LAST_TRANSACTIONS_CASHFLOW = "Cashflow "
@@ -88,8 +91,8 @@ class ENG:
     FTOOLTIP_DATE = "You can set the minimum and maximum dates for the transaction"
     FTOOLTIP_PRODUCT = "You can set filters for the product name of the transaction\nEnter a substring in the first input field that the product name HAS TO contain\nEnter a substring in the second input field that the product name HAS TO start with"
     FTOOLTIP_CASHFLOW = "You can set the lower and upper bound for the transaction's cash flows\nYou can set the bounds for full cashflow or cashflow per product\nIf you set the absolute/signed button to absolute, the filter looks for absolute cashflows\nNOTE:\nThe cashflows per product and full cashflows have to apply BOTH for the transaction"
-    FTOOLTIP_CATEGORY = "You can set a category filter\nNOTE:\nAll categories that are selected have to apply on the transaction"
-    FTOOLTIP_PERSON = "You can set a person filter\nYou can choose a person that has to be in the from/to persons of the transaction\nYou can choose a why person\nOr a person that needs to show in the from/to OR why persons of the transaction\nNOTE:\nAll persons that are selected have to apply on the transaction"
+    FTOOLTIP_CATEGORY = "You can set a category filter\nNOTE:\nAt least ONE category that is selected has to apply on the transaction"
+    FTOOLTIP_PERSON = "You can set a person filter\nYou can choose a person that has to be in the from/to persons of the transaction\nYou can choose a why person\nOr a person that needs to show in the from/to OR why persons of the transaction\nNOTE:\nAt least one persons that is selected has to apply on the transaction"
 
 
     #questions

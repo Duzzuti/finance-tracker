@@ -7,7 +7,7 @@ import pickle
 from strings import ENG as STRINGS
 from PyQt5.QtWidgets import QMessageBox
 from backend_datatypes import Product, Person, Transaction
-from fullstack_utils import SortEnum
+from fullstack_utils import SortEnum, Filter
 
 
 def Dsave(func):
@@ -49,6 +49,8 @@ class Backend:
         self.categories = []    #a list that holds some strings representing all known categories
         self.persons = []       #a list that holds person objects of all known persons
         self.transactions = []  #a list that holds transaction objects of all known transactions
+
+        self.transactionFilter = Filter()   #sets up a filter object for the backend
 
         self.sortCriteria = [SortEnum.DATE.value, True]
 
@@ -98,6 +100,77 @@ class Backend:
         #WORK should be returned sorted by date
         for trans in self.transactions:
             yield trans
+    
+    def getFilteredTransactions(self):
+        """
+        generator for all transactions that met the requirements of the filter
+        :return: Generator<object<Transaction>>
+        """
+        for trans in self.transactions:
+            if self.isTransactionFilter(trans):
+                yield trans
+
+    def isTransactionFilter(self, transaction:Transaction):
+        """
+        a bulk of if statements to check, whether a given transaction is valid with the filter applied
+        :param transaction: object<Transaction>
+        :return: bool<is transaction valid?>
+        """
+        assert(type(transaction) == Transaction), STRINGS.getTypeErrorString(transaction, "transaction", Transaction)
+        if not(self.transactionFilter.minDate <= transaction.date <= self.transactionFilter.maxDate):
+            return False
+        if not(self.transactionFilter.contains.lower() in transaction.product.name.lower()):
+            return False
+        if not(transaction.product.name.lower().startswith(self.transactionFilter.startswith.lower())):
+            return False
+        if self.transactionFilter.absoluteValues:
+            if type(self.transactionFilter.minCashflow) != bool:
+                #filter set
+                if not(abs(self.transactionFilter.minCashflow) <= abs(transaction.cashflow)):
+                    return False
+            if type(self.transactionFilter.maxCashflow) != bool:
+                #filter set
+                if not(abs(self.transactionFilter.maxCashflow) >= abs(transaction.cashflow)):
+                    return False
+            if type(self.transactionFilter.minCashflowPerProduct) != bool:
+                #filter set
+                if not(abs(self.transactionFilter.minCashflowPerProduct) <= abs(transaction.cashflow_per_product)):
+                    return False
+            if type(self.transactionFilter.maxCashflowPerProduct) != bool:
+                #filter set
+                if not(abs(self.transactionFilter.maxCashflowPerProduct) >= abs(transaction.cashflow_per_product)):
+                    return False
+        else:
+            if type(self.transactionFilter.minCashflow) != bool:
+                #filter set
+                if not(self.transactionFilter.minCashflow <= transaction.cashflow):
+                    return False
+            if type(self.transactionFilter.maxCashflow) != bool:
+                #filter set
+                if not(self.transactionFilter.maxCashflow >= transaction.cashflow):
+                    return False
+            if type(self.transactionFilter.minCashflowPerProduct) != bool:
+                #filter set
+                if not(self.transactionFilter.minCashflowPerProduct <= transaction.cashflow_per_product):
+                    return False
+            if type(self.transactionFilter.maxCashflowPerProduct) != bool:
+                #filter set
+                if not(self.transactionFilter.maxCashflowPerProduct >= transaction.cashflow_per_product):
+                    return False
+        if not(any(map(lambda x: x.lower() in map(lambda x: x.lower(), transaction.product.categories), self.transactionFilter.categories))) and \
+                                self.transactionFilter.categories != []:
+            return False
+        if not(any(map(lambda x: x.lower() in map(lambda x: x.name.lower(), transaction.from_to_persons), self.transactionFilter.ftpersons))) and \
+                                self.transactionFilter.ftpersons != []:
+            return False
+        if not(any(map(lambda x: x.lower() in map(lambda x: x.name.lower(), transaction.why_persons), self.transactionFilter.whypersons))) and \
+                                self.transactionFilter.whypersons != []:
+            return False
+        if not(any(map(lambda x: x.lower() in map(lambda x: x.name.lower(), transaction.why_persons) or
+                                 x.lower() in map(lambda x: x.name.lower(), transaction.from_to_persons), self.transactionFilter.persons))) and \
+                                self.transactionFilter.persons != []:
+            return False
+        return True
 
     def getLastTransactionByProductText(self, product_name:str):
         """
@@ -112,6 +185,15 @@ class Backend:
                 return transaction
         return False
 
+    def setFilter(self, filter:Filter):
+        """
+        setter for the filter
+        :param filter: object<Filter>
+        :return: void
+        """
+        assert(type(filter) == Filter), STRINGS.getTypeErrorString(filter, "filter", Filter)
+        self.transactionFilter = filter
+    
     @Dsave
     def addCategory(self, category:str):
         """

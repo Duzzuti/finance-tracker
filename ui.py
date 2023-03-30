@@ -8,8 +8,8 @@ from gui_constants import FONTS, ICONS
 from constants import CONSTANTS
 from backend import Backend
 from backend_datatypes import Transaction
-from ui_datatypes import Combo, Inputs, TransactionList, Filter
-from fullstack_utils import SortEnum, utils
+from ui_datatypes import Combo, Inputs, TransactionList
+from fullstack_utils import SortEnum, utils, Filter
 
 from PyQt5.QtWidgets import QGridLayout, QLabel, QGroupBox, QVBoxLayout, QHBoxLayout, QPushButton, QDialog, QWidget
 from PyQt5.QtWidgets import QSpinBox, QCalendarWidget, QLineEdit, QCompleter, QComboBox, QMessageBox, QScrollArea
@@ -60,11 +60,10 @@ class Window(QDialog):
         self.Inputs = Inputs([STRINGS.APP_NEW_TRANSACTION_PRODUCT_INPUT, STRINGS.APP_NEW_TRANSACTION_CASHFLOW_INPUT], self.activateTransSubmitButton, self.deactivateTransSubmitButton)
 
         #transaction list object handles the scrollable transaction list ui component
-        self.TransList = TransactionList(self.backend.getTransactions, self.Elast_trans_button_pressed)
+        self.TransList = TransactionList(self.backend.getFilteredTransactions, self.Elast_trans_button_pressed)
 
         #build the window
         self.InitWindow()
-        print(FilterWindow(self).filter)
 
     def InitWindow(self):
         """
@@ -362,6 +361,20 @@ class Window(QDialog):
         handles the behavior of these widgets too
         :return: void
         """
+        #creates the filter buttons
+        layout_filter = QHBoxLayout()
+        widget_filter = QWidget()
+        self.filter_button = QPushButton(STRINGS.APP_BUTTON_FILTER_OFF)
+        self.filter_button.clicked.connect(self.Eopen_filter)
+        layout_filter.addWidget(self.filter_button)
+
+        self.reset_fiter_button = QPushButton(STRINGS.APP_BUTTON_FILTER_RESET)
+        self.reset_fiter_button.clicked.connect(self.Ereset_filter)
+        layout_filter.addWidget(self.reset_fiter_button)
+
+        widget_filter.setLayout(layout_filter)
+        self.layout_lastTransaction.addWidget(widget_filter)
+
         #creates the sort buttons
         layout_sort = QHBoxLayout()
         widget_sort = QWidget()
@@ -671,6 +684,20 @@ class Window(QDialog):
         self.CatCombo.setItems(categories)
         self.FtpCombo.setItems(from_to_persons)
         self.WhyCombo.setItems(why_persons)
+
+    def updateFilter(self):
+        """
+        update the settings based on the filter.
+        should be called if the filter changed
+        :return: void
+        """
+        #sets the right text
+        if self.filter.isStandard():
+            self.filter_button.setText(STRINGS.APP_BUTTON_FILTER_OFF)
+        else:
+            self.filter_button.setText(STRINGS.APP_BUTTON_FILTER_ON)
+        self.backend.setFilter(self.filter)     #sets the new filter in the backend
+        self.TransList.updateLastTrans()        #reloads the transactions to make the filter work
 
 
     def Echanged_cashflow(self):
@@ -1088,6 +1115,25 @@ class Window(QDialog):
             up = False    #last time we sorted asc, so now we sort descending
         self.sortTransactions(sortElement, up)
 
+    def Eopen_filter(self):
+        """
+        event handler
+        activates if the user wants to set a filter for the transactions
+        :return: void
+        """
+        self.filter = FilterWindow(self).filter     #sets the filter
+        self.updateFilter()     #updates the filter, that will go to the backend and new data will be got
+    
+    def Ereset_filter(self):
+        """
+        event handler
+        activates if the user wants to reset the filter for the transaction
+        :return: void
+        """
+        self.filter = Filter()  #sets the default filter
+        self.updateFilter()     #updates the filter in the backend
+        
+
 
 class FilterWindow(QDialog):
     """
@@ -1107,9 +1153,10 @@ class FilterWindow(QDialog):
 
         self.ui = mainWindow
         self.backend = mainWindow.backend
-        self.filter = mainWindow.filter
+        self.filter = mainWindow.filter     #saves the filter object from the MainWindow
         self.tooltips_set = False   #keeps track whether you already set the tooltips or not
 
+        #sets up the combo boxes
         self.CatCombo = Combo(STRINGS.APP_NEW_TRANSACTION_DEFAULT_CATEGORY, self.Ecategory_choosed, self.backend.getCategories)
         self.FtpCombo = Combo(STRINGS.APP_NEW_TRANSACTION_DEFAULT_FTPERSON, self.Eftperson_choosed, self.backend.getPersonNames)
         self.WhyCombo = Combo(STRINGS.APP_NEW_TRANSACTION_DEFAULT_WHYPERSON, self.Ewhyperson_choosed, self.backend.getPersonNames)
@@ -1128,7 +1175,7 @@ class FilterWindow(QDialog):
         self.grid = QGridLayout()       #sets the layout of the complete window
 
         self.createLayout()             #create the layout with all components
-        self.setToolTips()
+        self.setToolTips()              #set the tooltips for the user
 
         self.setLayout(self.grid)
 
@@ -1141,7 +1188,7 @@ class FilterWindow(QDialog):
         :return: void
         """
         assert("grid" in map(lambda x: x[0], vars(self).items())), STRINGS.ERROR_GRID_NOT_DEFINED
-        self.addWidgets()
+        self.addWidgets()   #add the widgets
 
     def addWidgets(self):
         """
@@ -1150,6 +1197,7 @@ class FilterWindow(QDialog):
         handles the behavior of these widgets too
         :return: void
         """
+        #sets up the main label in a widget in order to add the tooltip later
         main_label_widget = QWidget()
         self.main_label_layout = QHBoxLayout()
         self.main_label_layout.setContentsMargins(0,0,0,0)
@@ -1396,7 +1444,7 @@ class FilterWindow(QDialog):
         self.submit_widget.setLayout(self.submit_layout)
         self.grid.addWidget(self.submit_widget, 6, 0)
 
-        self.update()   #updates all widgets to the filter settings
+        self.update(get_form_data=False)   #updates all widgets to the filter settings
 
     def setToolTips(self):
         """
@@ -1439,19 +1487,65 @@ class FilterWindow(QDialog):
         cat_info_label.setToolTip(STRINGS.FTOOLTIP_CATEGORY)
         person_info_label.setToolTip(STRINGS.FTOOLTIP_PERSON)
 
+    def updateFilterData(self):
+        """
+        gets the data from the form and saves it in the filter object
+        if the user input cannot be saved as a float i.e ("-"), this method returns false to signal the caller, 
+        that the data is not ready to submit
+        :return: bool<submit-ready?>
+        """
+        self.filter.setContains(self.product_contains_edit.text())
+        self.filter.setStartsWith(self.product_start_edit.text())
+        self.filter.setCategories(self.CatCombo.getChoosenItems())
+        self.filter.setFtPersons(self.FtpCombo.getChoosenItems())
+        self.filter.setWhyPersons(self.WhyCombo.getChoosenItems())
+        self.filter.setPersons(self.PersonCombo.getChoosenItems())
+        self.filter.setAbsoluteValues(not self.absolute_button.isChecked())
+        try:
+            min_cf = False if self.min_fullp_edit.text() == "" else float(self.min_fullp_edit.text())
+            max_cf = False if self.max_fullp_edit.text() == "" else float(self.max_fullp_edit.text())
+            min_cf_pp = False if self.min_ppp_edit.text() == "" else float(self.min_ppp_edit.text())
+            max_cf_pp = False if self.max_ppp_edit.text() == "" else float(self.max_ppp_edit.text())
+        except:
+            return False
+        
+        self.filter.setMinCashflow(min_cf)
+        self.filter.setMaxCashflow(max_cf)
+        self.filter.setMinCashflowPerProduct(min_cf_pp)
+        self.filter.setMaxCashflowPerProduct(max_cf_pp)
+        return True
 
-    def update(self):
+    def update(self, get_form_data=True):
         """
         this method is updating the contents of the form based on the current filter settings
+        :param get_form_data: bool<the current data from the form should be used? (disable at the first call)>
         :return: void
         """
+        if get_form_data:
+            self.updateFilterData() #updates the filter with the data from the form
         self.min_date_button.setText(self.filter.minDate.toString("dd.MM.yyyy"))
         self.max_date_button.setText(self.filter.maxDate.toString("dd.MM.yyyy"))
         self.absolute_button.setText(STRINGS.FWINDOW_ABSOLUTE if self.filter.absoluteValues else STRINGS.FWINDOW_RELATIVE)
+        self.absolute_button.setChecked(False if self.filter.absoluteValues else True)
+        self.product_contains_edit.setText(self.filter.contains)
+        self.product_start_edit.setText(self.filter.startswith)
+        if type(self.filter.minCashflow) != bool:
+            #filter is set
+            self.min_fullp_edit.setText(str(self.filter.minCashflow))
+        if type(self.filter.maxCashflow) != bool:
+            #filter is set
+            self.max_fullp_edit.setText(str(self.filter.maxCashflow))
+        if type(self.filter.minCashflowPerProduct) != bool:
+            #filter is set
+            self.min_ppp_edit.setText(str(self.filter.minCashflowPerProduct))
+        if type(self.filter.maxCashflowPerProduct) != bool:
+            #filter is set
+            self.max_ppp_edit.setText(str(self.filter.maxCashflowPerProduct))
 
-
-    def Edate_range(self):
-        pass
+        self.CatCombo.setItems(self.filter.categories)
+        self.FtpCombo.setItems(self.filter.ftpersons)
+        self.WhyCombo.setItems(self.filter.whypersons)
+        self.PersonCombo.setItems(self.filter.persons)
 
     def Eenter_only_numbers(self):
         """
@@ -1491,28 +1585,10 @@ class FilterWindow(QDialog):
         the caller can now look into self.filter to get the data
         :return: void
         """
-        self.filter.setContains(self.product_contains_edit.text())
-        self.filter.setStartsWith(self.product_start_edit.text())
-        try:
-            min_cf = float(0 if self.min_fullp_edit.text() == "" else self.min_fullp_edit.text())
-            max_cf = float(0 if self.max_fullp_edit.text() == "" else self.max_fullp_edit.text())
-            min_cf_pp = float(0 if self.min_ppp_edit.text() == "" else self.min_ppp_edit.text())
-            max_cf_pp = float(0 if self.max_ppp_edit.text() == "" else self.max_ppp_edit.text())
-        except:
-            #WORK, except message
+        if self.updateFilterData():
+            self.close()
+        else:
             print("could not convert cashflow to float")
-            return
-        
-        self.filter.setMinCashflow(min_cf)
-        self.filter.setMaxCashflow(max_cf)
-        self.filter.setMinCashflowPerProduct(min_cf_pp)
-        self.filter.setMaxCashflowPerProduct(max_cf_pp)
-
-        self.filter.setCategories(self.CatCombo.getChoosenItems())
-        self.filter.setFtPersons(self.FtpCombo.getChoosenItems())
-        self.filter.setWhyPersons(self.WhyCombo.getChoosenItems())
-        self.filter.setPersons(self.PersonCombo.getChoosenItems())
-        self.close()
 
     def Eopen_calendar(self):
         """
@@ -1542,7 +1618,6 @@ class FilterWindow(QDialog):
         sender = self.sender()
         assert(type(sender) == QPushButton), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(sender)
         assert(sender == self.absolute_button), STRINGS.ERROR_WRONG_SENDER+inspect.stack()[0][3]+", "+str(sender)
-        self.filter.setAbsoluteValues(not sender.isChecked())
         self.update()
 
     def Ecategory_choosed(self):
@@ -1637,7 +1712,7 @@ class CalendarWindow(QDialog):
 
         self.exec() #show the window on top and make all other windows not clickable
         if self.date == None:
-            #user didnt select any date (just closed the window)
+            #user didnt select any date (take the start date (no new date selected))
             self.date = self.start_date
 
     def InitWindow(self):
@@ -1673,4 +1748,3 @@ class CalendarWindow(QDialog):
         """
         self.date = self.calendar.selectedDate()
         self.close()
-
