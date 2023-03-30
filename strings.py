@@ -70,6 +70,8 @@ class ENG:
     FWINDOW_LABEL_CASHFLOW_MIN = "Minimum cashflow:"
     FWINDOW_LABEL_CASHFLOW_MAX = "Maximum cashflow:"
     FWINDOW_LABEL_SET_FILTER = "Set filter"
+    FWINDOW_LABEL_CATEGORY = "Filter by category"
+    FWINDOW_LABEL_PERSON = "Filter by person"
 
     #CalendarWindow Strings
     CWINDOW_TITLE = "Choose a date"
@@ -81,6 +83,14 @@ class ENG:
     TOOLTIP_CASHFLOW = "Please provide information about the cashflow\nIf you lost money, set sign to minus, if you won choose plus\nYou can enter the cashflow per product or for the whole transaction"
     TOOLTIP_CATEGORY = "You can add some categories to your product\nChoose them on the left side\nIf you wanna add some new ones, use the input field and add button below\nNOTES:\nCategories are case insensitive\nYou can only have one combination of categories per product"
     TOOLTIP_PERSON = "You can add some persons related to that transaction\nChoose them above\nIf you wanna add some new ones, use the input field and add button below\nThere are TWO kinds of persons:\n1.From/To persons: A person who buys/sells the product from/to you\n2.Why persons: without this person, you would not made this transaction \nNOTES:\nPersons are case insensitive"
+
+    FTOOLTIP_MAIN = "You can set the filters for the transactions here\nAll filters are combined using AND\nPress 'set Filter' to save your current filter"
+    FTOOLTIP_DATE = "You can set the minimum and maximum dates for the transaction"
+    FTOOLTIP_PRODUCT = "You can set filters for the product name of the transaction\nEnter a substring in the first input field that the product name HAS TO contain\nEnter a substring in the second input field that the product name HAS TO start with"
+    FTOOLTIP_CASHFLOW = "You can set the lower and upper bound for the transaction's cash flows\nYou can set the bounds for full cashflow or cashflow per product\nIf you set the absolute/signed button to absolute, the filter looks for absolute cashflows\nNOTE:\nThe cashflows per product and full cashflows have to apply BOTH for the transaction"
+    FTOOLTIP_CATEGORY = "You can set a category filter\nNOTE:\nAll categories that are selected have to apply on the transaction"
+    FTOOLTIP_PERSON = "You can set a person filter\nYou can choose a person that has to be in the from/to persons of the transaction\nYou can choose a why person\nOr a person that needs to show in the from/to OR why persons of the transaction\nNOTE:\nAll persons that are selected have to apply on the transaction"
+
 
     #questions
     QUESTION_OVERRIDE_OTHER_PRODUCT_CATEGORIES = "Do you wanna override the categories of ALL previous products?"

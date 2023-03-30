@@ -1108,6 +1108,7 @@ class FilterWindow(QDialog):
         self.ui = mainWindow
         self.backend = mainWindow.backend
         self.filter = mainWindow.filter
+        self.tooltips_set = False   #keeps track whether you already set the tooltips or not
 
         self.CatCombo = Combo(STRINGS.APP_NEW_TRANSACTION_DEFAULT_CATEGORY, self.Ecategory_choosed, self.backend.getCategories)
         self.FtpCombo = Combo(STRINGS.APP_NEW_TRANSACTION_DEFAULT_FTPERSON, self.Eftperson_choosed, self.backend.getPersonNames)
@@ -1127,6 +1128,7 @@ class FilterWindow(QDialog):
         self.grid = QGridLayout()       #sets the layout of the complete window
 
         self.createLayout()             #create the layout with all components
+        self.setToolTips()
 
         self.setLayout(self.grid)
 
@@ -1148,10 +1150,14 @@ class FilterWindow(QDialog):
         handles the behavior of these widgets too
         :return: void
         """
-
-        main_label = QLabel(STRINGS.FWINDOW_LABEL)
-        main_label.setFont(FONTS.APP_NEW_TRANSACTION)
-        self.grid.addWidget(main_label, 0, 0)
+        main_label_widget = QWidget()
+        self.main_label_layout = QHBoxLayout()
+        self.main_label_layout.setContentsMargins(0,0,0,0)
+        self.main_label = QLabel(STRINGS.FWINDOW_LABEL)
+        self.main_label.setFont(FONTS.APP_NEW_TRANSACTION)
+        self.main_label_layout.addWidget(self.main_label)
+        main_label_widget.setLayout(self.main_label_layout)
+        self.grid.addWidget(main_label_widget, 0, 0)
 
         #********************CALENDAR********************************
         #holds the buttons connected with the CalendarWindow to choose a min and max date
@@ -1159,9 +1165,14 @@ class FilterWindow(QDialog):
         layout_date = QGridLayout()
 
         #labels
+        date_label_widget = QWidget()
+        self.date_label_layout = QHBoxLayout()
+        self.date_label_layout.setContentsMargins(0,0,0,0)
         self.date_label = QLabel(STRINGS.FWINDOW_LABEL_DATE)
         self.date_label.setFont(FONTS.FWINDOW)
-        layout_date.addWidget(self.date_label, 0, 0)
+        self.date_label_layout.addWidget(self.date_label)
+        date_label_widget.setLayout(self.date_label_layout)
+        layout_date.addWidget(date_label_widget, 0, 0)
 
         min_date_label = QLabel(STRINGS.FWINDOW_LABEL_MIN_DATE)
         layout_date.addWidget(min_date_label, 1, 0)
@@ -1185,9 +1196,14 @@ class FilterWindow(QDialog):
         groupbox_prod = QGroupBox()
         grid_prod = QGridLayout()
 
+        product_label_widget = QWidget()
+        self.product_label_layout = QHBoxLayout()
+        self.product_label_layout.setContentsMargins(0,0,0,0)
         self.product_label = QLabel(STRINGS.FWINDOW_LABEL_PRODUCT)
         self.product_label.setFont(FONTS.FWINDOW)
-        grid_prod.addWidget(self.product_label, 0, 0)
+        self.product_label_layout.addWidget(self.product_label)
+        product_label_widget.setLayout(self.product_label_layout)
+        grid_prod.addWidget(product_label_widget, 0, 0)
 
         #product label
         self.product_contains_label = QLabel(STRINGS.FWINDOW_LABEL_PRODUCT_CONTAINS)
@@ -1220,9 +1236,14 @@ class FilterWindow(QDialog):
         grid_cf.setSpacing(20)
 
         #meta label for the group
+        cashflow_label_widget = QWidget()
+        self.cashflow_label_layout = QHBoxLayout()
+        self.cashflow_label_layout.setContentsMargins(0,0,0,0)
         self.cashflow_label = QLabel(STRINGS.FWINDOW_LABEL_CASHFLOW)
         self.cashflow_label.setFont(FONTS.FWINDOW)
-        grid_cf.addWidget(self.cashflow_label, 0, 0)
+        self.cashflow_label_layout.addWidget(self.cashflow_label)
+        cashflow_label_widget.setLayout(self.cashflow_label_layout)
+        grid_cf.addWidget(cashflow_label_widget, 0, 0)
 
         #absolute toggle button (should we consider absolute cashflow?)
         self.absolute_button = QPushButton("Placeholder")
@@ -1273,7 +1294,7 @@ class FilterWindow(QDialog):
         #********************CATEGORY********************************
         groupbox_cat = QGroupBox()          #group for the whole category block
         groupbox_cat_choose = QGroupBox()   #group for the ComboBoxes where you can choose from
-        hbox_cat = QHBoxLayout()            #layout for the whole category block
+        grid_cat = QGridLayout()            #layout for the whole category block
         self.vbox_cat = QVBoxLayout()       #layout for the ComboBoxes where you can choose from
 
         #Setting up the object for the category combo boxes
@@ -1281,17 +1302,27 @@ class FilterWindow(QDialog):
         self.CatCombo.addComboBox()     #adds a first box
         self.CatCombo.sort()
 
+        #meta label for category
+        category_label_widget = QWidget()
+        self.category_label_layout = QHBoxLayout()
+        self.category_label_layout.setContentsMargins(0,0,0,0)
+        self.category_label = QLabel(STRINGS.FWINDOW_LABEL_CATEGORY)
+        self.category_label.setFont(FONTS.FWINDOW)
+        self.category_label_layout.addWidget(self.category_label)
+        category_label_widget.setLayout(self.category_label_layout)
+        grid_cat.addWidget(category_label_widget, 0, 0)
+
         #sets the layout for the ComboBoxes
         groupbox_cat_choose.setLayout(self.vbox_cat)
-        hbox_cat.addWidget(groupbox_cat_choose)
+        grid_cat.addWidget(groupbox_cat_choose, 1, 0)
 
         #reset category button
         self.cat_reset_button = QPushButton(STRINGS.APP_BUTTON_NEW_TRANSACTION_RESET_CAT)
         self.cat_reset_button.clicked.connect(self.Ereset_category)
-        hbox_cat.addWidget(self.cat_reset_button)
+        grid_cat.addWidget(self.cat_reset_button, 1, 1)
 
         #sets the layouts of the category group
-        groupbox_cat.setLayout(hbox_cat)
+        groupbox_cat.setLayout(grid_cat)
         self.grid.addWidget(groupbox_cat, 4, 0)
 
         #********************PERSONS*********************************
@@ -1304,6 +1335,16 @@ class FilterWindow(QDialog):
         self.vbox_whyp = QVBoxLayout()      #layout for the why person choose block
         self.vbox_p = QVBoxLayout()         #layout for the person choose block
 
+        #meta label person
+        person_label_widget = QWidget()
+        self.person_label_layout = QHBoxLayout()
+        self.person_label_layout.setContentsMargins(0,0,0,0)
+        self.person_label = QLabel(STRINGS.FWINDOW_LABEL_PERSON)
+        self.person_label.setFont(FONTS.FWINDOW)
+        self.person_label_layout.addWidget(self.person_label)
+        person_label_widget.setLayout(self.person_label_layout)
+        grid_person.addWidget(person_label_widget, 0, 0)
+
         #********************FROM_TO_PERSON**************************
         #Setting up the object for the from/to person combo boxes
         self.FtpCombo.setLayout(self.vbox_ftp)
@@ -1312,7 +1353,7 @@ class FilterWindow(QDialog):
 
         #set the layout for the from/to person group
         groupbox_ftp_choose.setLayout(self.vbox_ftp)
-        grid_person.addWidget(groupbox_ftp_choose, 0, 0)
+        grid_person.addWidget(groupbox_ftp_choose, 1, 0)
 
         #********************WHY_PERSON******************************
         #Setting up the object for the why person combo boxes
@@ -1322,7 +1363,7 @@ class FilterWindow(QDialog):
 
         #set the layout for the why person group
         groupbox_whyp_choose.setLayout(self.vbox_whyp)
-        grid_person.addWidget(groupbox_whyp_choose, 0, 1)
+        grid_person.addWidget(groupbox_whyp_choose, 1, 1)
 
         #********************PERSON**********************************
         #Setting up the object for the why person combo boxes
@@ -1332,13 +1373,13 @@ class FilterWindow(QDialog):
 
         #set the layout for the why person group
         groupbox_p_choose.setLayout(self.vbox_p)
-        grid_person.addWidget(groupbox_p_choose, 0, 2)
+        grid_person.addWidget(groupbox_p_choose, 1, 2)
 
         #********************RESET_PERSON****************************
         #reset persons button
         self.person_reset_button = QPushButton(STRINGS.APP_BUTTON_NEW_TRANSACTION_RESET_PERSON, self)
         self.person_reset_button.clicked.connect(self.Ereset_person)
-        grid_person.addWidget(self.person_reset_button, 1, 0, 2, 0)
+        grid_person.addWidget(self.person_reset_button, 2, 0, 2, 0)
 
         #sets the layouts for the persons section
         groupbox_person.setLayout(grid_person)
@@ -1356,6 +1397,48 @@ class FilterWindow(QDialog):
         self.grid.addWidget(self.submit_widget, 6, 0)
 
         self.update()   #updates all widgets to the filter settings
+
+    def setToolTips(self):
+        """
+        sets the tool tip for the ui components, adds icons too, you have to build the ui first
+        :return: void
+        """
+        assert(not self.tooltips_set), STRINGS.ERROR_TOOLTIPS_ALREADY_SET
+        self.tooltips_set = True
+
+        #add info icons
+        main_info_label = QLabel()
+        main_info_label.setPixmap(ICONS.INFO_PIXMAP.scaledToHeight(self.main_label.sizeHint().height()))
+        self.main_label_layout.addWidget(main_info_label, 10, alignment=Qt.AlignmentFlag.AlignLeft)
+
+        date_info_label = QLabel()
+        date_info_label.setPixmap(ICONS.INFO_PIXMAP.scaledToHeight(self.date_label.sizeHint().height()))
+        self.date_label_layout.addWidget(date_info_label, alignment=Qt.AlignmentFlag.AlignLeft)
+
+        product_info_label = QLabel()
+        product_info_label.setPixmap(ICONS.INFO_PIXMAP.scaledToHeight(self.product_label.sizeHint().height()))
+        self.product_label_layout.addWidget(product_info_label, 10, alignment=Qt.AlignmentFlag.AlignLeft)
+
+        cf_info_label = QLabel()
+        cf_info_label.setPixmap(ICONS.INFO_PIXMAP.scaledToHeight(self.cashflow_label.sizeHint().height()))
+        self.cashflow_label_layout.addWidget(cf_info_label, alignment=Qt.AlignmentFlag.AlignLeft)
+        
+        cat_info_label = QLabel()
+        cat_info_label.setPixmap(ICONS.INFO_PIXMAP.scaledToHeight(self.category_label.sizeHint().height()))
+        self.category_label_layout.addWidget(cat_info_label, alignment=Qt.AlignmentFlag.AlignLeft)
+
+        person_info_label = QLabel()
+        person_info_label.setPixmap(ICONS.INFO_PIXMAP.scaledToHeight(self.person_label.sizeHint().height()))
+        self.person_label_layout.addWidget(person_info_label, alignment=Qt.AlignmentFlag.AlignLeft)
+
+
+        main_info_label.setToolTip(STRINGS.FTOOLTIP_MAIN)
+        date_info_label.setToolTip(STRINGS.FTOOLTIP_DATE)
+        product_info_label.setToolTip(STRINGS.FTOOLTIP_PRODUCT)
+        cf_info_label.setToolTip(STRINGS.FTOOLTIP_CASHFLOW)
+        cat_info_label.setToolTip(STRINGS.FTOOLTIP_CATEGORY)
+        person_info_label.setToolTip(STRINGS.FTOOLTIP_PERSON)
+
 
     def update(self):
         """
