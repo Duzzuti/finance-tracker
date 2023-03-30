@@ -383,6 +383,18 @@ class Filter:
         """
         self.reset()
     
+    def __str__(self):
+        msg = f"MinDate: {self.minDate.toString('dd.MM.yyyy')}, MaxDate: {self.maxDate.toString('dd.MM.yyyy')}\n"
+        msg += f"Min cashflow: {self.minCashflow}, Max cashflow: {self.maxCashflow}\n"
+        msg += f"Min cashflow per product: {self.minCashflowPerProduct}, Max cashflow per product: {self.maxCashflowPerProduct}\n"
+        msg += f"Absolute\n" if self.absoluteValues else f"Signed\n"
+        msg += f"Product contains: {self.contains}, Product startswith: {self.startswith}\n"
+        msg += f"Categories: {self.categories}\n"
+        msg += f"From/to persons: {self.ftpersons}\n"
+        msg += f"Why persons: {self.whypersons}\n"
+        msg += f"Persons: {self.persons}\n"
+        return msg
+
     def isStandard(self):
         """
         this method checks whether the current filter is open (all transactions are fullfilling this filter)
@@ -513,29 +525,29 @@ class Filter:
         assert(type(categories) == list and all(map(lambda x: type(x) == str, categories))), STRINGS.getListTypeErrorString(categories, "categories", str)
         self.categories = categories
     
-    def setFtPersons(self, ftpersons:list[Person]):
+    def setFtPersons(self, ftpersons:list[str]):
         """
         setter for the ftpersons filter
-        :param ftpersons: list<object<Person, that needs to be set as a from/to person1>, ...>
+        :param ftpersons: list<str<Person name, that needs to be set as a from/to person1>, ...>
         :return: void
         """
-        assert(type(ftpersons) == list and all(map(lambda x: type(x) == Person, ftpersons))), STRINGS.getListTypeErrorString(ftpersons, "ftpersons", Person)
+        assert(type(ftpersons) == list and all(map(lambda x: type(x) == str, ftpersons))), STRINGS.getListTypeErrorString(ftpersons, "ftpersons", str)
         self.ftpersons = ftpersons
     
-    def setWhyPersons(self, whypersons:list[Person]):
+    def setWhyPersons(self, whypersons:list[str]):
         """
         setter for the whypersons filter
-        :param whypersons: list<object<Person, that needs to be set as a why person1>, ...>
+        :param whypersons: list<str<Person name, that needs to be set as a why person1>, ...>
         :return: void
         """
-        assert(type(whypersons) == list and all(map(lambda x: type(x) == Person, whypersons))), STRINGS.getListTypeErrorString(whypersons, "whypersons", Person)
+        assert(type(whypersons) == list and all(map(lambda x: type(x) == str, whypersons))), STRINGS.getListTypeErrorString(whypersons, "whypersons", str)
         self.whypersons = whypersons
     
-    def setPersons(self, persons:list[Person]):
+    def setPersons(self, persons:list[str]):
         """
         setter for the persons filter
-        :param persons: list<object<Person, that needs to be set as a from/to or why person1>, ...>
+        :param persons: list<str<Person name, that needs to be set as a from/to or why person1>, ...>
         :return: void
         """
-        assert(type(persons) == list and all(map(lambda x: type(x) == Person, persons))), STRINGS.getListTypeErrorString(persons, "persons", Person)
+        assert(type(persons) == list and all(map(lambda x: type(x) == str, persons))), STRINGS.getListTypeErrorString(persons, "persons", str)
         self.persons = persons

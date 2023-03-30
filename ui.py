@@ -9,7 +9,7 @@ from constants import CONSTANTS
 from backend import Backend
 from backend_datatypes import Transaction
 from ui_datatypes import Combo, Inputs, TransactionList, Filter
-from fullstack_utils import SortEnum
+from fullstack_utils import SortEnum, utils
 
 from PyQt5.QtWidgets import QGridLayout, QLabel, QGroupBox, QVBoxLayout, QHBoxLayout, QPushButton, QDialog, QWidget
 from PyQt5.QtWidgets import QSpinBox, QCalendarWidget, QLineEdit, QCompleter, QComboBox, QMessageBox, QScrollArea
@@ -64,7 +64,7 @@ class Window(QDialog):
 
         #build the window
         self.InitWindow()
-        FilterWindow(self)
+        print(FilterWindow(self).filter)
 
     def InitWindow(self):
         """
@@ -738,22 +738,8 @@ class Window(QDialog):
         :return: void
         """
         assert(type(self.sender()) == QLineEdit), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
-        edit = self.sender()
-        if edit.text() == "":
-            return
-        last_char = edit.text()[-1]
-        if last_char in STRINGS.COMMAS:     #only commas are allowed 
-            #sets the right comma; the method accepts multiple commas given in COMMAS
-            #but we will display only one COMMA. (other commas are replaced)
-            if edit.text()[:-1].count(STRINGS.COMMA) == 0:
-                edit.setText(edit.text()[:-1] + STRINGS.COMMA)
-            else:
-                edit.setText(edit.text()[:-1])
-            return
-        if not last_char in map(lambda x: str(x), range(10)):   #or numbers
-            edit.setText(edit.text()[:-1])
-            return
-
+        self.sender().setText(utils.only_numbers(self.sender(), negatives=False))
+    
     def Esync_cashflows(self):
         """
         Event handler
@@ -1393,21 +1379,7 @@ class FilterWindow(QDialog):
         :return: void
         """
         assert(type(self.sender()) == QLineEdit), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
-        edit = self.sender()
-        if edit.text() == "":
-            return
-        last_char = edit.text()[-1]
-        if last_char in STRINGS.COMMAS:     #only commas are allowed 
-            #sets the right comma; the method accepts multiple commas given in COMMAS
-            #but we will display only one COMMA. (other commas are replaced)
-            if edit.text()[:-1].count(STRINGS.COMMA) == 0:
-                edit.setText(edit.text()[:-1] + STRINGS.COMMA)
-            else:
-                edit.setText(edit.text()[:-1])
-            return
-        if not last_char in map(lambda x: str(x), range(10)):   #or numbers
-            edit.setText(edit.text()[:-1])
-            return
+        self.sender().setText(utils.only_numbers(self.sender(), negatives=not self.filter.absoluteValues))
 
     def Ereset_category(self):
         """
@@ -1430,6 +1402,33 @@ class FilterWindow(QDialog):
         self.PersonCombo.reset()
 
     def Esubmit_filter(self):
+        """
+        event handler, 
+        does close the window and saves the current filter settings
+        the caller can now look into self.filter to get the data
+        :return: void
+        """
+        self.filter.setContains(self.product_contains_edit.text())
+        self.filter.setStartsWith(self.product_start_edit.text())
+        try:
+            min_cf = float(0 if self.min_fullp_edit.text() == "" else self.min_fullp_edit.text())
+            max_cf = float(0 if self.max_fullp_edit.text() == "" else self.max_fullp_edit.text())
+            min_cf_pp = float(0 if self.min_ppp_edit.text() == "" else self.min_ppp_edit.text())
+            max_cf_pp = float(0 if self.max_ppp_edit.text() == "" else self.max_ppp_edit.text())
+        except:
+            #WORK, except message
+            print("could not convert cashflow to float")
+            return
+        
+        self.filter.setMinCashflow(min_cf)
+        self.filter.setMaxCashflow(max_cf)
+        self.filter.setMinCashflowPerProduct(min_cf_pp)
+        self.filter.setMaxCashflowPerProduct(max_cf_pp)
+
+        self.filter.setCategories(self.CatCombo.getChoosenItems())
+        self.filter.setFtPersons(self.FtpCombo.getChoosenItems())
+        self.filter.setWhyPersons(self.WhyCombo.getChoosenItems())
+        self.filter.setPersons(self.PersonCombo.getChoosenItems())
         self.close()
 
     def Eopen_calendar(self):
