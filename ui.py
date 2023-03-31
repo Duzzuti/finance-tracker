@@ -39,6 +39,9 @@ class Window(QDialog):
         self.width = geometry[2]
         self.height = geometry[3]
 
+        self.loading = False    #if the user loads data from a csv, this will be true
+        self.loader = None      #holds the generator for loading data
+
         self.product_input_matched = False #does the user inputs a product name we already know?
         self.product_input_matched_content = None   #the form data that was entered before the user matched some product (to restore)
         self.tooltips_set = False   #are the tooltips are already set 
@@ -412,6 +415,21 @@ class Window(QDialog):
         self.scrollarea.setWidget(self.scroll_widget)
         self.layout_lastTransaction.addWidget(self.scrollarea)
 
+        #set buttons for loading/exporting
+        load_export_hbox = QHBoxLayout()
+        load_export_widget = QWidget()
+        self.load_trans_button = QPushButton(STRINGS.APP_BUTTON_LOAD)
+        self.load_trans_button.clicked.connect(self.Eload_csv)
+        load_export_hbox.addWidget(self.load_trans_button)
+
+        self.export_trans_button = QPushButton(STRINGS.APP_BUTTON_EXPORT)
+        self.export_trans_button.clicked.connect(self.Eexport_csv)
+        load_export_hbox.addWidget(self.export_trans_button)
+
+        load_export_widget.setLayout(load_export_hbox)
+        self.layout_lastTransaction.addWidget(load_export_widget)
+        
+
     def enableEditMode(self, transaction:Transaction):
         """
         sets the window into edit mode
@@ -561,6 +579,34 @@ class Window(QDialog):
         self.backend.sortTransactions(sortElement, up)  #sets the sort rule in the backend
         self.TransList.updateLastTrans()                #gets the new data from the backend and display it
 
+    def deactivateNonFormButtons(self):
+        """
+        deactivates all buttons that are not in the form
+        :return: void
+        """
+        self.filter = Filter()  #sets the default filter
+        self.updateFilter()     #updates the filter in the backend
+        for but in self.sort_buttons:
+            but.setEnabled(False)
+        self.filter_button.setEnabled(False)
+        self.reset_fiter_button.setEnabled(False)
+        for but in self.TransList.buttons:
+            but.setEnabled(False)
+        self.load_trans_button.setEnabled(False)
+        self.export_trans_button.setEnabled(False)
+
+    def loadNextData(self):
+        """
+        loads the next data in the form while loading from a file
+        :return: void
+        """
+        self.product_input_matched = False
+        date, product_name, categories, number, cashflow_pp, cashflow_full, sign, ftpersons, whypersons = self.loader.__next__()
+        print(date.isoformat())
+        date = QDate.fromString(date.isoformat(), "yyyy-MM-dd")
+        self.setForm(date=date, product_name=product_name, categories=categories, number=number, cashflow_per_product=cashflow_pp,
+                     from_to_persons=ftpersons, why_persons=whypersons, take_persons_from_product=True)
+
 
     def addTransactionFromForm(self):
         """
@@ -663,27 +709,58 @@ class Window(QDialog):
         self.FtpCombo.reset()
         self.WhyCombo.reset()
 
-    def setForm(self, cashflow_per_product:float, categories:list[str], from_to_persons = list[str], why_persons=list[str]):
+    def setForm(self, cashflow_per_product:float=None, categories:list[str]=None, from_to_persons:list[str]=None, why_persons:list[str]=None, 
+                date:QDate=None, product_name:str=None, number:int=None, take_persons_from_product:bool=False):
         """
         sets the data given into the form
         :param cashflow_per_product: float<signed cashflow per product>
         :param categories: list<str<category1>, ...>
         :param from_to_persons: list<str<from/to person name 1>, ...>
         :param why_persons: list<str<why person name 1>, ...>
+        :param date: QDate<date of the transaction>
+        :param product_name: str<name of the product>
+        :param number: int<number of products>
+        :param take_persons_from_product: bool<loads the persons that are set on the last transaction with this product>
         :return: void
         """
-        assert(type(cashflow_per_product) == float), STRINGS.getTypeErrorString(cashflow_per_product, "cashflow_per_product", float)
-        assert(type(categories) == list and all(map(lambda x: type(x) == str, categories))), STRINGS.getListTypeErrorString(categories, "categories", str)
-        assert(type(from_to_persons) == list and all(map(lambda x: type(x) == str, from_to_persons))), STRINGS.getListTypeErrorString(from_to_persons, "from_to_persons", str)
-        assert(type(why_persons) == list and all(map(lambda x: type(x) == str, why_persons))), STRINGS.getListTypeErrorString(why_persons, "why_persons", str)
-        if cashflow_per_product < 0:
-            self.trans_sign.setCurrentText(STRINGS.APP_LABEL_NEW_TRANSACTION_CF_SIGN_MINUS)
-        else:
-            self.trans_sign.setCurrentText(STRINGS.APP_LABEL_NEW_TRANSACTION_CF_SIGN_PLUS)
-        self.trans_ppp_edit.setText(str(abs(cashflow_per_product)))
-        self.CatCombo.setItems(categories)
-        self.FtpCombo.setItems(from_to_persons)
-        self.WhyCombo.setItems(why_persons)
+        assert(type(take_persons_from_product) == bool), STRINGS.getTypeErrorString(take_persons_from_product, "take_persons_from_product", bool)
+        assert(type(cashflow_per_product) in [float, type(None)]), STRINGS.getTypeErrorString(cashflow_per_product, "cashflow_per_product", float)
+        assert(type(categories) == list and all(map(lambda x: type(x) == str, categories)) or categories == None), STRINGS.getListTypeErrorString(categories, "categories", str)
+        assert(type(from_to_persons) == list and all(map(lambda x: type(x) == str, from_to_persons)) or from_to_persons == None), STRINGS.getListTypeErrorString(from_to_persons, "from_to_persons", str)
+        assert(type(why_persons) == list and all(map(lambda x: type(x) == str, why_persons)) or why_persons == None), STRINGS.getListTypeErrorString(why_persons, "why_persons", str)
+        assert(type(date) in [type(None), QDate]), STRINGS.getTypeErrorString(date, "date", QDate)
+        assert(type(product_name) in [type(None), str]), STRINGS.getTypeErrorString(product_name, "product_name", str)
+        assert(type(number) in [type(None), int]), STRINGS.getTypeErrorString(number, "number", int)
+
+        print(cashflow_per_product)
+        assert(cashflow_per_product != 0)
+        assert(number != 0)
+        assert(QDate(1900, 1, 1) <= date <= QDate.currentDate() if date != None else True)
+        if take_persons_from_product:
+            if from_to_persons != None:
+                self.FtpCombo.setItems(from_to_persons)
+            if why_persons != None:
+                self.WhyCombo.setItems(why_persons)
+        if categories != None:
+            self.CatCombo.setItems(categories)
+        if product_name != None:
+            self.trans_product_edit.setText(product_name)
+        if date != None:
+            self.trans_date_edit.setSelectedDate(date)
+        if number != None:
+            self.trans_number_spin_box.setValue(number)
+        if cashflow_per_product != None:
+            if cashflow_per_product < 0:
+                self.trans_sign.setCurrentText(STRINGS.APP_LABEL_NEW_TRANSACTION_CF_SIGN_MINUS)
+            else:
+                self.trans_sign.setCurrentText(STRINGS.APP_LABEL_NEW_TRANSACTION_CF_SIGN_PLUS)
+            self.trans_ppp_edit.setText(str(abs(cashflow_per_product)))
+        
+        if not take_persons_from_product:
+            if from_to_persons != None:
+                self.FtpCombo.setItems(from_to_persons)
+            if why_persons != None:
+                self.WhyCombo.setItems(why_persons)
 
     def updateFilter(self):
         """
@@ -1035,6 +1112,11 @@ class Window(QDialog):
         assert(not self.edit_mode), STRINGS.ERROR_IN_EDIT_MODE
         if self.addTransactionFromForm():
             self.clearForm(clear_date=False)
+            self.trans_product_completer = QCompleter(self.backend.getProductNames())
+            self.trans_product_completer.setCaseSensitivity(False)
+            self.trans_product_edit.setCompleter(self.trans_product_completer)      #add an autocompleter
+            if self.loading:
+                self.loadNextData()
 
     def Elast_trans_button_pressed(self):
         """
@@ -1132,7 +1214,20 @@ class Window(QDialog):
         """
         self.filter = Filter()  #sets the default filter
         self.updateFilter()     #updates the filter in the backend
-        
+
+    def Eload_csv(self):
+        """
+        event handler
+        activates if the user wanna load transactions from a csv file
+        :return: void
+        """
+        self.loading = True
+        self.deactivateNonFormButtons()
+        self.loader = self.backend.loadFromCSV()
+        self.loadNextData()
+
+    def Eexport_csv(self):
+        pass
 
 
 class FilterWindow(QDialog):

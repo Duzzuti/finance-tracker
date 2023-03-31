@@ -9,6 +9,7 @@ class ENG:
     #META Strings
     CURRENCY = "€"
     COMMA = "."
+    BIG_NUMBER_SEPARATER = ","
     COMMAS = [".", ","]
     ZERO_STRINGS = ["", " ", "."]
 
@@ -43,6 +44,8 @@ class ENG:
     APP_BUTTON_LAST_TRANSACTIONS_DATE = "Date "
     APP_BUTTON_LAST_TRANSACTIONS_CASHFLOW = "Cashflow "
     APP_BUTTON_LAST_TRANSACTIONS_PRODUCT = "Product "
+    APP_BUTTON_LOAD = "Load from csv"
+    APP_BUTTON_EXPORT = "Export to csv"
 
     APP_NEW_TRANSACTION_DEFAULT_CATEGORY = "Without category"
     APP_NEW_TRANSACTION_DEFAULT_FTPERSON = "No from/to person"
