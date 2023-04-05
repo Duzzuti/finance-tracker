@@ -3,6 +3,8 @@ this module is handling the backend of the application
 it is providing some api methods, that are used by the frontend
 """
 import datetime
+import pandas
+import math
 import pickle
 from strings import ENG as STRINGS
 from PyQt5.QtWidgets import QMessageBox
@@ -58,7 +60,7 @@ class Backend:
             self._load()
         self.clean(full=True)
 
-    def test(self): #DEBUGONLY
+    def TEST(self): #DEBUGONLY
         self.transactions = (Transaction(datetime.date(2022, 1, 1), Product("product1", categories=["cat1", "cat2", "cat3"]), 5, 7.25, [Person("pers1"), Person("pers2")], [Person("pers3"), Person("pers4")]))
         self.categories=["cat1", "cat2", "cat3"]
         self.persons = [Person("pers1"), Person("pers2")]
@@ -193,7 +195,7 @@ class Backend:
         """
         assert(type(filter) == Filter), STRINGS.getTypeErrorString(filter, "filter", Filter)
         self.transactionFilter = filter
-    
+
     @Dsave
     def addCategory(self, category:str):
         """
@@ -383,6 +385,121 @@ class Backend:
                     return
             else:
                 self.deleteProduct(transaction.product)
+
+    def TESTloadFromCSV(self):  #DEBUGONLY
+        """
+        this function is for debug purposes only
+        for loading from csvs normaly use loadFromCSV()
+        """
+        print("This is the csv loader")
+        print("You can load transaction data from a csv file")
+        print("The csv file has to contain 8 columns with date, product name, product categories, number of products, cashflow per product, full cashflow, from/to persons, why persons")
+        print("the csv has no header and multiple caegories or persons are separated with a comma")
+        print("the separation character of the csv has to be a semicolon ';'")
+        print("\n")
+        while True:
+            path = input("path to csv file: ")
+            try: 
+                df = pandas.read_csv(path, sep=";", header=None)
+                break
+            except:
+                print(f"could not open {path}")
+
+        for _, row in df.iterrows():
+            if int(row[0].split("/")[2]) < 100:
+                date = datetime.date(int(row[0].split("/")[2])+2000, int(row[0].split("/")[0]), int(row[0].split("/")[1]))
+            else:
+                date = datetime.date(int(row[0].split("/")[2]), int(row[0].split("/")[0]), int(row[0].split("/")[1]))
+            product_name = "" if type(row[1]) == float and math.isnan(row[1]) else row[1]
+            categories = [] if type(row[2]) == float and math.isnan(row[2]) else list(map(lambda x: x.strip(), row[2].split(",")))
+            number = 1 if type(row[3]) == float and math.isnan(row[3]) else int(row[3])
+            cashflow_pp = 0.0 if type(row[4]) == float and math.isnan(row[4]) else  float(row[4].split(" "+STRINGS.CURRENCY)[0].replace(STRINGS.BIG_NUMBER_SEPARATER, ""))
+            cashflow_full = 0.0 if type(row[5]) == float and math.isnan(row[5]) else float(row[5].split(" "+STRINGS.CURRENCY)[0].replace(STRINGS.BIG_NUMBER_SEPARATER, ""))
+            sign = STRINGS.APP_LABEL_NEW_TRANSACTION_CF_SIGN_MINUS if cashflow_full < 0 or cashflow_pp < 0 else STRINGS.APP_LABEL_NEW_TRANSACTION_CF_SIGN_PLUS
+            ftpersons = [] if type(row[6]) == float and math.isnan(row[6]) else list(map(lambda x: x.strip(), row[6].split(",")))
+            whypersons = [] if type(row[7]) == float and math.isnan(row[7]) else list(map(lambda x: x.strip(), row[7].split(",")))
+            if sign == STRINGS.APP_LABEL_NEW_TRANSACTION_CF_SIGN_MINUS:
+                cashflow_pp = -abs(cashflow_pp)
+                cashflow_full = -abs(cashflow_full)
+            
+            for category in categories:
+                if category.lower() in map(lambda x: x.lower(), self.categories):
+                    continue
+                self.addCategory(category)
+            for person in ftpersons + whypersons:
+                if person.lower() in map(lambda x: x.name.lower() ,self.persons):
+                    continue
+                self.addPerson(person)
+
+            yield [date, product_name, categories, number, cashflow_pp, cashflow_full, sign, ftpersons, whypersons]
+
+    def loadFromCSV(self, fileName:str):
+        """
+        laods all transactions from a csv file
+        the separation symbol has to be ";"
+        :param fileName: str<path and file name of the csv>
+        :return: void
+        """
+        assert(type(fileName) == str), STRINGS.getTypeErrorString(fileName, "fileName", str)
+        if not fileName.endswith(".csv"):
+            #if the ending is not correct, appending the right ending
+            fileName += ".csv"
+        self.transactions = []
+        try:
+            trans_df = pandas.read_csv(fileName, sep=";")
+            for _, row in trans_df.iterrows():
+                #if the category or person is not known, a new one has to be added
+                cats = [] if type(row["categories"]) == float and math.isnan(row["categories"]) else row["categories"].split(",")
+                for cat in cats:
+                    if not cat in self.categories:
+                        self.addCategory(cat)
+                ftp = [] if type(row["ftpersons"]) == float else row["ftpersons"].split(",")
+                for p in ftp:
+                    if not p in self.persons:
+                        self.addPerson(p)
+                whyp = [] if type(row["whypersons"]) == float else row["whypersons"].split(",")
+                for p in whyp:
+                    if not p in self.persons:
+                        self.addPerson(p)
+                #gets the transaction object
+                trans = self.getTransactionObject(
+                    datetime.date.fromisoformat(row["date"]),
+                    row["product"], 
+                    int(row["number"]),
+                    float(row["cashflow"]),
+                    cats,
+                    ftp,
+                    whyp)
+                if trans == False:
+                    raise ValueError
+                self.addTransaction(trans)
+        except:
+            self.transactions = []
+            #msg box that tells the user that the file is not in the right format, he has to import his old data #WORK
+
+    def export(self, fileName:str):
+        """
+        exports all transactions to a csv file
+        this file can be loaded again with load from csv
+        :param fileName: str<path and file name of the csv>
+        :return: void
+        """
+        assert(type(fileName) == str), STRINGS.getTypeErrorString(fileName, "fileName", str)
+        if not fileName.endswith(".csv"):
+            #if the ending is not correct, appending the right ending
+            fileName += ".csv"
+        #set all transaction in a dataframe
+        trans_df = pandas.DataFrame(
+            {"date": map(lambda x: x.date, self.transactions), 
+             "product": map(lambda x: x.product.name, self.transactions),
+             "categories": map(lambda x: ",".join(x.product.categories), self.transactions),
+             "number": map(lambda x: x.number, self.transactions),
+             "cashflow_pp": map(lambda x: x.cashflow_per_product, self.transactions),
+             "cashflow": map(lambda x: x.cashflow, self.transactions),
+             "ftpersons": map(lambda x: ",".join(map(lambda y: y.name, x.from_to_persons)), self.transactions),
+             "whypersons": map(lambda x: ",".join(map(lambda y: y.name, x.why_persons)), self.transactions)})
+        #saves the data frame
+        trans_df.to_csv(fileName, sep=";")
 
     def _getProductByName(self, product_name:str):
         """

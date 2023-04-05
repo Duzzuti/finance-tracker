@@ -2,6 +2,7 @@
 This module provides the ui of the programm
 """
 
+import os
 import inspect
 from strings import ENG as STRINGS
 from gui_constants import FONTS, ICONS
@@ -12,7 +13,7 @@ from ui_datatypes import Combo, Inputs, TransactionList
 from fullstack_utils import SortEnum, utils, Filter
 
 from PyQt5.QtWidgets import QGridLayout, QLabel, QGroupBox, QVBoxLayout, QHBoxLayout, QPushButton, QDialog, QWidget
-from PyQt5.QtWidgets import QSpinBox, QCalendarWidget, QLineEdit, QCompleter, QComboBox, QMessageBox, QScrollArea
+from PyQt5.QtWidgets import QSpinBox, QCalendarWidget, QLineEdit, QCompleter, QComboBox, QMessageBox, QScrollArea, QFileDialog
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import QDate, Qt
 
@@ -595,7 +596,7 @@ class Window(QDialog):
         self.load_trans_button.setEnabled(False)
         self.export_trans_button.setEnabled(False)
 
-    def loadNextData(self):
+    def loadNextData(self): #DEBUGONLY
         """
         loads the next data in the form while loading from a file
         :return: void
@@ -1215,7 +1216,7 @@ class Window(QDialog):
         self.filter = Filter()  #sets the default filter
         self.updateFilter()     #updates the filter in the backend
 
-    def Eload_csv(self):
+    def ETESTload_csv(self):    #DEBUGONLY
         """
         event handler
         activates if the user wanna load transactions from a csv file
@@ -1226,9 +1227,44 @@ class Window(QDialog):
         self.loader = self.backend.loadFromCSV()
         self.loadNextData()
 
-    def Eexport_csv(self):
-        pass
+    def Eload_csv(self):    #DEBUGONLY
+        """
+        event handler
+        activates if the user wanna load transactions from a csv file
+        :return: void
+        """
+        #WORK
+        #disclaimer that all transactions are deleted 
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+        fileName, _ = QFileDialog.getOpenFileName(self, 
+            "Import File", "", "CSV Files (*.csv)", options = options)
+        if fileName:
+            #loads the new transactions
+            self.backend.loadFromCSV(fileName)
+            #updates all ui comonents which belong to the transactions
+            self.TransList.updateLastTrans()
+            self.CatCombo.updateItems()
+            self.FtpCombo.updateItems()
+            self.WhyCombo.updateItems()
+            self.trans_product_completer = QCompleter(self.backend.getProductNames())
+            self.trans_product_completer.setCaseSensitivity(False)
+            self.trans_product_edit.setCompleter(self.trans_product_completer)      #add an autocompleter
 
+    def Eexport_csv(self):
+        """
+        event handler 
+        activates if the user wanna export the transactions
+        :return: void
+        """
+        #WORK
+        #diclaimer that this action will only save the transactions and not the user data
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+        fileName, _ = QFileDialog.getSaveFileName(self, 
+            "Save File", "", "CSV Files (*.csv)", options = options)
+        if fileName:
+            self.backend.export(fileName)
 
 class FilterWindow(QDialog):
     """
