@@ -101,6 +101,16 @@ class ENG:
     #questions
     QUESTION_OVERRIDE_OTHER_PRODUCT_CATEGORIES = "Do you wanna override the categories of ALL previous products?"
 
+    #warning
+    WARNING_EXPORT_TRANSACTIONS_TITLE = "WARNING Export transactions"
+    WARNING_EXPORT_TRANSACTIONS = "Please note that you only export the transactions.\nSettings, person categories, etc. are NOT saved\nIf you wanna save all data, please #WORK"
+    WARNING_IMPORT_TRANSACTIONS_TITLE = "WARNING Import transactions"
+    WARNING_IMPORT_TRANSACTIONS = "Please note that all data currently saved in the app could be lost\n All transactions currently stored in the app will be DELETED\nIf you wanna save your old transactions export them first\nYou should also consider to save all data before importing"
+
+    #critical
+    CRITICAL_IMPORT_TRANSACTIONS_TITLE = "Error importing transactions"
+    CRITICAL_IMPORT_TRANSACTIONS = "Some errors are occured while importing the transactions.\nThe csv file was probably not in the right format\nYour data got lost due to this error, please load your backup (your full data backup) that you have made (hopefully :))"
+
     #info
     INFO_TRANSACTION_WAS_NOT_ADDED = "The transaction was not added"
 

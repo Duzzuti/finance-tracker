@@ -99,7 +99,6 @@ class Backend:
         generator for all transactions
         :return: Generator<object<Transaction>>
         """
-        #WORK should be returned sorted by date
         for trans in self.transactions:
             yield trans
     
@@ -475,7 +474,8 @@ class Backend:
                 self.addTransaction(trans)
         except:
             self.transactions = []
-            #msg box that tells the user that the file is not in the right format, he has to import his old data #WORK
+            return False
+        return True
 
     def export(self, fileName:str):
         """

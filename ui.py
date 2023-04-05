@@ -1227,29 +1227,34 @@ class Window(QDialog):
         self.loader = self.backend.loadFromCSV()
         self.loadNextData()
 
-    def Eload_csv(self):    #DEBUGONLY
+    def Eload_csv(self):
         """
         event handler
         activates if the user wanna load transactions from a csv file
         :return: void
         """
-        #WORK
         #disclaimer that all transactions are deleted 
-        options = QFileDialog.Options()
-        options |= QFileDialog.DontUseNativeDialog
-        fileName, _ = QFileDialog.getOpenFileName(self, 
-            "Import File", "", "CSV Files (*.csv)", options = options)
-        if fileName:
-            #loads the new transactions
-            self.backend.loadFromCSV(fileName)
-            #updates all ui comonents which belong to the transactions
-            self.TransList.updateLastTrans()
-            self.CatCombo.updateItems()
-            self.FtpCombo.updateItems()
-            self.WhyCombo.updateItems()
-            self.trans_product_completer = QCompleter(self.backend.getProductNames())
-            self.trans_product_completer.setCaseSensitivity(False)
-            self.trans_product_edit.setCompleter(self.trans_product_completer)      #add an autocompleter
+        msg = QMessageBox()
+        but = msg.warning(self, STRINGS.WARNING_IMPORT_TRANSACTIONS_TITLE, STRINGS.WARNING_IMPORT_TRANSACTIONS, QMessageBox.Ok | QMessageBox.Cancel)
+        if but == QMessageBox.Ok:
+            options = QFileDialog.Options()
+            options |= QFileDialog.DontUseNativeDialog
+            fileName, _ = QFileDialog.getOpenFileName(self, 
+                "Import File", "", "CSV Files (*.csv)", options = options)
+            if fileName:
+                #loads the new transactions
+                if self.backend.loadFromCSV(fileName) == False:
+                    #msg box that tells the user that the file is not in the right format, he has to import his old data
+                    msg = QMessageBox()
+                    msg.critical(self, STRINGS.CRITICAL_IMPORT_TRANSACTIONS_TITLE, STRINGS.CRITICAL_IMPORT_TRANSACTIONS)
+                #updates all ui comonents which belong to the transactions
+                self.TransList.updateLastTrans()
+                self.CatCombo.updateItems()
+                self.FtpCombo.updateItems()
+                self.WhyCombo.updateItems()
+                self.trans_product_completer = QCompleter(self.backend.getProductNames())
+                self.trans_product_completer.setCaseSensitivity(False)
+                self.trans_product_edit.setCompleter(self.trans_product_completer)      #add an autocompleter
 
     def Eexport_csv(self):
         """
@@ -1257,14 +1262,16 @@ class Window(QDialog):
         activates if the user wanna export the transactions
         :return: void
         """
-        #WORK
         #diclaimer that this action will only save the transactions and not the user data
-        options = QFileDialog.Options()
-        options |= QFileDialog.DontUseNativeDialog
-        fileName, _ = QFileDialog.getSaveFileName(self, 
-            "Save File", "", "CSV Files (*.csv)", options = options)
-        if fileName:
-            self.backend.export(fileName)
+        msg = QMessageBox()
+        but = msg.warning(self, STRINGS.WARNING_EXPORT_TRANSACTIONS_TITLE, STRINGS.WARNING_EXPORT_TRANSACTIONS, QMessageBox.Ok | QMessageBox.Cancel)
+        if but == QMessageBox.Ok:
+            options = QFileDialog.Options()
+            options |= QFileDialog.DontUseNativeDialog
+            fileName, _ = QFileDialog.getSaveFileName(self, 
+                "Save File", "", "CSV Files (*.csv)", options = options)
+            if fileName:
+                self.backend.export(fileName)
 
 class FilterWindow(QDialog):
     """
