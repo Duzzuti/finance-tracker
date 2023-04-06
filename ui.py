@@ -482,6 +482,7 @@ class Window(QDialog):
         self.submit_button.clicked.connect(self.Eedit_save_changes)
         delete_button.clicked.connect(self.Eedit_delete_transaction)
         cancel_button.clicked.connect(self.Eedit_cancel)
+        self.deactivateNonEditModeButtons()
 
     def disableEditMode(self):
         """
@@ -492,6 +493,8 @@ class Window(QDialog):
         """
         assert(self.edit_mode), STRINGS.ERROR_NOT_IN_EDIT_MODE
         self.edit_mode = False
+
+        self.activateNonFormButtons()
 
         #lets wipe some form data
         self.clearForm()
@@ -595,6 +598,32 @@ class Window(QDialog):
             but.setEnabled(False)
         self.load_trans_button.setEnabled(False)
         self.export_trans_button.setEnabled(False)
+    
+    def deactivateNonEditModeButtons(self):
+        """
+        deactivates all buttons that are not used in edit mode
+        :return: void
+        """
+        for but in self.sort_buttons:
+            but.setEnabled(False)
+        self.filter_button.setEnabled(False)
+        self.reset_fiter_button.setEnabled(False)
+        self.load_trans_button.setEnabled(False)
+        self.export_trans_button.setEnabled(False)
+
+    def activateNonFormButtons(self):
+        """
+        activates all buttons that are not in the form
+        :return: void
+        """
+        for but in self.sort_buttons:
+            but.setEnabled(True)
+        self.filter_button.setEnabled(True)
+        self.reset_fiter_button.setEnabled(True)
+        for but in self.TransList.buttons:
+            but.setEnabled(True)
+        self.load_trans_button.setEnabled(True)
+        self.export_trans_button.setEnabled(True)
 
     def loadNextData(self): #DEBUGONLY
         """
@@ -733,8 +762,8 @@ class Window(QDialog):
         assert(type(product_name) in [type(None), str]), STRINGS.getTypeErrorString(product_name, "product_name", str)
         assert(type(number) in [type(None), int]), STRINGS.getTypeErrorString(number, "number", int)
 
-        print(cashflow_per_product)
-        assert(cashflow_per_product != 0)
+        #print(cashflow_per_product)
+        #assert(cashflow_per_product != 0)
         assert(number != 0)
         assert(QDate(1900, 1, 1) <= date <= QDate.currentDate() if date != None else True)
         if take_persons_from_product:
@@ -1272,6 +1301,7 @@ class Window(QDialog):
                 "Save File", "", "CSV Files (*.csv)", options = options)
             if fileName:
                 self.backend.export(fileName)
+
 
 class FilterWindow(QDialog):
     """
