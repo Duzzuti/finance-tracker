@@ -55,6 +55,8 @@ class ENG:
     APP_NEW_TRANSACTION_PRODUCT_INPUT = "product"
     APP_NEW_TRANSACTION_CASHFLOW_INPUT = "cashflow"
 
+    LABEL_TRANSACTION_COUNT = " Transactions"
+
     #edit mode
     APP_LABEL_EDIT_TRANSACTION = "Edit transaction"
     APP_BUTTON_EDIT_TRANSACTION_SUBMIT = "Save changes"

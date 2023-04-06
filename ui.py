@@ -107,6 +107,7 @@ class Window(QDialog):
         self.addWidgetsNewTrans()
         self.addWidgetsLastTrans()
         self.setToolTips()
+        self.updateFilter()
 
         #sets the layouts and add these to the grid
         self.groupBox_transaction.setLayout(self.layout_transaction)
@@ -376,6 +377,10 @@ class Window(QDialog):
         self.reset_fiter_button.clicked.connect(self.Ereset_filter)
         layout_filter.addWidget(self.reset_fiter_button)
 
+        #number of transactions label
+        self.num_trans_label = QLabel("Placeholder")
+        layout_filter.addWidget(self.num_trans_label)
+
         widget_filter.setLayout(layout_filter)
         self.layout_lastTransaction.addWidget(widget_filter)
 
@@ -429,7 +434,7 @@ class Window(QDialog):
 
         load_export_widget.setLayout(load_export_hbox)
         self.layout_lastTransaction.addWidget(load_export_widget)
-        
+
 
     def enableEditMode(self, transaction:Transaction):
         """
@@ -804,7 +809,8 @@ class Window(QDialog):
         else:
             self.filter_button.setText(STRINGS.APP_BUTTON_FILTER_ON)
         self.backend.setFilter(self.filter)     #sets the new filter in the backend
-        self.TransList.updateLastTrans()        #reloads the transactions to make the filter work
+        self.TransList.updateLastTrans()        #reloads the transactions to make the filter wor
+        self.num_trans_label.setText(str(self.TransList.getTransactionCount())+STRINGS.LABEL_TRANSACTION_COUNT)
 
 
     def Echanged_cashflow(self):

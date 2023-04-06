@@ -340,6 +340,13 @@ class TransactionList:
         assert(len(self.transactions) >= ind+1), STRINGS.ERROR_TRANSACTION_OUT_OF_RANGE
         return self.transactions[ind]
 
+    def getTransactionCount(self):
+        """
+        getter for the number of transactions currently shown
+        :return: int<number>
+        """
+        return len(self.buttons)
+
     def _getTransactionButton(self, transaction:Transaction):
         """
         gets a PushButton object created using a transaction object. This method is labeling a button with transaction data
