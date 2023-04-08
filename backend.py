@@ -344,6 +344,28 @@ class Backend:
                 self.products.remove(_product)
                 return
 
+    @Dsave
+    @Dsort
+    def renameCategory(self, category:str, new_category:str):
+        """
+        renames the given category to the new_category name
+        :param category: str<category, that you want to rename>
+        :param new_category: str<new category name>
+        :return: void
+        """
+        assert(category.lower() in map(lambda x: x.lower(), self.categories)), STRINGS.ERROR_CATEGORY_NOT_FOUND
+        assert(len(new_category) - new_category.count(" ") >= 3), STRINGS.ERROR_CATEGORY_CONTAINS_NOT_ENOUGH_CHAR
+        category = category.lower()
+        #change the category inside the transactions
+        for transaction in self.transactions:
+            if category in map(lambda x: x.lower(), transaction.product.categories):
+                transaction.product.categories.pop(list(map(lambda x: x.lower(), transaction.product.categories)).index(category))
+                transaction.product.categories.append(new_category)
+
+        #changes the category list
+        self.categories.pop(list(map(lambda x: x.lower(), self.categories)).index(category))
+        self.categories.append(new_category)
+
     def sortTransactions(self, sortElement:SortEnum, up:bool):
         """
         sorts the transactions given the sort criteria. should also sort new adds too

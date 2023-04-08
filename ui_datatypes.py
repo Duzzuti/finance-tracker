@@ -1,8 +1,8 @@
 """
 This module provides the datatypes used by the ui
 """
-from PyQt5.QtWidgets import QComboBox, QVBoxLayout, QPushButton, QLabel, QHBoxLayout
-from PyQt5.QtCore import QDate
+from PyQt5.QtWidgets import QComboBox, QVBoxLayout, QPushButton, QLabel, QHBoxLayout, QSizePolicy
+from PyQt5.QtCore import QDate, Qt
 from backend_datatypes import Transaction, Person
 from strings import ENG as STRINGS
 from constants import CONSTANTS
@@ -126,7 +126,10 @@ class Combo:
             else:
                 #if the default item is choosen, its not going to be added a second time
                 box.addItems(items)
-            box.setCurrentText(set_item)
+            if set_item in self.func_get_items():
+                box.setCurrentText(set_item)
+            else:
+                box.setCurrentText(self.default)
             box.currentTextChanged.connect(self.choosed_event_func) #connect the event handler again
         self.sort()
 
@@ -364,11 +367,25 @@ class TransactionList:
         date_string = transaction.date.strftime('[%d %b %Y]')
         cashflow_string = str(transaction.cashflow)+STRINGS.CURRENCY
         product_string = transaction.product.name
+        #define the labels that are on the button
         date_label = QLabel(date_string)
+        empty_label = QLabel("")
         cashflow_label = QLabel(cashflow_string)
         product_label = QLabel(product_string)
-
+        #placeholder between date and cashflow
+        empty_label.setFixedSize(10, 1)
+        #set their size Policys to match a convenient pattern
+        date_label.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Expanding)
+        empty_label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Expanding)
+        cashflow_label.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Expanding)
+        product_label.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+        #sets their text alignments on the labels
+        date_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        cashflow_label.setAlignment(Qt.AlignmentFlag.AlignRight)
+        product_label.setAlignment(Qt.AlignmentFlag.AlignRight)
+        #adds them to the button layout
         element_layout.addWidget(date_label)
+        element_layout.addWidget(empty_label)
         element_layout.addWidget(cashflow_label)
         element_layout.addWidget(product_label)
 

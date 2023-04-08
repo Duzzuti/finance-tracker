@@ -2,8 +2,8 @@
 This module provides the ui of the programm
 """
 
-import os
 import inspect
+
 from strings import ENG as STRINGS
 from gui_constants import FONTS, ICONS
 from constants import CONSTANTS
@@ -12,7 +12,7 @@ from backend_datatypes import Transaction
 from ui_datatypes import Combo, Inputs, TransactionList
 from fullstack_utils import SortEnum, utils, Filter
 
-from PyQt5.QtWidgets import QGridLayout, QLabel, QGroupBox, QVBoxLayout, QHBoxLayout, QPushButton, QDialog, QWidget
+from PyQt5.QtWidgets import QGridLayout, QLabel, QGroupBox, QVBoxLayout, QHBoxLayout, QPushButton, QDialog, QWidget, QSizePolicy
 from PyQt5.QtWidgets import QSpinBox, QCalendarWidget, QLineEdit, QCompleter, QComboBox, QMessageBox, QScrollArea, QFileDialog
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import QDate, Qt
@@ -103,9 +103,16 @@ class Window(QDialog):
         self.groupBox_lastTransactions = QGroupBox()
         self.layout_lastTransaction = QVBoxLayout()
 
+        self.groupBox_editCatPers_label = QLabel(STRINGS.APP_LABEL_EDIT_CAT_PERS, self)
+        self.groupBox_editCatPers_label.setFont(FONTS.APP_NEW_TRANSACTION)
+        self.groupBox_editCatPers = QGroupBox()
+        self.layout_editCatPers = QVBoxLayout()
+        self.groupBox_editCatPers.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+
         #adds the Widgets to the "new transaction" part of the window
         self.addWidgetsNewTrans()
         self.addWidgetsLastTrans()
+        self.addWidgetsEditCatsPers()
         self.setToolTips()
         self.updateFilter()
 
@@ -117,6 +124,10 @@ class Window(QDialog):
         self.groupBox_lastTransactions.setLayout(self.layout_lastTransaction)
         self.grid.addWidget(self.groupBox_lastTransactions_label, 0, 1)
         self.grid.addWidget(self.groupBox_lastTransactions, 1, 1)
+
+        self.groupBox_editCatPers.setLayout(self.layout_editCatPers)
+        self.grid.addWidget(self.groupBox_editCatPers_label, 0, 2)
+        self.grid.addWidget(self.groupBox_editCatPers, 1, 2)
 
     def addWidgetsNewTrans(self):
         """
@@ -408,6 +419,7 @@ class Window(QDialog):
         self.scrollarea.setWidgetResizable(True)
         self.scrollarea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.scrollarea.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        self.scrollarea.setSizePolicy(QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.MinimumExpanding)
 
         self.scroll_widget = QWidget()      #inner widget, holds the buttons
         self.scroll_vbox = QVBoxLayout()    #layout for the inner widget
@@ -434,6 +446,53 @@ class Window(QDialog):
 
         load_export_widget.setLayout(load_export_hbox)
         self.layout_lastTransaction.addWidget(load_export_widget)
+
+    def addWidgetsEditCatsPers(self):
+        """
+        adds the Widgets to the "edit categories and persons" part of the window
+        and connects these widgets with the backend
+        handles the behavior of these widgets too
+        :return: void
+        """
+        #renaming part
+        #renaming label
+        label_renaming = QLabel(STRINGS.APP_LABEL_RENAMING)
+        label_renaming.setFont(FONTS.APP_NEW_TRANSACTION_CF)
+        #renaming groupbox
+        self.layout_editCatPers.addWidget(label_renaming)
+        groupbox_renaming = QGroupBox()
+        layout_renaming = QGridLayout()
+        #renaming category
+        groupbox_renaming_category = QGroupBox()
+        layout_renaming_category = QVBoxLayout()
+        label_renaming_cat = QLabel(STRINGS.APP_LABEL_RENAMING_CATEGORY)
+        layout_renaming_category.addWidget(label_renaming_cat)
+
+        self.edit_renaming_cat = QLineEdit()
+        self.edit_renaming_cat_completer = QCompleter(self.backend.getCategories())
+        self.edit_renaming_cat_completer.setCaseSensitivity(False)
+        self.edit_renaming_cat.setCompleter(self.edit_renaming_cat_completer)
+        self.edit_renaming_cat.textChanged.connect(self.Ecategory_renaming)
+        layout_renaming_category.addWidget(self.edit_renaming_cat)
+
+        label_renaming_cat_edit = QLabel(STRINGS.APP_LABEL_RENAMING_CATEGORY_EDIT)
+        layout_renaming_category.addWidget(label_renaming_cat_edit)
+
+        self.edit_renaming_cat_edit = QLineEdit()
+        self.edit_renaming_cat_edit.setEnabled(False)
+        self.edit_renaming_cat_edit.textChanged.connect(self.Ecategory_renaming_edit)
+        layout_renaming_category.addWidget(self.edit_renaming_cat_edit)
+
+        self.button_renaming_category = QPushButton(STRINGS.APP_BUTTON_RENAMING_CATEGORY)
+        self.button_renaming_category.setEnabled(False)
+        self.button_renaming_category.clicked.connect(self.Ecategory_renamed)
+        layout_renaming_category.addWidget(self.button_renaming_category)
+
+        groupbox_renaming_category.setLayout(layout_renaming_category)
+        layout_renaming.addWidget(groupbox_renaming_category, 0, 0)
+
+        groupbox_renaming.setLayout(layout_renaming)
+        self.layout_editCatPers.addWidget(groupbox_renaming)
 
 
     def enableEditMode(self, transaction:Transaction):
@@ -641,8 +700,7 @@ class Window(QDialog):
         date = QDate.fromString(date.isoformat(), "yyyy-MM-dd")
         self.setForm(date=date, product_name=product_name, categories=categories, number=number, cashflow_per_product=cashflow_pp,
                      from_to_persons=ftpersons, why_persons=whypersons, take_persons_from_product=True)
-
-
+    
     def addTransactionFromForm(self):
         """
         gets all data from the form and sends it to the backend as a new transaction
@@ -810,7 +868,37 @@ class Window(QDialog):
             self.filter_button.setText(STRINGS.APP_BUTTON_FILTER_ON)
         self.backend.setFilter(self.filter)     #sets the new filter in the backend
         self.TransList.updateLastTrans()        #reloads the transactions to make the filter wor
-        self.num_trans_label.setText(str(self.TransList.getTransactionCount())+STRINGS.LABEL_TRANSACTION_COUNT)
+        self.num_trans_label.setText(str(self.TransList.getTransactionCount())+STRINGS.APP_LABEL_TRANSACTION_COUNT)
+
+    def productsChanged(self):
+        """
+        this helper method is should be called if the products changed
+        it will update stuff that needs updated products data
+        :return: void
+        """
+        self.trans_product_completer = QCompleter(self.backend.getProductNames())
+        self.trans_product_completer.setCaseSensitivity(False)
+        self.trans_product_edit.setCompleter(self.trans_product_completer)      #add an autocompleter
+
+    def categoriesChanged(self):
+        """
+        this helper method is should be called if the categories changed
+        it will update stuff that needs updated categories data
+        :return: void
+        """
+        self.edit_renaming_cat_completer = QCompleter(self.backend.getCategories())
+        self.edit_renaming_cat_completer.setCaseSensitivity(False)
+        self.edit_renaming_cat.setCompleter(self.edit_renaming_cat_completer)      #add an autocompleter
+        self.CatCombo.updateItems()
+    
+    def personsChanged(self):
+        """
+        this helper method is should be called if the persons changed
+        it will update stuff that needs updated persons data
+        :return: void
+        """
+        self.FtpCombo.updateItems()
+        self.WhyCombo.updateItems()
 
 
     def Echanged_cashflow(self):
@@ -1071,6 +1159,7 @@ class Window(QDialog):
         
         #if its accepted, add this item to the combo boxes
         self.CatCombo.addItem(text)
+        self.categoriesChanged()
 
     def Ereset_category(self):
         """
@@ -1103,6 +1192,7 @@ class Window(QDialog):
         #if its accepted, add this item to the combo boxes
         self.FtpCombo.addItem(text)     #add it to the from/to persons and set it if possible
         self.WhyCombo.addItem(text, set_item=False) #add it to the why persons but dont set it
+        self.personsChanged()
     
     def Eadd_whyperson(self):
         """
@@ -1126,6 +1216,7 @@ class Window(QDialog):
         #if its accepted, add this item to the combo boxes
         self.FtpCombo.addItem(text, set_item=False)     #add it to the from/to persons but dont set it
         self.WhyCombo.addItem(text)     #add it to the why persons and set it if possible
+        self.personsChanged()
 
     def Ereset_person(self):
         """
@@ -1148,9 +1239,7 @@ class Window(QDialog):
         assert(not self.edit_mode), STRINGS.ERROR_IN_EDIT_MODE
         if self.addTransactionFromForm():
             self.clearForm(clear_date=False)
-            self.trans_product_completer = QCompleter(self.backend.getProductNames())
-            self.trans_product_completer.setCaseSensitivity(False)
-            self.trans_product_edit.setCompleter(self.trans_product_completer)      #add an autocompleter
+            self.productsChanged()
             if self.loading:
                 self.loadNextData()
 
@@ -1202,6 +1291,7 @@ class Window(QDialog):
         #add the new one
         self.addTransactionFromTransaction(new_trans)
         self.TransList.updateLastTrans()
+        self.productsChanged()
         
     def Eedit_delete_transaction(self):
         """
@@ -1216,6 +1306,9 @@ class Window(QDialog):
         self.backend.deleteTransaction(self.TransList.getTransactionForButton(self.choosed_trans_button))
         self.disableEditMode()
         self.TransList.updateLastTrans()
+        self.productsChanged()
+        self.categoriesChanged()
+        self.personsChanged()
 
     def Esort_transactions(self):
         """
@@ -1284,12 +1377,9 @@ class Window(QDialog):
                     msg.critical(self, STRINGS.CRITICAL_IMPORT_TRANSACTIONS_TITLE, STRINGS.CRITICAL_IMPORT_TRANSACTIONS)
                 #updates all ui comonents which belong to the transactions
                 self.TransList.updateLastTrans()
-                self.CatCombo.updateItems()
-                self.FtpCombo.updateItems()
-                self.WhyCombo.updateItems()
-                self.trans_product_completer = QCompleter(self.backend.getProductNames())
-                self.trans_product_completer.setCaseSensitivity(False)
-                self.trans_product_edit.setCompleter(self.trans_product_completer)      #add an autocompleter
+                self.productsChanged()
+                self.categoriesChanged()
+                self.personsChanged()
 
     def Eexport_csv(self):
         """
@@ -1307,6 +1397,64 @@ class Window(QDialog):
                 "Save File", "", "CSV Files (*.csv)", options = options)
             if fileName:
                 self.backend.export(fileName)
+
+    def Ecategory_renaming(self):
+        """
+        event handler 
+        activates if the user types something into the choose category field of the renamer
+        :return: void
+        """
+        edit:QLineEdit = self.sender()
+        assert(edit == self.edit_renaming_cat), STRINGS.getTypeErrorString(edit, "sender", self.edit_renaming_cat)
+        if edit.text().lower() in  map(lambda x: x.lower(), self.edit_renaming_cat_completer.children()[0].stringList()):
+            #user entered a valid category
+            self.edit_renaming_cat_edit.setEnabled(True)
+            if len(self.edit_renaming_cat_edit.text()) - self.edit_renaming_cat_edit.text().count(" ") >= 3:
+                #user entered a valid new category name
+                self.button_renaming_category.setEnabled(True)
+        else:
+            self.edit_renaming_cat_edit.setEnabled(False)
+            self.button_renaming_category.setEnabled(False)
+            
+        if edit.text().lower() in map(lambda x: x.lower(), self.edit_renaming_cat_completer.children()[0].stringList()):
+            #try to rename to an existing one
+            self.button_renaming_category.setEnabled(False)
+            return
+
+    def Ecategory_renaming_edit(self):
+        """
+        event handler 
+        activates if the user types something into the choose category edit field of the renamer
+        :return: void
+        """
+        edit:QLineEdit = self.sender()
+        assert(edit == self.edit_renaming_cat_edit), STRINGS.getTypeErrorString(edit, "sender", self.edit_renaming_cat_edit)
+        if edit.text().lower() in map(lambda x: x.lower(), self.edit_renaming_cat_completer.children()[0].stringList()):
+            #try to rename to an existing one
+            self.button_renaming_category.setEnabled(False)
+            return
+        if len(edit.text()) - edit.text().count(" ") >= 3:
+            #user entered a valid new category name
+            self.button_renaming_category.setEnabled(True)
+        else:
+            self.button_renaming_category.setEnabled(False)
+    
+    def Ecategory_renamed(self):
+        """
+        event handler 
+        activates if the user presses the rename button in the category renamer
+        :return: void
+        """
+        edit:QPushButton = self.sender()
+        assert(edit == self.button_renaming_category), STRINGS.getTypeErrorString(edit, "sender", self.button_renaming_category)
+        assert(not(self.edit_mode)), STRINGS.ERROR_IN_EDIT_MODE
+        category = self.edit_renaming_cat.text().lower()
+        new_category = self.edit_renaming_cat_edit.text()
+        self.edit_renaming_cat_edit.setText("")
+        self.edit_renaming_cat.setText("")
+        self.backend.renameCategory(category, new_category)
+        self.categoriesChanged()
+
 
 
 class FilterWindow(QDialog):
