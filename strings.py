@@ -51,6 +51,7 @@ class ENG:
 
     APP_BUTTON_RENAMING_CATEGORY = "Rename category"
     APP_BUTTON_RENAMING_PERSON = "Rename person"
+    APP_BUTTON_RENAMING_PRODUCT = "Rename product"
 
     APP_NEW_TRANSACTION_DEFAULT_CATEGORY = "Without category"
     APP_NEW_TRANSACTION_DEFAULT_FTPERSON = "No from/to person"
@@ -67,6 +68,8 @@ class ENG:
     APP_LABEL_RENAMING_CATEGORY_EDIT = "New category name:"
     APP_LABEL_RENAMING_PERSON = "Old person name:"
     APP_LABEL_RENAMING_PERSON_EDIT = "New person name:"
+    APP_LABEL_RENAMING_PRODUCT = "Old product name:"
+    APP_LABEL_RENAMING_PRODUCT_EDIT = "New product name:"
 
     #edit mode
     APP_LABEL_EDIT_TRANSACTION = "Edit transaction"
@@ -130,7 +133,8 @@ class ENG:
     INFO_RENAMED_SUCCESSFUL_PART1 = "The renaming was successful.\n"
     INFO_RENAMED_SUCCESSFUL_CATEGORY_PART2 = "Category "
     INFO_RENAMED_SUCCESSFUL_PERSON_PART2 = "Person "
-    INFO_RENAMED_SUCCESSFUL_PART3 = " got renamed to "
+    INFO_RENAMED_SUCCESSFUL_PRODUCT_PART2 = "Product "
+    INFO_RENAMED_SUCCESSFUL_PART3 = " was renamed to "
 
     #errors
     ERROR_GRID_NOT_DEFINED = "The basic layout aka 'grid' is not defined. Please make sure to call InitWindow() first"
@@ -148,6 +152,7 @@ class ENG:
     ERROR_PRODUCT_CONTAINS_NO_CHAR = "The product contains no visible characters: "
     ERROR_CATEGORY_CONTAINS_NOT_ENOUGH_CHAR = "The category contains less than 3 visible characters: "
     ERROR_PERSON_CONTAINS_NOT_ENOUGH_CHAR = "The person contains less than 3 visible characters: "
+    ERROR_PRODUCT_CONTAINS_NOT_ENOUGH_CHAR = "The product contains less than 1 visible characters: "
     ERROR_NUMBER_ZERO_OR_LESS = "The number of products is not greater than zero: "
     ERROR_CASHFLOW_ZERO = "The given Cashflow is zero: "
     ERROR_NOT_ALL_CATEGORIES_ARE_VALID = "There are some categories, which are not in the database: "
@@ -174,6 +179,7 @@ class ENG:
     ERROR_NO_DATE_SELECTED = "No date has been selected"
     ERROR_CATEGORY_NOT_FOUND = "The provided category is not known to the system"
     ERROR_PERSON_NOT_FOUND = "The provided person is not known to the system"
+    ERROR_PRODUCT_NOT_FOUND = "The provided product is not known to the system"
 
     ERROR_WRONG_CF_DATA = "Got wrong cashflow data: "
     ERROR_WRONG_FORMAT_GEOMETRY = "geometry is in a wrong format: "

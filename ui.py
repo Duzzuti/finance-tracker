@@ -103,16 +103,16 @@ class Window(QDialog):
         self.groupBox_lastTransactions = QGroupBox()
         self.layout_lastTransaction = QVBoxLayout()
 
-        self.groupBox_editCatPers_label = QLabel(STRINGS.APP_LABEL_EDIT_CAT_PERS, self)
-        self.groupBox_editCatPers_label.setFont(FONTS.APP_NEW_TRANSACTION)
-        self.groupBox_editCatPers = QGroupBox()
-        self.layout_editCatPers = QVBoxLayout()
-        self.groupBox_editCatPers.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+        self.groupBox_edit_label = QLabel(STRINGS.APP_LABEL_EDIT_CAT_PERS, self)
+        self.groupBox_edit_label.setFont(FONTS.APP_NEW_TRANSACTION)
+        self.groupBox_edit = QGroupBox()
+        self.layout_edit = QVBoxLayout()
+        self.groupBox_edit.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
 
         #adds the Widgets to the "new transaction" part of the window
         self.addWidgetsNewTrans()
         self.addWidgetsLastTrans()
-        self.addWidgetsEditCatsPers()
+        self.addWidgetsEdit()
         self.setToolTips()
         self.updateFilter()
 
@@ -125,9 +125,9 @@ class Window(QDialog):
         self.grid.addWidget(self.groupBox_lastTransactions_label, 0, 1)
         self.grid.addWidget(self.groupBox_lastTransactions, 1, 1)
 
-        self.groupBox_editCatPers.setLayout(self.layout_editCatPers)
-        self.grid.addWidget(self.groupBox_editCatPers_label, 0, 2)
-        self.grid.addWidget(self.groupBox_editCatPers, 1, 2)
+        self.groupBox_edit.setLayout(self.layout_edit)
+        self.grid.addWidget(self.groupBox_edit_label, 0, 2)
+        self.grid.addWidget(self.groupBox_edit, 1, 2)
 
     def addWidgetsNewTrans(self):
         """
@@ -447,9 +447,9 @@ class Window(QDialog):
         load_export_widget.setLayout(load_export_hbox)
         self.layout_lastTransaction.addWidget(load_export_widget)
 
-    def addWidgetsEditCatsPers(self):
+    def addWidgetsEdit(self):
         """
-        adds the Widgets to the "edit categories and persons" part of the window
+        adds the Widgets to the "edit products, categories and persons" part of the window
         and connects these widgets with the backend
         handles the behavior of these widgets too
         :return: void
@@ -459,9 +459,42 @@ class Window(QDialog):
         label_renaming = QLabel(STRINGS.APP_LABEL_RENAMING)
         label_renaming.setFont(FONTS.APP_NEW_TRANSACTION_CF)
         #renaming groupbox
-        self.layout_editCatPers.addWidget(label_renaming)
+        self.layout_edit.addWidget(label_renaming)
         groupbox_renaming = QGroupBox()
         layout_renaming = QGridLayout()
+        #********************PRODUCT********************************
+        groupbox_renaming_product = QGroupBox()
+        layout_renaming_product = QVBoxLayout()
+        #product choose label
+        label_renaming_pro = QLabel(STRINGS.APP_LABEL_RENAMING_PRODUCT)
+        layout_renaming_product.addWidget(label_renaming_pro)
+        #product choose edit
+        self.edit_renaming_pro = QLineEdit()
+        self.edit_renaming_pro_completer = QCompleter(self.backend.getProductNames())
+        self.edit_renaming_pro_completer.setCaseSensitivity(False)
+        self.edit_renaming_pro.setCompleter(self.edit_renaming_pro_completer)
+        self.edit_renaming_pro.textChanged.connect(self.Eproduct_renaming)
+        layout_renaming_product.addWidget(self.edit_renaming_pro)
+        #product new name label
+        label_renaming_pro_edit = QLabel(STRINGS.APP_LABEL_RENAMING_PRODUCT_EDIT)
+        layout_renaming_product.addWidget(label_renaming_pro_edit)
+        #product new name edit
+        self.edit_renaming_pro_edit = QLineEdit()
+        self.edit_renaming_pro_edit.setEnabled(False)
+        self.edit_renaming_pro_edit.textChanged.connect(self.Eproduct_renaming_edit)
+        layout_renaming_product.addWidget(self.edit_renaming_pro_edit)
+        #product renaming button
+        self.button_renaming_product = QPushButton(STRINGS.APP_BUTTON_RENAMING_PRODUCT)
+        self.button_renaming_product.setEnabled(False)
+        self.button_renaming_product.clicked.connect(self.Eproduct_renamed)
+        layout_renaming_product.addWidget(self.button_renaming_product)
+
+        groupbox_renaming_product.setLayout(layout_renaming_product)
+        layout_renaming.addWidget(groupbox_renaming_product, 0, 0)
+
+        groupbox_renaming.setLayout(layout_renaming)
+        self.layout_edit.addWidget(groupbox_renaming)
+
         #********************CATEGORY********************************
         groupbox_renaming_category = QGroupBox()
         layout_renaming_category = QVBoxLayout()
@@ -490,10 +523,10 @@ class Window(QDialog):
         layout_renaming_category.addWidget(self.button_renaming_category)
 
         groupbox_renaming_category.setLayout(layout_renaming_category)
-        layout_renaming.addWidget(groupbox_renaming_category, 0, 0)
+        layout_renaming.addWidget(groupbox_renaming_category, 0, 1)
 
         groupbox_renaming.setLayout(layout_renaming)
-        self.layout_editCatPers.addWidget(groupbox_renaming)
+        self.layout_edit.addWidget(groupbox_renaming)
 
         #********************PERSON*******************************
         groupbox_renaming_person = QGroupBox()
@@ -523,10 +556,10 @@ class Window(QDialog):
         layout_renaming_person.addWidget(self.button_renaming_person)
 
         groupbox_renaming_person.setLayout(layout_renaming_person)
-        layout_renaming.addWidget(groupbox_renaming_person, 0, 1)
+        layout_renaming.addWidget(groupbox_renaming_person, 0, 2)
 
         groupbox_renaming.setLayout(layout_renaming)
-        self.layout_editCatPers.addWidget(groupbox_renaming)
+        self.layout_edit.addWidget(groupbox_renaming)
 
 
     def enableEditMode(self, transaction:Transaction):
@@ -577,6 +610,7 @@ class Window(QDialog):
         #disconnect renaming ui components
         self.button_renaming_category.disconnect()
         self.button_renaming_person.disconnect()
+        self.button_renaming_product.disconnect()
 
         #connect with event handler
         self.choosed_trans_button.clicked.disconnect()      #the choosen transaction should work as a cancel button too
@@ -622,6 +656,7 @@ class Window(QDialog):
         #connect renaming ui components
         self.button_renaming_category.clicked.connect(self.Ecategory_renamed)
         self.button_renaming_person.clicked.connect(self.Eperson_renamed)
+        self.button_renaming_product.clicked.connect(self.Eproduct_renamed)
 
         self.choosed_trans_button = False           #this transaction button is no more active
         self.adjustSize()
@@ -921,6 +956,9 @@ class Window(QDialog):
         self.trans_product_completer = QCompleter(self.backend.getProductNames())
         self.trans_product_completer.setCaseSensitivity(False)
         self.trans_product_edit.setCompleter(self.trans_product_completer)      #add an autocompleter
+        self.edit_renaming_pro_completer = QCompleter(self.backend.getProductNames())
+        self.edit_renaming_pro_completer.setCaseSensitivity(False)
+        self.edit_renaming_pro.setCompleter(self.edit_renaming_pro_completer)      #add an autocompleter
 
     def categoriesChanged(self):
         """
@@ -1564,6 +1602,68 @@ class Window(QDialog):
         msg = QMessageBox()
         msg.information(self, STRINGS.INFO_RENAMED_SUCCESSFUL, 
             STRINGS.INFO_RENAMED_SUCCESSFUL_PART1+STRINGS.INFO_RENAMED_SUCCESSFUL_PERSON_PART2+person+STRINGS.INFO_RENAMED_SUCCESSFUL_PART3+new_person)
+
+    def Eproduct_renaming(self):
+        """
+        event handler 
+        activates if the user types something into the choose product field of the renamer
+        :return: void
+        """
+        edit:QLineEdit = self.sender()
+        assert(edit == self.edit_renaming_pro), STRINGS.getTypeErrorString(edit, "sender", self.edit_renaming_pro)
+        if edit.text().lower() in map(lambda x: x.lower(), self.edit_renaming_pro_completer.children()[0].stringList()):
+            #user entered a valid product
+            self.edit_renaming_pro_edit.setEnabled(True)
+            if len(self.edit_renaming_pro_edit.text()) - self.edit_renaming_pro_edit.text().count(" ") >= 3:
+                #user entered a valid new product name
+                self.button_renaming_product.setEnabled(True)
+        else:
+            self.edit_renaming_pro_edit.setEnabled(False)
+            self.button_renaming_product.setEnabled(False)
+            
+        if self.edit_renaming_pro_edit.text().lower() in map(lambda x: x.lower(), self.edit_renaming_pro_completer.children()[0].stringList()):
+            #try to rename to an existing one
+            self.button_renaming_product.setEnabled(False)
+            return
+
+    def Eproduct_renaming_edit(self):
+        """
+        event handler 
+        activates if the user types something into the choose product edit field of the renamer
+        :return: void
+        """
+        edit:QLineEdit = self.sender()
+        assert(edit == self.edit_renaming_pro_edit), STRINGS.getTypeErrorString(edit, "sender", self.edit_renaming_pro_edit)
+        if edit.text().lower() in map(lambda x: x.lower(), self.edit_renaming_pro_completer.children()[0].stringList()):
+            #try to rename to an existing one
+            self.button_renaming_product.setEnabled(False)
+            return
+        if len(edit.text()) - edit.text().count(" ") >= 3:
+            #user entered a valid new product name
+            self.button_renaming_product.setEnabled(True)
+        else:
+            self.button_renaming_product.setEnabled(False)
+    
+    def Eproduct_renamed(self):
+        """
+        event handler 
+        activates if the user presses the rename button in the product renamer
+        :return: void
+        """
+        edit:QPushButton = self.sender()
+        assert(edit == self.button_renaming_product), STRINGS.getTypeErrorString(edit, "sender", self.button_renaming_product)
+        assert(not(self.edit_mode)), STRINGS.ERROR_IN_EDIT_MODE
+        product = self.edit_renaming_pro.text()
+        new_product = self.edit_renaming_pro_edit.text()
+        self.edit_renaming_pro_edit.setText("")
+        self.edit_renaming_pro.setText("")
+        self.backend.renameProduct(product.lower(), new_product)
+        self.productsChanged()
+        #show message that the renaming was successful
+        msg = QMessageBox()
+        msg.information(self, STRINGS.INFO_RENAMED_SUCCESSFUL, 
+            STRINGS.INFO_RENAMED_SUCCESSFUL_PART1+STRINGS.INFO_RENAMED_SUCCESSFUL_PRODUCT_PART2+product+STRINGS.INFO_RENAMED_SUCCESSFUL_PART3+new_product)
+
 
 
 class FilterWindow(QDialog):

@@ -398,6 +398,31 @@ class Backend:
             person.name = new_person_name
             self.persons.append(person)
 
+    @Dsave
+    @Dsort
+    def renameProduct(self, product_name:str, new_product_name:str):
+        """
+        renames the given product to the new_product_name
+        :param product_name: str<name of the product, that you want to rename>
+        :param new_product_name: str<new product name>
+        :return: void
+        """
+        assert(product_name.lower() in map(lambda x: x.name.lower(), self.products)), STRINGS.ERROR_PRODUCT_NOT_FOUND
+        assert(len(new_product_name) - new_product_name.count(" ") >= 1), STRINGS.ERROR_PRODUCT_CONTAINS_NOT_ENOUGH_CHAR
+        product_name = product_name.lower()
+        #change the products inside the transactions
+        for transaction in self.transactions:
+            if product_name == transaction.product.name.lower():
+                transaction.product.name = new_product_name
+
+        #changes the prodcut list
+        #it can happen that the list is changed correctly, because we are changing the name of the product object inside the transactions
+        #these objects are likely just a reference to the products list, that means that they have already been changed
+        if product_name in map(lambda x: x.name.lower(), self.products):
+            product = self.persons.pop(list(map(lambda x: x.name.lower(), self.products)).index(product_name))
+            product.name = new_product_name
+            self.persons.append(product)
+
     def sortTransactions(self, sortElement:SortEnum, up:bool):
         """
         sorts the transactions given the sort criteria. should also sort new adds too
