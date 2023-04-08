@@ -366,6 +366,38 @@ class Backend:
         self.categories.pop(list(map(lambda x: x.lower(), self.categories)).index(category))
         self.categories.append(new_category)
 
+    @Dsave
+    @Dsort
+    def renamePerson(self, person_name:str, new_person_name:str):
+        """
+        renames the given person to the new_person_name
+        :param person_name: str<name of the person, that you want to rename>
+        :param new_person_name: str<new person name>
+        :return: void
+        """
+        assert(person_name.lower() in map(lambda x: x.name.lower(), self.persons)), STRINGS.ERROR_PERSON_NOT_FOUND
+        assert(len(new_person_name) - new_person_name.count(" ") >= 3), STRINGS.ERROR_PERSON_CONTAINS_NOT_ENOUGH_CHAR
+        person_name = person_name.lower()
+        #change the persons inside the transactions
+        for transaction in self.transactions:
+            if person_name in transaction.getLowerFtPersonNames(_sorted=False):
+                person = transaction.from_to_persons.pop(transaction.getLowerFtPersonNames(_sorted=False).index(person_name))
+                person.name = new_person_name
+                transaction.from_to_persons.append(person)
+
+            if person_name in transaction.getLowerWhyPersonNames(_sorted=False):
+                person = transaction.why_persons.pop(transaction.getLowerWhyPersonNames(_sorted=False).index(person_name))
+                person.name = new_person_name
+                transaction.why_persons.append(person)
+
+        #changes the person list
+        #it can happen that the list is changed correctly, because we are changing the name of the person object inside the transactions
+        #these objects are likely just a reference to the persons list, that means that they have already been changed
+        if person_name in map(lambda x: x.name.lower(), self.persons):
+            person = self.persons.pop(list(map(lambda x: x.name.lower(), self.persons)).index(person_name))
+            person.name = new_person_name
+            self.persons.append(person)
+
     def sortTransactions(self, sortElement:SortEnum, up:bool):
         """
         sorts the transactions given the sort criteria. should also sort new adds too

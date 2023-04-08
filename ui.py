@@ -454,7 +454,7 @@ class Window(QDialog):
         handles the behavior of these widgets too
         :return: void
         """
-        #renaming part
+        #********************RENAMING********************************
         #renaming label
         label_renaming = QLabel(STRINGS.APP_LABEL_RENAMING)
         label_renaming.setFont(FONTS.APP_NEW_TRANSACTION_CF)
@@ -462,27 +462,28 @@ class Window(QDialog):
         self.layout_editCatPers.addWidget(label_renaming)
         groupbox_renaming = QGroupBox()
         layout_renaming = QGridLayout()
-        #renaming category
+        #********************CATEGORY********************************
         groupbox_renaming_category = QGroupBox()
         layout_renaming_category = QVBoxLayout()
+        #category choose label
         label_renaming_cat = QLabel(STRINGS.APP_LABEL_RENAMING_CATEGORY)
         layout_renaming_category.addWidget(label_renaming_cat)
-
+        #category choose edit
         self.edit_renaming_cat = QLineEdit()
         self.edit_renaming_cat_completer = QCompleter(self.backend.getCategories())
         self.edit_renaming_cat_completer.setCaseSensitivity(False)
         self.edit_renaming_cat.setCompleter(self.edit_renaming_cat_completer)
         self.edit_renaming_cat.textChanged.connect(self.Ecategory_renaming)
         layout_renaming_category.addWidget(self.edit_renaming_cat)
-
+        #category new name label
         label_renaming_cat_edit = QLabel(STRINGS.APP_LABEL_RENAMING_CATEGORY_EDIT)
         layout_renaming_category.addWidget(label_renaming_cat_edit)
-
+        #category new name edit
         self.edit_renaming_cat_edit = QLineEdit()
         self.edit_renaming_cat_edit.setEnabled(False)
         self.edit_renaming_cat_edit.textChanged.connect(self.Ecategory_renaming_edit)
         layout_renaming_category.addWidget(self.edit_renaming_cat_edit)
-
+        #category renaming button
         self.button_renaming_category = QPushButton(STRINGS.APP_BUTTON_RENAMING_CATEGORY)
         self.button_renaming_category.setEnabled(False)
         self.button_renaming_category.clicked.connect(self.Ecategory_renamed)
@@ -490,6 +491,39 @@ class Window(QDialog):
 
         groupbox_renaming_category.setLayout(layout_renaming_category)
         layout_renaming.addWidget(groupbox_renaming_category, 0, 0)
+
+        groupbox_renaming.setLayout(layout_renaming)
+        self.layout_editCatPers.addWidget(groupbox_renaming)
+
+        #********************PERSON*******************************
+        groupbox_renaming_person = QGroupBox()
+        layout_renaming_person = QVBoxLayout()
+        #person choose label
+        label_renaming_per = QLabel(STRINGS.APP_LABEL_RENAMING_PERSON)
+        layout_renaming_person.addWidget(label_renaming_per)
+        #person choose edit
+        self.edit_renaming_per = QLineEdit()
+        self.edit_renaming_per_completer = QCompleter(self.backend.getPersonNames())
+        self.edit_renaming_per_completer.setCaseSensitivity(False)
+        self.edit_renaming_per.setCompleter(self.edit_renaming_per_completer)
+        self.edit_renaming_per.textChanged.connect(self.Eperson_renaming)
+        layout_renaming_person.addWidget(self.edit_renaming_per)
+        #person new name label
+        label_renaming_per_edit = QLabel(STRINGS.APP_LABEL_RENAMING_PERSON_EDIT)
+        layout_renaming_person.addWidget(label_renaming_per_edit)
+        #person new name edit
+        self.edit_renaming_per_edit = QLineEdit()
+        self.edit_renaming_per_edit.setEnabled(False)
+        self.edit_renaming_per_edit.textChanged.connect(self.Eperson_renaming_edit)
+        layout_renaming_person.addWidget(self.edit_renaming_per_edit)
+        #person renaming button
+        self.button_renaming_person = QPushButton(STRINGS.APP_BUTTON_RENAMING_PERSON)
+        self.button_renaming_person.setEnabled(False)
+        self.button_renaming_person.clicked.connect(self.Eperson_renamed)
+        layout_renaming_person.addWidget(self.button_renaming_person)
+
+        groupbox_renaming_person.setLayout(layout_renaming_person)
+        layout_renaming.addWidget(groupbox_renaming_person, 0, 1)
 
         groupbox_renaming.setLayout(layout_renaming)
         self.layout_editCatPers.addWidget(groupbox_renaming)
@@ -897,6 +931,9 @@ class Window(QDialog):
         it will update stuff that needs updated persons data
         :return: void
         """
+        self.edit_renaming_per_completer = QCompleter(self.backend.getPersonNames())
+        self.edit_renaming_per_completer.setCaseSensitivity(False)
+        self.edit_renaming_per.setCompleter(self.edit_renaming_per_completer)      #add an autocompleter
         self.FtpCombo.updateItems()
         self.WhyCombo.updateItems()
 
@@ -1415,8 +1452,8 @@ class Window(QDialog):
         else:
             self.edit_renaming_cat_edit.setEnabled(False)
             self.button_renaming_category.setEnabled(False)
-            
-        if edit.text().lower() in map(lambda x: x.lower(), self.edit_renaming_cat_completer.children()[0].stringList()):
+
+        if self.edit_renaming_cat_edit.text().lower() in map(lambda x: x.lower(), self.edit_renaming_cat_completer.children()[0].stringList()):
             #try to rename to an existing one
             self.button_renaming_category.setEnabled(False)
             return
@@ -1455,6 +1492,62 @@ class Window(QDialog):
         self.backend.renameCategory(category, new_category)
         self.categoriesChanged()
 
+    def Eperson_renaming(self):
+        """
+        event handler 
+        activates if the user types something into the choose person field of the renamer
+        :return: void
+        """
+        edit:QLineEdit = self.sender()
+        assert(edit == self.edit_renaming_per), STRINGS.getTypeErrorString(edit, "sender", self.edit_renaming_per)
+        if edit.text().lower() in map(lambda x: x.lower(), self.edit_renaming_per_completer.children()[0].stringList()):
+            #user entered a valid person
+            self.edit_renaming_per_edit.setEnabled(True)
+            if len(self.edit_renaming_per_edit.text()) - self.edit_renaming_per_edit.text().count(" ") >= 3:
+                #user entered a valid new person name
+                self.button_renaming_person.setEnabled(True)
+        else:
+            self.edit_renaming_per_edit.setEnabled(False)
+            self.button_renaming_person.setEnabled(False)
+            
+        if self.edit_renaming_per_edit.text().lower() in map(lambda x: x.lower(), self.edit_renaming_per_completer.children()[0].stringList()):
+            #try to rename to an existing one
+            self.button_renaming_person.setEnabled(False)
+            return
+
+    def Eperson_renaming_edit(self):
+        """
+        event handler 
+        activates if the user types something into the choose person edit field of the renamer
+        :return: void
+        """
+        edit:QLineEdit = self.sender()
+        assert(edit == self.edit_renaming_per_edit), STRINGS.getTypeErrorString(edit, "sender", self.edit_renaming_per_edit)
+        if edit.text().lower() in map(lambda x: x.lower(), self.edit_renaming_per_completer.children()[0].stringList()):
+            #try to rename to an existing one
+            self.button_renaming_person.setEnabled(False)
+            return
+        if len(edit.text()) - edit.text().count(" ") >= 3:
+            #user entered a valid new person name
+            self.button_renaming_person.setEnabled(True)
+        else:
+            self.button_renaming_person.setEnabled(False)
+    
+    def Eperson_renamed(self):
+        """
+        event handler 
+        activates if the user presses the rename button in the person renamer
+        :return: void
+        """
+        edit:QPushButton = self.sender()
+        assert(edit == self.button_renaming_person), STRINGS.getTypeErrorString(edit, "sender", self.button_renaming_person)
+        assert(not(self.edit_mode)), STRINGS.ERROR_IN_EDIT_MODE
+        person = self.edit_renaming_per.text().lower()
+        new_person = self.edit_renaming_per_edit.text()
+        self.edit_renaming_per_edit.setText("")
+        self.edit_renaming_per.setText("")
+        self.backend.renamePerson(person, new_person)
+        self.personsChanged()
 
 
 class FilterWindow(QDialog):

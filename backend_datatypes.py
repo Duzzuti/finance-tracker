@@ -38,3 +38,15 @@ class Transaction:
 
     def getWhyPersonNames(self):
         return sorted(map(lambda x: x.name, self.why_persons))
+    
+    def getLowerFtPersonNames(self, _sorted:bool=True):
+        if _sorted:
+            return sorted(map(lambda x: x.name.lower(), self.from_to_persons))
+        else:
+            return list(map(lambda x: x.name.lower(), self.from_to_persons))
+
+    def getLowerWhyPersonNames(self, _sorted:bool=True):
+        if _sorted:
+            return sorted(map(lambda x: x.name.lower(), self.why_persons))
+        else:
+            return list(map(lambda x: x.name.lower(), self.why_persons))

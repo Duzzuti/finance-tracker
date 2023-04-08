@@ -31,7 +31,7 @@ class ENG:
 
     APP_LABEL_LAST_TRANSACTIONS = "Your last transactions"
 
-    APP_LABEL_EDIT_CAT_PERS = "Edit Categories and Persons"
+    APP_LABEL_EDIT_CAT_PERS = "Edit Products, Categories and Persons"
 
     APP_BUTTON_NEW_TRANSACTION_ADD_CAT = "Add"
     APP_BUTTON_NEW_TRANSACTION_RESET_CAT = "Reset Categories"
@@ -50,6 +50,7 @@ class ENG:
     APP_BUTTON_EXPORT = "Export to csv"
 
     APP_BUTTON_RENAMING_CATEGORY = "Rename category"
+    APP_BUTTON_RENAMING_PERSON = "Rename person"
 
     APP_NEW_TRANSACTION_DEFAULT_CATEGORY = "Without category"
     APP_NEW_TRANSACTION_DEFAULT_FTPERSON = "No from/to person"
@@ -62,8 +63,10 @@ class ENG:
     APP_LABEL_TRANSACTION_COUNT = " Transactions"
 
     APP_LABEL_RENAMING = "Renaming a category or person"
-    APP_LABEL_RENAMING_CATEGORY = "Enter a category:"
-    APP_LABEL_RENAMING_CATEGORY_EDIT = "Enter the new name of the category:"
+    APP_LABEL_RENAMING_CATEGORY = "Old category name:"
+    APP_LABEL_RENAMING_CATEGORY_EDIT = "New category name:"
+    APP_LABEL_RENAMING_PERSON = "Old person name:"
+    APP_LABEL_RENAMING_PERSON_EDIT = "New person name:"
 
     #edit mode
     APP_LABEL_EDIT_TRANSACTION = "Edit transaction"
@@ -165,6 +168,7 @@ class ENG:
     ERROR_TOOLTIPS_ALREADY_SET = "The tooltips are already set"
     ERROR_NO_DATE_SELECTED = "No date has been selected"
     ERROR_CATEGORY_NOT_FOUND = "The provided category is not known to the system"
+    ERROR_PERSON_NOT_FOUND = "The provided person is not known to the system"
 
     ERROR_WRONG_CF_DATA = "Got wrong cashflow data: "
     ERROR_WRONG_FORMAT_GEOMETRY = "geometry is in a wrong format: "
