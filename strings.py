@@ -126,6 +126,11 @@ class ENG:
 
     #info
     INFO_TRANSACTION_WAS_NOT_ADDED = "The transaction was not added"
+    INFO_RENAMED_SUCCESSFUL = "Successful renaming"
+    INFO_RENAMED_SUCCESSFUL_PART1 = "The renaming was successful.\n"
+    INFO_RENAMED_SUCCESSFUL_CATEGORY_PART2 = "Category "
+    INFO_RENAMED_SUCCESSFUL_PERSON_PART2 = "Person "
+    INFO_RENAMED_SUCCESSFUL_PART3 = " got renamed to "
 
     #errors
     ERROR_GRID_NOT_DEFINED = "The basic layout aka 'grid' is not defined. Please make sure to call InitWindow() first"

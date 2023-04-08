@@ -574,6 +574,10 @@ class Window(QDialog):
         cancel_button.setFont(FONTS.APP_NEW_TRANSACTION_SUBMIT)
         self.submit_layout.addWidget(cancel_button)
 
+        #disconnect renaming ui components
+        self.button_renaming_category.disconnect()
+        self.button_renaming_person.disconnect()
+
         #connect with event handler
         self.choosed_trans_button.clicked.disconnect()      #the choosen transaction should work as a cancel button too
         self.choosed_trans_button.clicked.connect(self.Eedit_cancel)
@@ -614,6 +618,10 @@ class Window(QDialog):
         self.submit_button.clicked.disconnect()
         self.submit_button.setEnabled(False)
         self.submit_button.clicked.connect(self.Esubmit_transaction)
+
+        #connect renaming ui components
+        self.button_renaming_category.clicked.connect(self.Ecategory_renamed)
+        self.button_renaming_person.clicked.connect(self.Eperson_renamed)
 
         self.choosed_trans_button = False           #this transaction button is no more active
         self.adjustSize()
@@ -1485,12 +1493,16 @@ class Window(QDialog):
         edit:QPushButton = self.sender()
         assert(edit == self.button_renaming_category), STRINGS.getTypeErrorString(edit, "sender", self.button_renaming_category)
         assert(not(self.edit_mode)), STRINGS.ERROR_IN_EDIT_MODE
-        category = self.edit_renaming_cat.text().lower()
+        category = self.edit_renaming_cat.text()
         new_category = self.edit_renaming_cat_edit.text()
         self.edit_renaming_cat_edit.setText("")
         self.edit_renaming_cat.setText("")
-        self.backend.renameCategory(category, new_category)
+        self.backend.renameCategory(category.lower(), new_category)
         self.categoriesChanged()
+        #show message that the renaming was successful
+        msg = QMessageBox()
+        msg.information(self, STRINGS.INFO_RENAMED_SUCCESSFUL, 
+            STRINGS.INFO_RENAMED_SUCCESSFUL_PART1+STRINGS.INFO_RENAMED_SUCCESSFUL_CATEGORY_PART2+category+STRINGS.INFO_RENAMED_SUCCESSFUL_PART3+new_category)
 
     def Eperson_renaming(self):
         """
@@ -1542,12 +1554,16 @@ class Window(QDialog):
         edit:QPushButton = self.sender()
         assert(edit == self.button_renaming_person), STRINGS.getTypeErrorString(edit, "sender", self.button_renaming_person)
         assert(not(self.edit_mode)), STRINGS.ERROR_IN_EDIT_MODE
-        person = self.edit_renaming_per.text().lower()
+        person = self.edit_renaming_per.text()
         new_person = self.edit_renaming_per_edit.text()
         self.edit_renaming_per_edit.setText("")
         self.edit_renaming_per.setText("")
-        self.backend.renamePerson(person, new_person)
+        self.backend.renamePerson(person.lower(), new_person)
         self.personsChanged()
+        #show message that the renaming was successful
+        msg = QMessageBox()
+        msg.information(self, STRINGS.INFO_RENAMED_SUCCESSFUL, 
+            STRINGS.INFO_RENAMED_SUCCESSFUL_PART1+STRINGS.INFO_RENAMED_SUCCESSFUL_PERSON_PART2+person+STRINGS.INFO_RENAMED_SUCCESSFUL_PART3+new_person)
 
 
 class FilterWindow(QDialog):
