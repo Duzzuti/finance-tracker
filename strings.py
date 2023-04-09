@@ -142,7 +142,7 @@ class ENG:
     QUESTION_DELETING_PERSON = "The person will be deleted from the system.\nThis person is getting deleted from all transactions.\nContinue?"
     QUESTION_DELETING_PRODUCT = "The product will be deleted from the system.\nALL TRANSACTIONS with this product will be DELETED.\nContinue?"
     QUESTION_MERGING_CATEGORY = "The two categories will be merged into a new category with the given name.\nThe two categories are DELETED from all transactions and replaced with the new one.\nContinue?"
-    QUESTION_MERGING_PERSON = "The two persons will be merged into a new person with the given name.\nThe two persons are DELETED from all transactions and replaced with the new one.\nContinue?"
+    QUESTION_MERGING_PERSON = "The two persons will be merged into a new person with the given name.\nThe two persons are DELETED from all transactions and replaced with the new one.\nTHE FIRST PERSON WILL TRANSMIT HIS ATTRIBUTES TO THE NEW PERSON\nContinue?"
     QUESTION_MERGING_PRODUCT = "The two products will be merged into a new product with the given name.\nThe two products are DELETED from all transactions and replaced with the new one.\nTHE CATEGORIES WILL BE TAKED OVER FROM THE FIRST PRODUCT\nContinue?"
 
     #warning

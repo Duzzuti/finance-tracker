@@ -486,6 +486,125 @@ class Backend:
         if product_name in map(lambda x: x.name.lower(), self.products):
             self.products.pop(list(map(lambda x: x.name.lower(), self.products)).index(product_name))
 
+    @Dsave
+    @Dsort
+    def mergeCategory(self, category1:str, category2:str, new_category:str):
+        """
+        merges two given categories into a new one and name it like new_category
+        this will take affect on all past transactions
+        :param category1: str<category1, that you want to merge>
+        :param category2: str<category2, that you want to merge>
+        :param new_category: str<new category name>
+        :return: void
+        """
+        assert(category1.lower() in map(lambda x: x.lower(), self.categories)), STRINGS.ERROR_CATEGORY_NOT_FOUND
+        assert(category2.lower() in map(lambda x: x.lower(), self.categories)), STRINGS.ERROR_CATEGORY_NOT_FOUND
+        assert(len(new_category) - new_category.count(" ") >= 3), STRINGS.ERROR_CATEGORY_CONTAINS_NOT_ENOUGH_CHAR
+        category1 = category1.lower()
+        category2 = category2.lower()
+        #delete the category from the transactions
+        for transaction in self.transactions:
+            cats_lower = list(map(lambda x: x.lower(), transaction.product.categories))
+            in_list = False     #true if some of the categories that you wanna merge are in the transaction
+            if category1 in cats_lower:
+                in_list = True
+                transaction.product.categories.pop(cats_lower.index(category1))
+                cats_lower = list(map(lambda x: x.lower(), transaction.product.categories))
+            if category2 in cats_lower:
+                in_list = True
+                transaction.product.categories.pop(cats_lower.index(category2))
+            if in_list:
+                #at least one category was in the transaction
+                transaction.product.categories.append(new_category)
+
+        #changes the category list
+        try:
+            self.categories.pop(list(map(lambda x: x.lower(), self.categories)).index(category1))
+        except:
+            pass
+        try:
+            self.categories.pop(list(map(lambda x: x.lower(), self.categories)).index(category2))
+        except:
+            pass
+        self.categories.append(new_category)
+
+    @Dsave
+    @Dsort
+    def mergePerson(self, person1:str, person2:str, new_person:str):
+        """
+        merges two given persons into a new one and name it like new_person
+        this will take affect on all past transactions
+        the first person will take the attributes over to the new person 
+        :param person1: str<person1, that you want to merge>
+        :param person2: str<person2, that you want to merge>
+        :param new_person: str<new person name>
+        :return: void
+        """
+        assert(person1.lower() in map(lambda x: x.name.lower(), self.persons)), STRINGS.ERROR_PERSON_NOT_FOUND
+        assert(person2.lower() in map(lambda x: x.name.lower(), self.persons)), STRINGS.ERROR_PERSON_NOT_FOUND
+        assert(len(new_person) - new_person.count(" ") >= 3), STRINGS.ERROR_PERSON_CONTAINS_NOT_ENOUGH_CHAR
+        person1 = person1.lower()
+        person2 = person2.lower()
+        #changes the person list
+        person = self.persons.pop(list(map(lambda x: x.name.lower(), self.persons)).index(person1))
+        self.persons.pop(list(map(lambda x: x.name.lower(), self.persons)).index(person2))
+        person.name = new_person
+        self.persons.append(person)
+        #delete the person from the transactions
+        for transaction in self.transactions:
+            ftpers_lower = list(map(lambda x: x.name.lower(), transaction.from_to_persons))
+            whypers_lower = list(map(lambda x: x.name.lower(), transaction.why_persons))
+            in_ftlist = False     #true if some of the persons that you wanna merge are in the ftpersons of the transaction
+            in_whylist = False     #true if some of the persons that you wanna merge are in the whypersons of the transaction
+            if person1 in ftpers_lower:
+                in_ftlist = True
+                transaction.from_to_persons.pop(ftpers_lower.index(person1))
+                ftpers_lower = list(map(lambda x: x.name.lower(), transaction.from_to_persons))
+            if person2 in ftpers_lower:
+                in_ftlist = True
+                transaction.from_to_persons.pop(ftpers_lower.index(person2))
+            if in_ftlist:
+                #at least one person was in the ftperosns of the transaction
+                transaction.from_to_persons.append(person)
+            if person1 in whypers_lower:
+                in_whylist = True
+                transaction.why_persons.pop(whypers_lower.index(person1))
+                whypers_lower = list(map(lambda x: x.name.lower(), transaction.why_persons))
+            if person2 in whypers_lower:
+                in_whylist = True
+                transaction.why_persons.pop(whypers_lower.index(person2))
+            if in_whylist:
+                #at least one person was in the whyperosns of the transaction
+                transaction.why_persons.append(person)
+
+    @Dsave
+    @Dsort
+    def mergeProduct(self, product1:str, product2:str, new_product:str):
+        """
+        merges two given products into a new one and name it like new_product
+        this will take affect on all past transactions
+        the first product will take the attributes over to the new product 
+        :param product1: str<product1, that you want to merge>
+        :param product2: str<product2, that you want to merge>
+        :param new_product: str<new product name>
+        :return: void
+        """
+        assert(product1.lower() in map(lambda x: x.name.lower(), self.products)), STRINGS.ERROR_PRODUCT_NOT_FOUND
+        assert(product2.lower() in map(lambda x: x.name.lower(), self.products)), STRINGS.ERROR_PRODUCT_NOT_FOUND
+        assert(len(new_product) - new_product.count(" ") >= 1), STRINGS.ERROR_PRODUCT_CONTAINS_NOT_ENOUGH_CHAR
+        product1 = product1.lower()
+        product2 = product2.lower()
+        #changes the product list
+        product = self.products.pop(list(map(lambda x: x.name.lower(), self.products)).index(product1))
+        self.products.pop(list(map(lambda x: x.name.lower(), self.products)).index(product2))
+        product.name = new_product
+        self.products.append(product)
+        #delete the product from the transactions
+        for transaction in self.transactions:
+            if transaction.product.name.lower() in [product1, product2]:
+                #we got a product
+                transaction.product = product
+
     def sortTransactions(self, sortElement:SortEnum, up:bool):
         """
         sorts the transactions given the sort criteria. should also sort new adds too
