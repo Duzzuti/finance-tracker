@@ -31,7 +31,7 @@ class ENG:
 
     APP_LABEL_LAST_TRANSACTIONS = "Your last transactions"
 
-    APP_LABEL_EDIT_CAT_PERS = "Edit Products, Categories and Persons"
+    APP_LABEL_EDIT = "Edit Products, Categories and Persons"
 
     APP_BUTTON_NEW_TRANSACTION_ADD_CAT = "Add"
     APP_BUTTON_NEW_TRANSACTION_RESET_CAT = "Reset Categories"
@@ -52,6 +52,10 @@ class ENG:
     APP_BUTTON_RENAMING_CATEGORY = "Rename category"
     APP_BUTTON_RENAMING_PERSON = "Rename person"
     APP_BUTTON_RENAMING_PRODUCT = "Rename product"
+    APP_BUTTON_DELETING_CATEGORY = "Delete category"
+    APP_BUTTON_DELETING_PERSON = "Delete person"
+    APP_BUTTON_DELETING_PRODUCT = "Delete product"
+
 
     APP_NEW_TRANSACTION_DEFAULT_CATEGORY = "Without category"
     APP_NEW_TRANSACTION_DEFAULT_FTPERSON = "No from/to person"
@@ -63,13 +67,17 @@ class ENG:
 
     APP_LABEL_TRANSACTION_COUNT = " Transactions"
 
-    APP_LABEL_RENAMING = "Renaming a category or person"
+    APP_LABEL_RENAMING = "Renaming"
     APP_LABEL_RENAMING_CATEGORY = "Old category name:"
     APP_LABEL_RENAMING_CATEGORY_EDIT = "New category name:"
     APP_LABEL_RENAMING_PERSON = "Old person name:"
     APP_LABEL_RENAMING_PERSON_EDIT = "New person name:"
     APP_LABEL_RENAMING_PRODUCT = "Old product name:"
     APP_LABEL_RENAMING_PRODUCT_EDIT = "New product name:"
+    APP_LABEL_DELETING = "Deleting"
+    APP_LABEL_DELETING_CATEGORY = "category name:"
+    APP_LABEL_DELETING_PERSON = "person name:"
+    APP_LABEL_DELETING_PRODUCT = "product name:"
 
     #edit mode
     APP_LABEL_EDIT_TRANSACTION = "Edit transaction"
@@ -116,6 +124,10 @@ class ENG:
 
     #questions
     QUESTION_OVERRIDE_OTHER_PRODUCT_CATEGORIES = "Do you wanna override the categories of ALL previous products?"
+    QUESTION_TITLE = "Are you sure?"
+    QUESTION_DELETING_CATEGORY = "The category will be deleted from the system.\nThis category is getting deleted from all transactions.\nContinue?"
+    QUESTION_DELETING_PERSON = "The person will be deleted from the system.\nThis person is getting deleted from all transactions.\nContinue?"
+    QUESTION_DELETING_PRODUCT = "The product will be deleted from the system.\nALL TRANSACTIONS with this product will be DELETED.\nContinue?"
 
     #warning
     WARNING_EXPORT_TRANSACTIONS_TITLE = "WARNING Export transactions"
@@ -135,6 +147,11 @@ class ENG:
     INFO_RENAMED_SUCCESSFUL_PERSON_PART2 = "Person "
     INFO_RENAMED_SUCCESSFUL_PRODUCT_PART2 = "Product "
     INFO_RENAMED_SUCCESSFUL_PART3 = " was renamed to "
+    INFO_DELETED_SUCCESSFUL = "Successful deletion"
+    INFO_DELETED_SUCCESSFUL_PART1 = "The deletion was successful.\n"
+    INFO_DELETED_SUCCESSFUL_CATEGORY_PART2 = "Following category was deleted: "
+    INFO_DELETED_SUCCESSFUL_PERSON_PART2 = "Following person was deleted: "
+    INFO_DELETED_SUCCESSFUL_PRODUCT_PART2 = "Following product was deleted: "
 
     #errors
     ERROR_GRID_NOT_DEFINED = "The basic layout aka 'grid' is not defined. Please make sure to call InitWindow() first"

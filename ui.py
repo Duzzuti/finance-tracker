@@ -103,11 +103,11 @@ class Window(QDialog):
         self.groupBox_lastTransactions = QGroupBox()
         self.layout_lastTransaction = QVBoxLayout()
 
-        self.groupBox_edit_label = QLabel(STRINGS.APP_LABEL_EDIT_CAT_PERS, self)
+        self.groupBox_edit_label = QLabel(STRINGS.APP_LABEL_EDIT, self)
         self.groupBox_edit_label.setFont(FONTS.APP_NEW_TRANSACTION)
         self.groupBox_edit = QGroupBox()
         self.layout_edit = QVBoxLayout()
-        self.groupBox_edit.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+        self.layout_edit.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         #adds the Widgets to the "new transaction" part of the window
         self.addWidgetsNewTrans()
@@ -457,11 +457,11 @@ class Window(QDialog):
         #********************RENAMING********************************
         #renaming label
         label_renaming = QLabel(STRINGS.APP_LABEL_RENAMING)
-        label_renaming.setFont(FONTS.APP_NEW_TRANSACTION_CF)
+        label_renaming.setFont(FONTS.APP_NEW_TRANSACTION_SUBMIT)
         #renaming groupbox
         self.layout_edit.addWidget(label_renaming)
         groupbox_renaming = QGroupBox()
-        layout_renaming = QGridLayout()
+        layout_renaming = QHBoxLayout()
         #********************PRODUCT********************************
         groupbox_renaming_product = QGroupBox()
         layout_renaming_product = QVBoxLayout()
@@ -490,10 +490,7 @@ class Window(QDialog):
         layout_renaming_product.addWidget(self.button_renaming_product)
 
         groupbox_renaming_product.setLayout(layout_renaming_product)
-        layout_renaming.addWidget(groupbox_renaming_product, 0, 0)
-
-        groupbox_renaming.setLayout(layout_renaming)
-        self.layout_edit.addWidget(groupbox_renaming)
+        layout_renaming.addWidget(groupbox_renaming_product)
 
         #********************CATEGORY********************************
         groupbox_renaming_category = QGroupBox()
@@ -523,12 +520,9 @@ class Window(QDialog):
         layout_renaming_category.addWidget(self.button_renaming_category)
 
         groupbox_renaming_category.setLayout(layout_renaming_category)
-        layout_renaming.addWidget(groupbox_renaming_category, 0, 1)
+        layout_renaming.addWidget(groupbox_renaming_category)
 
-        groupbox_renaming.setLayout(layout_renaming)
-        self.layout_edit.addWidget(groupbox_renaming)
-
-        #********************PERSON*******************************
+        #********************PERSON**********************************
         groupbox_renaming_person = QGroupBox()
         layout_renaming_person = QVBoxLayout()
         #person choose label
@@ -556,10 +550,89 @@ class Window(QDialog):
         layout_renaming_person.addWidget(self.button_renaming_person)
 
         groupbox_renaming_person.setLayout(layout_renaming_person)
-        layout_renaming.addWidget(groupbox_renaming_person, 0, 2)
+        layout_renaming.addWidget(groupbox_renaming_person)
+
 
         groupbox_renaming.setLayout(layout_renaming)
         self.layout_edit.addWidget(groupbox_renaming)
+
+        #********************DELETING********************************
+        #deleting label
+        label_deleting = QLabel(STRINGS.APP_LABEL_DELETING)
+        label_deleting.setFont(FONTS.APP_NEW_TRANSACTION_SUBMIT)
+        #deleting groupbox
+        self.layout_edit.addWidget(label_deleting)
+        groupbox_deleting = QGroupBox()
+        layout_deleting = QHBoxLayout()
+        #********************PRODUCT*********************************
+        groupbox_deleting_product = QGroupBox()
+        layout_deleting_product = QVBoxLayout()
+        #product choose label
+        label_deleting_pro = QLabel(STRINGS.APP_LABEL_DELETING_PRODUCT)
+        layout_deleting_product.addWidget(label_deleting_pro)
+        #product choose edit
+        self.edit_deleting_pro = QLineEdit()
+        self.edit_deleting_pro_completer = QCompleter(self.backend.getProductNames())
+        self.edit_deleting_pro_completer.setCaseSensitivity(False)
+        self.edit_deleting_pro.setCompleter(self.edit_deleting_pro_completer)
+        self.edit_deleting_pro.textChanged.connect(self.Eproduct_deleting)
+        layout_deleting_product.addWidget(self.edit_deleting_pro)
+        #product deleting button
+        self.button_deleting_product = QPushButton(STRINGS.APP_BUTTON_DELETING_PRODUCT)
+        self.button_deleting_product.setEnabled(False)
+        self.button_deleting_product.clicked.connect(self.Eproduct_deleted)
+        layout_deleting_product.addWidget(self.button_deleting_product)
+
+        groupbox_deleting_product.setLayout(layout_deleting_product)
+        layout_deleting.addWidget(groupbox_deleting_product)
+
+        #********************CATEGORY********************************
+        groupbox_deleting_category = QGroupBox()
+        layout_deleting_category = QVBoxLayout()
+        #category choose label
+        label_deleting_cat = QLabel(STRINGS.APP_LABEL_DELETING_CATEGORY)
+        layout_deleting_category.addWidget(label_deleting_cat)
+        #category choose edit
+        self.edit_deleting_cat = QLineEdit()
+        self.edit_deleting_cat_completer = QCompleter(self.backend.getCategories())
+        self.edit_deleting_cat_completer.setCaseSensitivity(False)
+        self.edit_deleting_cat.setCompleter(self.edit_deleting_cat_completer)
+        self.edit_deleting_cat.textChanged.connect(self.Ecategory_deleting)
+        layout_deleting_category.addWidget(self.edit_deleting_cat)
+        #category deleting button
+        self.button_deleting_category = QPushButton(STRINGS.APP_BUTTON_DELETING_CATEGORY)
+        self.button_deleting_category.setEnabled(False)
+        self.button_deleting_category.clicked.connect(self.Ecategory_deleted)
+        layout_deleting_category.addWidget(self.button_deleting_category)
+
+        groupbox_deleting_category.setLayout(layout_deleting_category)
+        layout_deleting.addWidget(groupbox_deleting_category)
+
+        #********************PERSON*******************************
+        groupbox_deleting_person = QGroupBox()
+        layout_deleting_person = QVBoxLayout()
+        #person choose label
+        label_deleting_per = QLabel(STRINGS.APP_LABEL_DELETING_PERSON)
+        layout_deleting_person.addWidget(label_deleting_per)
+        #person choose edit
+        self.edit_deleting_per = QLineEdit()
+        self.edit_deleting_per_completer = QCompleter(self.backend.getPersonNames())
+        self.edit_deleting_per_completer.setCaseSensitivity(False)
+        self.edit_deleting_per.setCompleter(self.edit_deleting_per_completer)
+        self.edit_deleting_per.textChanged.connect(self.Eperson_deleting)
+        layout_deleting_person.addWidget(self.edit_deleting_per)
+        #person deleting button
+        self.button_deleting_person = QPushButton(STRINGS.APP_BUTTON_DELETING_PERSON)
+        self.button_deleting_person.setEnabled(False)
+        self.button_deleting_person.clicked.connect(self.Eperson_deleted)
+        layout_deleting_person.addWidget(self.button_deleting_person)
+
+        groupbox_deleting_person.setLayout(layout_deleting_person)
+        layout_deleting.addWidget(groupbox_deleting_person)
+
+
+        groupbox_deleting.setLayout(layout_deleting)
+        self.layout_edit.addWidget(groupbox_deleting)
 
 
     def enableEditMode(self, transaction:Transaction):
@@ -611,6 +684,9 @@ class Window(QDialog):
         self.button_renaming_category.disconnect()
         self.button_renaming_person.disconnect()
         self.button_renaming_product.disconnect()
+        self.button_deleting_category.disconnect()
+        self.button_deleting_person.disconnect()
+        self.button_deleting_product.disconnect()
 
         #connect with event handler
         self.choosed_trans_button.clicked.disconnect()      #the choosen transaction should work as a cancel button too
@@ -657,6 +733,9 @@ class Window(QDialog):
         self.button_renaming_category.clicked.connect(self.Ecategory_renamed)
         self.button_renaming_person.clicked.connect(self.Eperson_renamed)
         self.button_renaming_product.clicked.connect(self.Eproduct_renamed)
+        self.button_deleting_category.clicked.connect(self.Ecategory_deleted)
+        self.button_deleting_person.clicked.connect(self.Eperson_deleted)
+        self.button_deleting_product.clicked.connect(self.Eproduct_deleted)
 
         self.choosed_trans_button = False           #this transaction button is no more active
         self.adjustSize()
@@ -959,6 +1038,10 @@ class Window(QDialog):
         self.edit_renaming_pro_completer = QCompleter(self.backend.getProductNames())
         self.edit_renaming_pro_completer.setCaseSensitivity(False)
         self.edit_renaming_pro.setCompleter(self.edit_renaming_pro_completer)      #add an autocompleter
+        self.edit_deleting_pro_completer = QCompleter(self.backend.getProductNames())
+        self.edit_deleting_pro_completer.setCaseSensitivity(False)
+        self.edit_deleting_pro.setCompleter(self.edit_deleting_pro_completer)      #add an autocompleter
+        self.TransList.updateLastTrans()
 
     def categoriesChanged(self):
         """
@@ -969,6 +1052,9 @@ class Window(QDialog):
         self.edit_renaming_cat_completer = QCompleter(self.backend.getCategories())
         self.edit_renaming_cat_completer.setCaseSensitivity(False)
         self.edit_renaming_cat.setCompleter(self.edit_renaming_cat_completer)      #add an autocompleter
+        self.edit_deleting_cat_completer = QCompleter(self.backend.getCategories())
+        self.edit_deleting_cat_completer.setCaseSensitivity(False)
+        self.edit_deleting_cat.setCompleter(self.edit_deleting_cat_completer)      #add an autocompleter
         self.CatCombo.updateItems()
     
     def personsChanged(self):
@@ -980,6 +1066,9 @@ class Window(QDialog):
         self.edit_renaming_per_completer = QCompleter(self.backend.getPersonNames())
         self.edit_renaming_per_completer.setCaseSensitivity(False)
         self.edit_renaming_per.setCompleter(self.edit_renaming_per_completer)      #add an autocompleter
+        self.edit_deleting_per_completer = QCompleter(self.backend.getPersonNames())
+        self.edit_deleting_per_completer.setCaseSensitivity(False)
+        self.edit_deleting_per.setCompleter(self.edit_deleting_per_completer)      #add an autocompleter
         self.FtpCombo.updateItems()
         self.WhyCombo.updateItems()
 
@@ -1663,6 +1752,117 @@ class Window(QDialog):
         msg = QMessageBox()
         msg.information(self, STRINGS.INFO_RENAMED_SUCCESSFUL, 
             STRINGS.INFO_RENAMED_SUCCESSFUL_PART1+STRINGS.INFO_RENAMED_SUCCESSFUL_PRODUCT_PART2+product+STRINGS.INFO_RENAMED_SUCCESSFUL_PART3+new_product)
+
+    def Ecategory_deleting(self):
+        """
+        event handler 
+        activates if the user types something into the choose category field of the deleter
+        :return: void
+        """
+        edit:QLineEdit = self.sender()
+        assert(edit == self.edit_deleting_cat), STRINGS.getTypeErrorString(edit, "sender", self.edit_deleting_cat)
+        if edit.text().lower() in  map(lambda x: x.lower(), self.edit_deleting_cat_completer.children()[0].stringList()):
+            #user entered a valid category
+            self.button_deleting_category.setEnabled(True)
+        else:
+            self.button_deleting_category.setEnabled(False)
+
+    def Ecategory_deleted(self):
+        """
+        event handler 
+        activates if the user presses the rename button in the category deleter
+        :return: void
+        """
+        edit:QPushButton = self.sender()
+        assert(edit == self.button_deleting_category), STRINGS.getTypeErrorString(edit, "sender", self.button_deleting_category)
+        assert(not(self.edit_mode)), STRINGS.ERROR_IN_EDIT_MODE
+        #disclaimer
+        ret = QMessageBox.question(self, STRINGS.QUESTION_TITLE, STRINGS.QUESTION_DELETING_CATEGORY, QMessageBox.Yes | QMessageBox.No)
+        if ret != QMessageBox.Yes:
+            #user aborted the deletion
+            return
+        category = self.edit_deleting_cat.text()
+        self.edit_deleting_cat.setText("")
+        self.backend.deleteCategoryByName(category.lower())
+        self.categoriesChanged()
+        #show message that the deleting was successful
+        msg = QMessageBox()
+        msg.information(self, STRINGS.INFO_DELETED_SUCCESSFUL, 
+            STRINGS.INFO_DELETED_SUCCESSFUL_PART1+STRINGS.INFO_DELETED_SUCCESSFUL_CATEGORY_PART2+category)
+
+    def Eperson_deleting(self):
+        """
+        event handler 
+        activates if the user types something into the choose person field of the deleter
+        :return: void
+        """
+        edit:QLineEdit = self.sender()
+        assert(edit == self.edit_deleting_per), STRINGS.getTypeErrorString(edit, "sender", self.edit_deleting_per)
+        if edit.text().lower() in map(lambda x: x.lower(), self.edit_deleting_per_completer.children()[0].stringList()):
+            #user entered a valid person
+            self.button_deleting_person.setEnabled(True)
+        else:
+            self.button_deleting_person.setEnabled(False)
+    
+    def Eperson_deleted(self):
+        """
+        event handler 
+        activates if the user presses the rename button in the person deleter
+        :return: void
+        """
+        edit:QPushButton = self.sender()
+        assert(edit == self.button_deleting_person), STRINGS.getTypeErrorString(edit, "sender", self.button_deleting_person)
+        assert(not(self.edit_mode)), STRINGS.ERROR_IN_EDIT_MODE
+        #disclaimer
+        ret = QMessageBox.question(self, STRINGS.QUESTION_TITLE, STRINGS.QUESTION_DELETING_PERSON, QMessageBox.Yes | QMessageBox.No)
+        if ret != QMessageBox.Yes:
+            #user aborted the deletion
+            return
+        person = self.edit_deleting_per.text()
+        self.edit_deleting_per.setText("")
+        self.backend.deletePersonByName(person.lower())
+        self.personsChanged()
+        #show message that the deleting was successful
+        msg = QMessageBox()
+        msg.information(self, STRINGS.INFO_DELETED_SUCCESSFUL, 
+            STRINGS.INFO_DELETED_SUCCESSFUL_PART1+STRINGS.INFO_DELETED_SUCCESSFUL_PERSON_PART2+person)
+
+    def Eproduct_deleting(self):
+        """
+        event handler 
+        activates if the user types something into the choose product field of the deleter
+        :return: void
+        """
+        edit:QLineEdit = self.sender()
+        assert(edit == self.edit_deleting_pro), STRINGS.getTypeErrorString(edit, "sender", self.edit_deleting_pro)
+        if edit.text().lower() in map(lambda x: x.lower(), self.edit_deleting_pro_completer.children()[0].stringList()):
+            #user entered a valid product
+            self.button_deleting_product.setEnabled(True)
+        else:
+            self.button_deleting_product.setEnabled(False)
+ 
+    def Eproduct_deleted(self):
+        """
+        event handler 
+        activates if the user presses the rename button in the product deleter
+        :return: void
+        """
+        edit:QPushButton = self.sender()
+        assert(edit == self.button_deleting_product), STRINGS.getTypeErrorString(edit, "sender", self.button_deleting_product)
+        assert(not(self.edit_mode)), STRINGS.ERROR_IN_EDIT_MODE
+        #disclaimer
+        ret = QMessageBox.question(self, STRINGS.QUESTION_TITLE, STRINGS.QUESTION_DELETING_PRODUCT, QMessageBox.Yes | QMessageBox.No)
+        if ret != QMessageBox.Yes:
+            #user aborted the deletion
+            return
+        product = self.edit_deleting_pro.text()
+        self.edit_deleting_pro.setText("")
+        self.backend.deleteProductByName(product.lower())
+        self.productsChanged()
+        #show message that the deleting was successful
+        msg = QMessageBox()
+        msg.information(self, STRINGS.INFO_DELETED_SUCCESSFUL, 
+            STRINGS.INFO_DELETED_SUCCESSFUL_PART1+STRINGS.INFO_DELETED_SUCCESSFUL_PRODUCT_PART2+product)
 
 
 

@@ -423,6 +423,69 @@ class Backend:
             product.name = new_product_name
             self.persons.append(product)
 
+    @Dsave
+    @Dsort
+    def deleteCategoryByName(self, category:str):
+        """
+        deletes the given category from the system
+        :param category: str<category, that you want to delete>
+        :return: void
+        """
+        assert(category.lower() in map(lambda x: x.lower(), self.categories)), STRINGS.ERROR_CATEGORY_NOT_FOUND
+        category = category.lower()
+        #delete the category from the transactions
+        for transaction in self.transactions:
+            if category in map(lambda x: x.lower(), transaction.product.categories):
+                transaction.product.categories.pop(list(map(lambda x: x.lower(), transaction.product.categories)).index(category))
+
+        #changes the category list
+        self.categories.pop(list(map(lambda x: x.lower(), self.categories)).index(category))
+
+    @Dsave
+    @Dsort
+    def deletePersonByName(self, person_name:str):
+        """
+        deletes the given person from the system
+        :param person_name: str<name of the person, that you want to delete>
+        :return: void
+        """
+        assert(person_name.lower() in map(lambda x: x.name.lower(), self.persons)), STRINGS.ERROR_PERSON_NOT_FOUND
+        person_name = person_name.lower()
+        #delete the persons from the transactions
+        for transaction in self.transactions:
+            if person_name in transaction.getLowerFtPersonNames(_sorted=False):
+                transaction.from_to_persons.pop(transaction.getLowerFtPersonNames(_sorted=False).index(person_name))
+
+            if person_name in transaction.getLowerWhyPersonNames(_sorted=False):
+                transaction.why_persons.pop(transaction.getLowerWhyPersonNames(_sorted=False).index(person_name))
+
+        #delete from the person list
+        #it can happen that the list is changed correctly, because we are deleting the person object inside the transactions
+        #these objects are likely just a reference to the persons list, that means that they have already been deleted
+        if person_name in map(lambda x: x.name.lower(), self.persons):
+            self.persons.pop(list(map(lambda x: x.name.lower(), self.persons)).index(person_name))
+
+    @Dsave
+    @Dsort
+    def deleteProductByName(self, product_name:str):
+        """
+        deletes the given product from the system
+        :param product_name: str<name of the product, that you want to delete>
+        :return: void
+        """
+        assert(product_name.lower() in map(lambda x: x.name.lower(), self.products)), STRINGS.ERROR_PRODUCT_NOT_FOUND
+        product_name = product_name.lower()
+        #deletes the transactions that have the given product
+        for transaction in self.transactions.copy():
+            if product_name == transaction.product.name.lower():
+                self.transactions.remove(transaction)
+
+        #change the prodcut list
+        #it can happen that the list is changed correctly, because we are deleting the product object inside the transactions
+        #these objects are likely just a reference to the products list, that means that they have already been deleted
+        if product_name in map(lambda x: x.name.lower(), self.products):
+            self.products.pop(list(map(lambda x: x.name.lower(), self.products)).index(product_name))
+
     def sortTransactions(self, sortElement:SortEnum, up:bool):
         """
         sorts the transactions given the sort criteria. should also sort new adds too
