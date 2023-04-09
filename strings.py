@@ -55,6 +55,9 @@ class ENG:
     APP_BUTTON_DELETING_CATEGORY = "Delete category"
     APP_BUTTON_DELETING_PERSON = "Delete person"
     APP_BUTTON_DELETING_PRODUCT = "Delete product"
+    APP_BUTTON_MERGING_CATEGORY = "Merging categories"
+    APP_BUTTON_MERGING_PERSON = "Merging persons"
+    APP_BUTTON_MERGING_PRODUCT = "Merging products"
 
 
     APP_NEW_TRANSACTION_DEFAULT_CATEGORY = "Without category"
@@ -78,6 +81,16 @@ class ENG:
     APP_LABEL_DELETING_CATEGORY = "category name:"
     APP_LABEL_DELETING_PERSON = "person name:"
     APP_LABEL_DELETING_PRODUCT = "product name:"
+    APP_LABEL_MERGING = "Merging"
+    APP_LABEL_MERGING_CATEGORY1 = "First category name:"
+    APP_LABEL_MERGING_CATEGORY2 = "Second category name:"
+    APP_LABEL_MERGING_CATEGORY_EDIT = "New category name:"
+    APP_LABEL_MERGING_PERSON1 = "First person name:"
+    APP_LABEL_MERGING_PERSON2 = "Second person name:"
+    APP_LABEL_MERGING_PERSON_EDIT = "New person name:"
+    APP_LABEL_MERGING_PRODUCT1 = "First product name:"
+    APP_LABEL_MERGING_PRODUCT2 = "Second product name:"
+    APP_LABEL_MERGING_PRODUCT_EDIT = "New product name:"
 
     #edit mode
     APP_LABEL_EDIT_TRANSACTION = "Edit transaction"
@@ -128,6 +141,9 @@ class ENG:
     QUESTION_DELETING_CATEGORY = "The category will be deleted from the system.\nThis category is getting deleted from all transactions.\nContinue?"
     QUESTION_DELETING_PERSON = "The person will be deleted from the system.\nThis person is getting deleted from all transactions.\nContinue?"
     QUESTION_DELETING_PRODUCT = "The product will be deleted from the system.\nALL TRANSACTIONS with this product will be DELETED.\nContinue?"
+    QUESTION_MERGING_CATEGORY = "The two categories will be merged into a new category with the given name.\nThe two categories are DELETED from all transactions and replaced with the new one.\nContinue?"
+    QUESTION_MERGING_PERSON = "The two persons will be merged into a new person with the given name.\nThe two persons are DELETED from all transactions and replaced with the new one.\nContinue?"
+    QUESTION_MERGING_PRODUCT = "The two products will be merged into a new product with the given name.\nThe two products are DELETED from all transactions and replaced with the new one.\nTHE CATEGORIES WILL BE TAKED OVER FROM THE FIRST PRODUCT\nContinue?"
 
     #warning
     WARNING_EXPORT_TRANSACTIONS_TITLE = "WARNING Export transactions"
@@ -152,6 +168,12 @@ class ENG:
     INFO_DELETED_SUCCESSFUL_CATEGORY_PART2 = "Following category was deleted: "
     INFO_DELETED_SUCCESSFUL_PERSON_PART2 = "Following person was deleted: "
     INFO_DELETED_SUCCESSFUL_PRODUCT_PART2 = "Following product was deleted: "
+    INFO_MERGED_SUCCESSFUL = "Successful merge"
+    INFO_MERGED_SUCCESSFUL_PART1 = "The merge was successful.\n"
+    INFO_MERGED_SUCCESSFUL_CATEGORY_PART2 = "Following categories were merged: "
+    INFO_MERGED_SUCCESSFUL_PERSON_PART2 = "Following persons were merged: "
+    INFO_MERGED_SUCCESSFUL_PRODUCT_PART2 = "Following products were merged: "
+    INFO_MERGED_SUCCESSFUL_PART3 = "\nThe new name is: "
 
     #errors
     ERROR_GRID_NOT_DEFINED = "The basic layout aka 'grid' is not defined. Please make sure to call InitWindow() first"

@@ -634,6 +634,133 @@ class Window(QDialog):
         groupbox_deleting.setLayout(layout_deleting)
         self.layout_edit.addWidget(groupbox_deleting)
 
+        #********************MERGING*********************************
+        #merging label
+        label_merging = QLabel(STRINGS.APP_LABEL_MERGING)
+        label_merging.setFont(FONTS.APP_NEW_TRANSACTION_SUBMIT)
+        #merging groupbox
+        self.layout_edit.addWidget(label_merging)
+        groupbox_merging = QGroupBox()
+        layout_merging = QHBoxLayout()
+        #********************PRODUCT*********************************
+        groupbox_merging_product = QGroupBox()
+        layout_merging_product = QVBoxLayout()
+        #product choose label1
+        label_merging_pro1 = QLabel(STRINGS.APP_LABEL_MERGING_PRODUCT1)
+        layout_merging_product.addWidget(label_merging_pro1)
+        #product choose edit1
+        self.edit_merging_pro1 = QLineEdit()
+        self.edit_merging_pro_completer = QCompleter(self.backend.getProductNames())
+        self.edit_merging_pro_completer.setCaseSensitivity(False)
+        self.edit_merging_pro1.setCompleter(self.edit_merging_pro_completer)
+        self.edit_merging_pro1.textChanged.connect(self.Eproduct_merging)
+        layout_merging_product.addWidget(self.edit_merging_pro1)
+        #product choose label2
+        label_merging_pro2 = QLabel(STRINGS.APP_LABEL_MERGING_PRODUCT1)
+        layout_merging_product.addWidget(label_merging_pro2)
+        #product choose edit2
+        self.edit_merging_pro2 = QLineEdit()
+        self.edit_merging_pro2.setCompleter(self.edit_merging_pro_completer)
+        self.edit_merging_pro2.textChanged.connect(self.Eproduct_merging)
+        layout_merging_product.addWidget(self.edit_merging_pro2)
+        #product new name label
+        label_merging_pro_edit = QLabel(STRINGS.APP_LABEL_MERGING_PRODUCT_EDIT)
+        layout_merging_product.addWidget(label_merging_pro_edit)
+        #product new name edit
+        self.edit_merging_pro_edit = QLineEdit()
+        self.edit_merging_pro_edit.setEnabled(False)
+        self.edit_merging_pro_edit.textChanged.connect(self.Eproduct_merging_edit)
+        layout_merging_product.addWidget(self.edit_merging_pro_edit)
+        #product merging button
+        self.button_merging_product = QPushButton(STRINGS.APP_BUTTON_MERGING_PRODUCT)
+        self.button_merging_product.setEnabled(False)
+        self.button_merging_product.clicked.connect(self.Eproduct_merged)
+        layout_merging_product.addWidget(self.button_merging_product)
+
+        groupbox_merging_product.setLayout(layout_merging_product)
+        layout_merging.addWidget(groupbox_merging_product)
+
+        #********************CATEGORY********************************
+        groupbox_merging_category = QGroupBox()
+        layout_merging_category = QVBoxLayout()
+        #category choose label1
+        label_merging_cat1 = QLabel(STRINGS.APP_LABEL_MERGING_CATEGORY1)
+        layout_merging_category.addWidget(label_merging_cat1)
+        #category choose edit1
+        self.edit_merging_cat1 = QLineEdit()
+        self.edit_merging_cat_completer = QCompleter(self.backend.getCategories())
+        self.edit_merging_cat_completer.setCaseSensitivity(False)
+        self.edit_merging_cat1.setCompleter(self.edit_merging_cat_completer)
+        self.edit_merging_cat1.textChanged.connect(self.Ecategory_merging)
+        layout_merging_category.addWidget(self.edit_merging_cat1)
+        #category choose label2
+        label_merging_cat2 = QLabel(STRINGS.APP_LABEL_MERGING_CATEGORY2)
+        layout_merging_category.addWidget(label_merging_cat2)
+        #category choose edit2
+        self.edit_merging_cat2 = QLineEdit()
+        self.edit_merging_cat2.setCompleter(self.edit_merging_cat_completer)
+        self.edit_merging_cat2.textChanged.connect(self.Ecategory_merging)
+        layout_merging_category.addWidget(self.edit_merging_cat2)
+        #category new name label
+        label_merging_cat_edit = QLabel(STRINGS.APP_LABEL_MERGING_CATEGORY_EDIT)
+        layout_merging_category.addWidget(label_merging_cat_edit)
+        #category new name edit
+        self.edit_merging_cat_edit = QLineEdit()
+        self.edit_merging_cat_edit.setEnabled(False)
+        self.edit_merging_cat_edit.textChanged.connect(self.Ecategory_merging_edit)
+        layout_merging_category.addWidget(self.edit_merging_cat_edit)
+        #category merging button
+        self.button_merging_category = QPushButton(STRINGS.APP_BUTTON_MERGING_CATEGORY)
+        self.button_merging_category.setEnabled(False)
+        self.button_merging_category.clicked.connect(self.Ecategory_merged)
+        layout_merging_category.addWidget(self.button_merging_category)
+
+        groupbox_merging_category.setLayout(layout_merging_category)
+        layout_merging.addWidget(groupbox_merging_category)
+
+        #********************PERSON**********************************
+        groupbox_merging_person = QGroupBox()
+        layout_merging_person = QVBoxLayout()
+        #person choose label1
+        label_merging_per1 = QLabel(STRINGS.APP_LABEL_MERGING_PERSON1)
+        layout_merging_person.addWidget(label_merging_per1)
+        #person choose edit1
+        self.edit_merging_per1 = QLineEdit()
+        self.edit_merging_per_completer = QCompleter(self.backend.getPersonNames())
+        self.edit_merging_per_completer.setCaseSensitivity(False)
+        self.edit_merging_per1.setCompleter(self.edit_merging_per_completer)
+        self.edit_merging_per1.textChanged.connect(self.Eperson_merging)
+        layout_merging_person.addWidget(self.edit_merging_per1)
+        #person choose label2
+        label_merging_per2 = QLabel(STRINGS.APP_LABEL_MERGING_PERSON2)
+        layout_merging_person.addWidget(label_merging_per2)
+        #person choose edit2
+        self.edit_merging_per2 = QLineEdit()
+        self.edit_merging_per2.setCompleter(self.edit_merging_per_completer)
+        self.edit_merging_per2.textChanged.connect(self.Eperson_merging)
+        layout_merging_person.addWidget(self.edit_merging_per2)
+        #person new name label
+        label_merging_per_edit = QLabel(STRINGS.APP_LABEL_MERGING_PERSON_EDIT)
+        layout_merging_person.addWidget(label_merging_per_edit)
+        #person new name edit
+        self.edit_merging_per_edit = QLineEdit()
+        self.edit_merging_per_edit.setEnabled(False)
+        self.edit_merging_per_edit.textChanged.connect(self.Eperson_merging_edit)
+        layout_merging_person.addWidget(self.edit_merging_per_edit)
+        #person merging button
+        self.button_merging_person = QPushButton(STRINGS.APP_BUTTON_MERGING_PERSON)
+        self.button_merging_person.setEnabled(False)
+        self.button_merging_person.clicked.connect(self.Eperson_merged)
+        layout_merging_person.addWidget(self.button_merging_person)
+
+        groupbox_merging_person.setLayout(layout_merging_person)
+        layout_merging.addWidget(groupbox_merging_person)
+
+
+        groupbox_merging.setLayout(layout_merging)
+        self.layout_edit.addWidget(groupbox_merging)
+
+
 
     def enableEditMode(self, transaction:Transaction):
         """
@@ -687,6 +814,9 @@ class Window(QDialog):
         self.button_deleting_category.disconnect()
         self.button_deleting_person.disconnect()
         self.button_deleting_product.disconnect()
+        self.button_merging_category.disconnect()
+        self.button_merging_person.disconnect()
+        self.button_merging_product.disconnect()
 
         #connect with event handler
         self.choosed_trans_button.clicked.disconnect()      #the choosen transaction should work as a cancel button too
@@ -736,6 +866,9 @@ class Window(QDialog):
         self.button_deleting_category.clicked.connect(self.Ecategory_deleted)
         self.button_deleting_person.clicked.connect(self.Eperson_deleted)
         self.button_deleting_product.clicked.connect(self.Eproduct_deleted)
+        self.button_merging_category.clicked.connect(self.Ecategory_merged)
+        self.button_merging_person.clicked.connect(self.Eperson_merged)
+        self.button_merging_product.clicked.connect(self.Eproduct_merged)
 
         self.choosed_trans_button = False           #this transaction button is no more active
         self.adjustSize()
@@ -1041,6 +1174,10 @@ class Window(QDialog):
         self.edit_deleting_pro_completer = QCompleter(self.backend.getProductNames())
         self.edit_deleting_pro_completer.setCaseSensitivity(False)
         self.edit_deleting_pro.setCompleter(self.edit_deleting_pro_completer)      #add an autocompleter
+        self.edit_merging_pro_completer = QCompleter(self.backend.getProductNames())
+        self.edit_merging_pro_completer.setCaseSensitivity(False)
+        self.edit_merging_pro1.setCompleter(self.edit_merging_pro_completer)      #add an autocompleter
+        self.edit_merging_pro2.setCompleter(self.edit_merging_pro_completer)      #add an autocompleter
         self.TransList.updateLastTrans()
 
     def categoriesChanged(self):
@@ -1055,6 +1192,10 @@ class Window(QDialog):
         self.edit_deleting_cat_completer = QCompleter(self.backend.getCategories())
         self.edit_deleting_cat_completer.setCaseSensitivity(False)
         self.edit_deleting_cat.setCompleter(self.edit_deleting_cat_completer)      #add an autocompleter
+        self.edit_merging_cat_completer = QCompleter(self.backend.getCategories())
+        self.edit_merging_cat_completer.setCaseSensitivity(False)
+        self.edit_merging_cat1.setCompleter(self.edit_merging_cat_completer)      #add an autocompleter
+        self.edit_merging_cat2.setCompleter(self.edit_merging_cat_completer)      #add an autocompleter
         self.CatCombo.updateItems()
     
     def personsChanged(self):
@@ -1069,6 +1210,10 @@ class Window(QDialog):
         self.edit_deleting_per_completer = QCompleter(self.backend.getPersonNames())
         self.edit_deleting_per_completer.setCaseSensitivity(False)
         self.edit_deleting_per.setCompleter(self.edit_deleting_per_completer)      #add an autocompleter
+        self.edit_merging_per_completer = QCompleter(self.backend.getPersonNames())
+        self.edit_merging_per_completer.setCaseSensitivity(False)
+        self.edit_merging_per1.setCompleter(self.edit_merging_per_completer)      #add an autocompleter
+        self.edit_merging_per2.setCompleter(self.edit_merging_per_completer)      #add an autocompleter
         self.FtpCombo.updateItems()
         self.WhyCombo.updateItems()
 
@@ -1770,7 +1915,7 @@ class Window(QDialog):
     def Ecategory_deleted(self):
         """
         event handler 
-        activates if the user presses the rename button in the category deleter
+        activates if the user presses the delete button in the category deleter
         :return: void
         """
         edit:QPushButton = self.sender()
@@ -1807,7 +1952,7 @@ class Window(QDialog):
     def Eperson_deleted(self):
         """
         event handler 
-        activates if the user presses the rename button in the person deleter
+        activates if the user presses the delete button in the person deleter
         :return: void
         """
         edit:QPushButton = self.sender()
@@ -1844,7 +1989,7 @@ class Window(QDialog):
     def Eproduct_deleted(self):
         """
         event handler 
-        activates if the user presses the rename button in the product deleter
+        activates if the user presses the delete button in the product deleter
         :return: void
         """
         edit:QPushButton = self.sender()
@@ -1864,6 +2009,223 @@ class Window(QDialog):
         msg.information(self, STRINGS.INFO_DELETED_SUCCESSFUL, 
             STRINGS.INFO_DELETED_SUCCESSFUL_PART1+STRINGS.INFO_DELETED_SUCCESSFUL_PRODUCT_PART2+product)
 
+    def Ecategory_merging(self):
+        """
+        event handler 
+        activates if the user types something into the choose category field of the merger
+        :return: void
+        """
+        edit:QLineEdit = self.sender()
+        items = list(map(lambda x: x.lower(), self.edit_renaming_cat_completer.children()[0].stringList()))
+        inds = []
+        edits = [self.edit_merging_cat1, self.edit_merging_cat2]
+        assert(edit in edits), STRINGS.getTypeErrorString(edit, "sender", edits)
+        for edit in edits:
+            if not(edit.text().lower() in items):
+                #at least one input is not a right name
+                self.edit_merging_cat_edit.setEnabled(False)
+                self.button_merging_category.setEnabled(False)
+                return
+            else:
+                if items.index(edit.text().lower()) in inds:
+                    #both inputs are the same, merge not possible
+                    self.edit_merging_cat_edit.setEnabled(False)
+                    self.button_merging_category.setEnabled(False)
+                    return
+                inds.append(items.index(edit.text().lower()))
+
+        #both inputs are right names, unlock the renamer and the button if the renamer already contains enough chars
+        self.edit_merging_cat_edit.setEnabled(True)
+        self.button_merging_category.setEnabled(False)
+        if len(self.edit_merging_cat_edit.text()) - self.edit_merging_cat_edit.text().count(" ") >= 3:
+            #user entered a valid new category name
+            self.button_merging_category.setEnabled(True)    
+
+    def Ecategory_merging_edit(self):
+        """
+        event handler 
+        activates if the user types something into the choose category edit field of the merger
+        :return: void
+        """
+        edit:QLineEdit = self.sender()
+        assert(edit == self.edit_merging_cat_edit), STRINGS.getTypeErrorString(edit, "sender", self.edit_merging_cat_edit)
+        if len(edit.text()) - edit.text().count(" ") >= 3:
+            #user entered a valid new category name
+            self.button_merging_category.setEnabled(True)
+        else:
+            self.button_merging_category.setEnabled(False)
+    
+    def Ecategory_merged(self):
+        """
+        event handler 
+        activates if the user presses the merge button in the category merger
+        :return: void
+        """
+        edit:QPushButton = self.sender()
+        assert(edit == self.button_merging_category), STRINGS.getTypeErrorString(edit, "sender", self.button_merging_category)
+        assert(not(self.edit_mode)), STRINGS.ERROR_IN_EDIT_MODE
+        #disclaimer
+        ret = QMessageBox.question(self, STRINGS.QUESTION_TITLE, STRINGS.QUESTION_MERGING_CATEGORY, QMessageBox.Yes | QMessageBox.No)
+        if ret != QMessageBox.Yes:
+            #user aborted the merge
+            return
+        category1 = self.edit_merging_cat1.text()
+        category2 = self.edit_merging_cat2.text()
+        new_category = self.edit_merging_cat_edit.text()
+        self.edit_merging_cat_edit.setText("")
+        self.edit_merging_cat1.setText("")
+        self.edit_merging_cat2.setText("")
+        self.backend.mergeCategory(category1.lower(), category2.lower(), new_category)
+        self.categoriesChanged()
+        #show message that the merging was successful
+        msg = QMessageBox()
+        msg.information(self, STRINGS.INFO_MERGED_SUCCESSFUL, 
+            STRINGS.INFO_MERGED_SUCCESSFUL_PART1+STRINGS.INFO_MERGED_SUCCESSFUL_CATEGORY_PART2+category1+", "+category2+STRINGS.INFO_MERGED_SUCCESSFUL_PART3+new_category)
+
+    def Eperson_merging(self):
+        """
+        event handler 
+        activates if the user types something into the choose person field of the merger
+        :return: void
+        """
+        edit:QLineEdit = self.sender()
+        items = list(map(lambda x: x.lower(), self.edit_renaming_per_completer.children()[0].stringList()))
+        inds = []
+        edits = [self.edit_merging_per1, self.edit_merging_per2]
+        assert(edit in edits), STRINGS.getTypeErrorString(edit, "sender", edits)
+        for edit in edits:
+            if not(edit.text().lower() in items):
+                #at least one input is not a right name
+                self.edit_merging_per_edit.setEnabled(False)
+                self.button_merging_person.setEnabled(False)
+                return
+            else:
+                if items.index(edit.text().lower()) in inds:
+                    #both inputs are the same, merge not possible
+                    self.edit_merging_per_edit.setEnabled(False)
+                    self.button_merging_person.setEnabled(False)
+                    return
+                inds.append(items.index(edit.text().lower()))
+        #both inputs are right names, unlock the renamer and the button if the renamer already contains enough chars
+        self.edit_merging_per_edit.setEnabled(True)
+        self.button_merging_person.setEnabled(False)
+        if len(self.edit_merging_per_edit.text()) - self.edit_merging_per_edit.text().count(" ") >= 3:
+            #user entered a valid new person name
+            self.button_merging_person.setEnabled(True)    
+
+    def Eperson_merging_edit(self):
+        """
+        event handler 
+        activates if the user types something into the choose person edit field of the merger
+        :return: void
+        """
+        edit:QLineEdit = self.sender()
+        assert(edit == self.edit_merging_per_edit), STRINGS.getTypeErrorString(edit, "sender", self.edit_merging_per_edit)
+        if len(edit.text()) - edit.text().count(" ") >= 3:
+            #user entered a valid new person name
+            self.button_merging_person.setEnabled(True)
+        else:
+            self.button_merging_person.setEnabled(False)
+    
+    def Eperson_merged(self):
+        """
+        event handler 
+        activates if the user presses the merge button in the person merger
+        :return: void
+        """
+        edit:QPushButton = self.sender()
+        assert(edit == self.button_merging_person), STRINGS.getTypeErrorString(edit, "sender", self.button_merging_person)
+        assert(not(self.edit_mode)), STRINGS.ERROR_IN_EDIT_MODE
+        #disclaimer
+        ret = QMessageBox.question(self, STRINGS.QUESTION_TITLE, STRINGS.QUESTION_MERGING_PERSON, QMessageBox.Yes | QMessageBox.No)
+        if ret != QMessageBox.Yes:
+            #user aborted the merge
+            return
+        person1 = self.edit_merging_per1.text()
+        person2 = self.edit_merging_per2.text()
+        new_person = self.edit_merging_per_edit.text()
+        self.edit_merging_per_edit.setText("")
+        self.edit_merging_per1.setText("")
+        self.edit_merging_per2.setText("")
+        self.backend.mergePerson(person1.lower(), person2.lower(), new_person)
+        self.personsChanged()
+        #show message that the merging was successful
+        msg = QMessageBox()
+        msg.information(self, STRINGS.INFO_MERGED_SUCCESSFUL, 
+            STRINGS.INFO_MERGED_SUCCESSFUL_PART1+STRINGS.INFO_MERGED_SUCCESSFUL_PERSON_PART2+person1+", "+person2+STRINGS.INFO_MERGED_SUCCESSFUL_PART3+new_person)
+
+    def Eproduct_merging(self):
+        """
+        event handler 
+        activates if the user types something into the choose product field of the merger
+        :return: void
+        """
+        edit:QLineEdit = self.sender()
+        items = list(map(lambda x: x.lower(), self.edit_renaming_pro_completer.children()[0].stringList()))
+        inds = []
+        edits = [self.edit_merging_pro1, self.edit_merging_pro2]
+        assert(edit in edits), STRINGS.getTypeErrorString(edit, "sender", edits)
+        for edit in edits:
+            if not(edit.text().lower() in items):
+                #at least one input is not a right name
+                self.edit_merging_pro_edit.setEnabled(False)
+                self.button_merging_product.setEnabled(False)
+                return
+            else:
+                if items.index(edit.text().lower()) in inds:
+                    #both inputs are the same, merge not possible
+                    self.edit_merging_pro_edit.setEnabled(False)
+                    self.button_merging_product.setEnabled(False)
+                    return
+                inds.append(items.index(edit.text().lower()))
+
+        #both inputs are right names, unlock the renamer and the button if the renamer already contains enough chars
+        self.edit_merging_pro_edit.setEnabled(True)
+        self.button_merging_product.setEnabled(False)
+        if len(self.edit_merging_pro_edit.text()) - self.edit_merging_pro_edit.text().count(" ") >= 3:
+            #user entered a valid new product name
+            self.button_merging_product.setEnabled(True)  
+
+    def Eproduct_merging_edit(self):
+        """
+        event handler 
+        activates if the user types something into the choose product edit field of the merger
+        :return: void
+        """
+        edit:QLineEdit = self.sender()
+        assert(edit == self.edit_merging_pro_edit), STRINGS.getTypeErrorString(edit, "sender", self.edit_merging_pro_edit)
+        if len(edit.text()) - edit.text().count(" ") >= 3:
+            #user entered a valid new product name
+            self.button_merging_product.setEnabled(True)
+        else:
+            self.button_merging_product.setEnabled(False)
+
+    def Eproduct_merged(self):
+        """
+        event handler 
+        activates if the user presses the merge button in the product merger
+        :return: void
+        """
+        edit:QPushButton = self.sender()
+        assert(edit == self.button_merging_product), STRINGS.getTypeErrorString(edit, "sender", self.button_merging_product)
+        assert(not(self.edit_mode)), STRINGS.ERROR_IN_EDIT_MODE
+        #disclaimer
+        ret = QMessageBox.question(self, STRINGS.QUESTION_TITLE, STRINGS.QUESTION_MERGING_PRODUCT, QMessageBox.Yes | QMessageBox.No)
+        if ret != QMessageBox.Yes:
+            #user aborted the merge
+            return
+        product1 = self.edit_merging_pro1.text()
+        product2 = self.edit_merging_pro2.text()
+        new_product = self.edit_merging_pro_edit.text()
+        self.edit_merging_pro_edit.setText("")
+        self.edit_merging_pro1.setText("")
+        self.edit_merging_pro2.setText("")
+        self.backend.mergeProduct(product1.lower(), product2.lower(), new_product)
+        self.productsChanged()
+        #show message that the merging was successful
+        msg = QMessageBox()
+        msg.information(self, STRINGS.INFO_MERGED_SUCCESSFUL, 
+            STRINGS.INFO_MERGED_SUCCESSFUL_PART1+STRINGS.INFO_MERGED_SUCCESSFUL_PRODUCT_PART2+product1+", "+product2+STRINGS.INFO_MERGED_SUCCESSFUL_PART3+new_product)
 
 
 class FilterWindow(QDialog):
