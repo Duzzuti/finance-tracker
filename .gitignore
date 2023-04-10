@@ -4,6 +4,7 @@ test*
 * copy.*
 INFO.txt
 data.pkl
+data.fin
 data
 # Byte-compiled / optimized / DLL files
 __pycache__/

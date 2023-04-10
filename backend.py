@@ -6,11 +6,14 @@ import datetime
 import pandas
 import math
 import pickle
+from cryptography.fernet import Fernet
+import base64
+import hashlib
+from threading import Thread
 from strings import ENG as STRINGS
 from PyQt5.QtWidgets import QMessageBox
 from backend_datatypes import Product, Person, Transaction
 from fullstack_utils import SortEnum, Filter
-
 
 def Dsave(func):
     """
@@ -18,7 +21,9 @@ def Dsave(func):
     """
     def wrapper(self, *args):
         ret = func(self, *args)
-        self._save()
+        print("save started")
+        Thread(target=self._save).start()
+        print("after save")
         return ret
     return wrapper
 
@@ -53,12 +58,27 @@ class Backend:
         self.transactions = []  #a list that holds transaction objects of all known transactions
 
         self.transactionFilter = Filter()   #sets up a filter object for the backend
+        #if the user dont want to set a own password, this pass is used
+        #its obviously not safe, because its written in plain text, but this prevents the user from changing the data in the data files
+        # (because they are not readable)
+        #if the user has a password set, he will input it on the start and exchange this password  
+        self.setNewPassword("jsa0pidfhuj89awhfp9ghqwp9fh9awgh8p9wrghf98ahgwf98gep89")    #standard password
 
         self.sortCriteria = [SortEnum.DATE.value, True]
 
         if load:
             self._load()
         self.clean(full=True)
+
+    def setNewPassword(self, password:str):
+        """
+        setter
+        sets a new password and hash
+        :param password: str<new password>
+        :return: void
+        """
+        self._password = password
+        self._key = self._gen_fernet_key(self._password.encode("utf-8"))
 
     def TEST(self): #DEBUGONLY
         self.transactions = (Transaction(datetime.date(2022, 1, 1), Product("product1", categories=["cat1", "cat2", "cat3"]), 5, 7.25, [Person("pers1"), Person("pers2")], [Person("pers3"), Person("pers4")]))
@@ -788,7 +808,6 @@ class Backend:
         assert(product != False), STRINGS.ERROR_NO_PRODUCT_FOUND+str(product_name)
         product.categories = categories
 
-    @Dsave
     def _addProduct(self, product_name:str, categories:list[str]):
         """
         add a new product with a given name and categories
@@ -805,12 +824,27 @@ class Backend:
         self.products.append(product_obj)
         return product_obj
     
+    def _gen_fernet_key(self, passcode:bytes) -> bytes:
+        """
+        this method uses a passcode and generates a hash out of it
+        :param passcode: bytes<encoded password>
+        :return: byte<hash>
+        """
+        assert isinstance(passcode, bytes)
+        hlib = hashlib.md5()
+        hlib.update(passcode)
+        return base64.urlsafe_b64encode(hlib.hexdigest().encode('latin-1'))
+
     def _save(self):
         """
         saves, the backend object in a file
         :return: void
         """
-        pickle.dump([self.products, self.categories, self.persons, self.transactions], open("data.pkl", "wb"))
+        dumped_data = pickle.dumps([self.products, self.categories, self.persons, self.transactions])
+        dec_file = open("data.fin", "wb")
+        dec_file.write(Fernet(self._key).encrypt(dumped_data))
+        dec_file.close()
+        print("save completed")
 
     def _load(self):
         """
@@ -818,12 +852,24 @@ class Backend:
         :return: void
         """
         try:
-            saved = pickle.load(open("data.pkl", "rb"))
+            data_file = open("data.fin", "rb")
+        except:
+            print("no file to load from found")
+            self.__init__(self.ui, load=False)
+            return
+        try:
+            dumped_data = Fernet(self._key).decrypt(data_file.read())
+        except:
+            print("Some error with the key or loaded data")
+            return
+        data_file.close()
+        try:
+            saved = pickle.loads(dumped_data)
             self.products = saved[0]
             self.categories = saved[1]
             self.persons =  saved[2]
             self.transactions = saved[3]
         except:
-            print("no file to load from found")
-            self.__init__(self.ui, load=False)
+            print("Some error occured with the old data")
+        
 
