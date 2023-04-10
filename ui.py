@@ -947,7 +947,7 @@ class Window(QDialog):
             but.setEnabled(False)
         self.filter_button.setEnabled(False)
         self.reset_fiter_button.setEnabled(False)
-        for but in self.TransList.buttons:
+        for but in self.TransList.buttons_transaction_dict.keys():
             but.setEnabled(False)
         self.load_trans_button.setEnabled(False)
         self.export_trans_button.setEnabled(False)
@@ -973,7 +973,7 @@ class Window(QDialog):
             but.setEnabled(True)
         self.filter_button.setEnabled(True)
         self.reset_fiter_button.setEnabled(True)
-        for but in self.TransList.buttons:
+        for but in self.TransList.buttons_transaction_dict.keys():
             but.setEnabled(True)
         self.load_trans_button.setEnabled(True)
         self.export_trans_button.setEnabled(True)
@@ -1001,7 +1001,6 @@ class Window(QDialog):
             ret = True
         else:
             ret = False
-        self.TransList.updateLastTrans()    #update the buttons in the scrollarea showing the last transactions
         return ret
 
     def addTransactionFromTransaction(self, transaction:Transaction):
@@ -1178,7 +1177,7 @@ class Window(QDialog):
         self.edit_merging_pro_completer.setCaseSensitivity(False)
         self.edit_merging_pro1.setCompleter(self.edit_merging_pro_completer)      #add an autocompleter
         self.edit_merging_pro2.setCompleter(self.edit_merging_pro_completer)      #add an autocompleter
-        self.TransList.updateLastTrans()
+        self.TransList.updateLastTrans()    
 
     def categoriesChanged(self):
         """
@@ -1607,7 +1606,6 @@ class Window(QDialog):
         self.disableEditMode()
         #add the new one
         self.addTransactionFromTransaction(new_trans)
-        self.TransList.updateLastTrans()
         self.productsChanged()
         
     def Eedit_delete_transaction(self):
@@ -1622,7 +1620,6 @@ class Window(QDialog):
         assert(self.edit_mode), STRINGS.ERROR_NOT_IN_EDIT_MODE
         self.backend.deleteTransaction(self.TransList.getTransactionForButton(self.choosed_trans_button))
         self.disableEditMode()
-        self.TransList.updateLastTrans()
         self.productsChanged()
         self.categoriesChanged()
         self.personsChanged()
@@ -1693,7 +1690,6 @@ class Window(QDialog):
                     msg = QMessageBox()
                     msg.critical(self, STRINGS.CRITICAL_IMPORT_TRANSACTIONS_TITLE, STRINGS.CRITICAL_IMPORT_TRANSACTIONS)
                 #updates all ui comonents which belong to the transactions
-                self.TransList.updateLastTrans()
                 self.productsChanged()
                 self.categoriesChanged()
                 self.personsChanged()

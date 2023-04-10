@@ -3,6 +3,7 @@ this module is handling the backend of the application
 it is providing some api methods, that are used by the frontend
 """
 import datetime
+import time
 import pandas
 import math
 import pickle
@@ -21,9 +22,7 @@ def Dsave(func):
     """
     def wrapper(self, *args):
         ret = func(self, *args)
-        print("save started")
         Thread(target=self._save).start()
-        print("after save")
         return ret
     return wrapper
 
@@ -33,7 +32,18 @@ def Dsort(func):
     """
     def wrapper(self, *args):
         ret = func(self, *args)
-        self.sortTransactions(self.sortCriteria[0], self.sortCriteria[1])
+        Thread(target=self.sortTransactions, args=(self.sortCriteria[0], self.sortCriteria[1])).start()
+        return ret
+    return wrapper
+
+def Dbenchmark(func):   #DEBUGONLY
+    """
+    decorator, which runs the function and prints the runtime
+    """
+    def wrapper(self, *args, **kwargs):
+        start = time.time()
+        ret = func(self, *args, **kwargs)
+        print(func.__name__+" \tneeded "+str(time.time() - start)+"s")
         return ret
     return wrapper
 
@@ -121,7 +131,7 @@ class Backend:
         """
         for trans in self.transactions:
             yield trans
-    
+
     def getFilteredTransactions(self):
         """
         generator for all transactions that met the requirements of the filter
@@ -325,7 +335,7 @@ class Backend:
             #add the choosen product if its not known
             product_obj = self._addProduct(product_name, categories)
         return Transaction(date, product_obj, number, full_cf, ftperson_objects, whyperson_objects)
-    
+
     @Dsave
     @Dsort
     def addTransaction(self, transaction:Transaction):
@@ -338,7 +348,7 @@ class Backend:
 
         #add the validated transaction
         self.transactions.append(transaction)
-    
+
     @Dsave
     @Dsort
     def deleteTransaction(self, transaction:Transaction):
@@ -823,7 +833,7 @@ class Backend:
         product_obj = Product(product_name, categories)
         self.products.append(product_obj)
         return product_obj
-    
+
     def _gen_fernet_key(self, passcode:bytes) -> bytes:
         """
         this method uses a passcode and generates a hash out of it
@@ -844,8 +854,7 @@ class Backend:
         dec_file = open("data.fin", "wb")
         dec_file.write(Fernet(self._key).encrypt(dumped_data))
         dec_file.close()
-        print("save completed")
-
+    
     def _load(self):
         """
         loads, the backend object from a file

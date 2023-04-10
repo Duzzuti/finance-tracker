@@ -6,6 +6,7 @@ from PyQt5.QtCore import QDate, Qt
 from backend_datatypes import Transaction, Person
 from strings import ENG as STRINGS
 from constants import CONSTANTS
+from backend import Dbenchmark
 
 
 class Combo:
@@ -295,11 +296,12 @@ class TransactionList:
         :return: void
         """
         assert(callable(func_get_transactions)), STRINGS.getTypeErrorString(func_get_transactions, "func_get_transactions", "function")
-        self.buttons = []   #list of PushButtons
-        self.transactions = []  #list of Transaction objects coresponding to the button with the same index
         self.layout = None  #the layout that is used to add the PushButtons
         self.func_get_transactions = func_get_transactions
         self.func_event_handler = func_event_handler
+        self.buttons_transaction_dict = {}      #saves the buttons to transaction to avoid uneccessary updates
+        self.transactions_button_dict = {}      #saves the transaction to buttons to avoid uneccessary updates
+        self.transaction_product_name_dict = {} #saves the current product name label text on the button for each transaction
     
     def setLayout(self, layout:QVBoxLayout):
         """
@@ -315,40 +317,53 @@ class TransactionList:
         updates the buttons by getting the new transaction data from the backend
         :return: void
         """
-        #WORK better system here, dont need to delete every button every time
-        #deletes all current buttons
         assert(self.layout != False), STRINGS.ERROR_NO_LAYOUT
+        #deletes all current buttons
         for i in reversed(range(self.layout.count())): 
-            widget = self.layout.itemAt(i).widget()
-            if widget is not None:
-                widget.deleteLater()
-        self.buttons = []
-        self.transactions = []
+            self.layout.removeWidget(self.layout.itemAt(i).widget())
 
+        #sets up the buttons
+        self.buttons_transaction_dict = {}
+        new_transactions = []
         for transaction in self.func_get_transactions():
-            #for each transaction get a PushButton object and add it to the layout
-            element_button = self._getTransactionButton(transaction)
-            self.layout.addWidget(element_button)  
-            self.buttons.append(element_button)
-            self.transactions.append(transaction)
+            if not transaction in self.transactions_button_dict:
+                #if we dont know the button, a new one is created
+                button = self._getTransactionButton(transaction)
+                self.transactions_button_dict[transaction] = button
+            elif not transaction.product.name == self.transaction_product_name_dict[transaction]:
+                #product name got changed
+                button = self._getTransactionButton(transaction)
+                self.transactions_button_dict[transaction] = button
+            else:
+                #the button is already created
+                button = self.transactions_button_dict[transaction]
+            new_transactions.append(transaction)
+            self.layout.addWidget(button)  
+            self.buttons_transaction_dict[button] = transaction
         
+        #syncing the two hashmaps
+        #if the user deletes or changes one transaction it has to be deleted from the transaction_button_dict
+        if len(self.buttons_transaction_dict.keys()) != len(self.transactions_button_dict.keys()):
+            cur_trans = list(self.transactions_button_dict.keys())
+            s = set(new_transactions)
+            for dif in [x for x in cur_trans if x not in s]:
+                self.transactions_button_dict.pop(dif)
+
     def getTransactionForButton(self, button:QPushButton):
         """
         getter for a transaction object coresponding to a given button
         :param button: object<PushButton>
         :return: object<Transaction>
         """
-        assert(button in self.buttons), STRINGS.ERROR_BUTTON_NOT_FOUND
-        ind = self.buttons.index(button)
-        assert(len(self.transactions) >= ind+1), STRINGS.ERROR_TRANSACTION_OUT_OF_RANGE
-        return self.transactions[ind]
+        assert(button in self.buttons_transaction_dict.keys()), STRINGS.ERROR_BUTTON_NOT_FOUND
+        return self.buttons_transaction_dict[button]
 
     def getTransactionCount(self):
         """
         getter for the number of transactions currently shown
         :return: int<number>
         """
-        return len(self.buttons)
+        return len(self.buttons_transaction_dict.keys())
 
     def _getTransactionButton(self, transaction:Transaction):
         """
@@ -392,4 +407,5 @@ class TransactionList:
         element_button.setLayout(element_layout)
         element_button.adjustSize() #makes the content fit
         element_button.clicked.connect(self.func_event_handler)    #connect with event handler
+        self.transaction_product_name_dict[transaction] = product_string
         return element_button
