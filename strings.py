@@ -246,6 +246,7 @@ class ENG:
     ERROR_CATEGORY_NOT_FOUND = "The provided category is not known to the system"
     ERROR_PERSON_NOT_FOUND = "The provided person is not known to the system"
     ERROR_PRODUCT_NOT_FOUND = "The provided product is not known to the system"
+    ERROR_TRADE_TYPE_NOT_VALID = "The selected trade type is not valid: "
 
     ERROR_WRONG_CF_DATA = "Got wrong cashflow data: "
     ERROR_WRONG_FORMAT_GEOMETRY = "geometry is in a wrong format: "

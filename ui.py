@@ -23,22 +23,15 @@ class Window(QDialog):
     the window class talks with the backend to display the right things
     The app consists of a object of class window
     """
-    def __init__(self, geometry=(100, 100, 600, 400)):
+    def __init__(self):
         """
         basic constructor is building the main window
-        :param geometry: list<int<top>, int<left>, int<width>, int<height>>
         :return: void
         """
         super().__init__()  #initializes the Base Class (QDialog)
-        assert(len(geometry) == 4 and all(map(lambda x: int == type(x), geometry)) == True), STRINGS.ERROR_WRONG_FORMAT_GEOMETRY+str(geometry)
-        assert(all(map(lambda x: x > 0, geometry))), STRINGS.ERROR_GEOMETRY_LESS_ZERO+str(geometry)
 
         self.title = STRINGS.APP_TITLE
         self.icon = QtGui.QIcon(STRINGS.APP_ICON)
-        self.top = geometry[0]
-        self.left = geometry[1]
-        self.width = geometry[2]
-        self.height = geometry[3]
 
         self.loading = False    #if the user loads data from a csv, this will be true
         self.loader = None      #holds the generator for loading data
@@ -76,15 +69,15 @@ class Window(QDialog):
         """
         self.setWindowTitle(self.title)
         self.setWindowIcon(self.icon)
-        
-        self.tab = QTabWidget()
+
+        self.tab = QTabWidget()     #the tab widget is the main widget of the whole window
         self.tab1 = QWidget()
         self.tab2 = QWidget()
         self.grid = QGridLayout()       #sets the layout of the complete window
 
         self.createFirstTabLayout()             #create the layout of the first tab with all components
         self.createSecondTabLayout()            #creates the layout for the second tab
-        
+        #add these tabs to the tab widgets
         self.tab.addTab(self.tab1, STRINGS.APP_TAB1)
         self.tab.addTab(self.tab2, STRINGS.APP_TAB2)
 
@@ -101,29 +94,28 @@ class Window(QDialog):
         """
         assert("grid" in map(lambda x: x[0], vars(self).items())), STRINGS.ERROR_GRID_NOT_DEFINED
         self.grid1 = QGridLayout()  #layout for the first tab
-
+        #meta label for the form part of the window, where the user can edit and create new transactions
         self.groupBox_transaction_label = QLabel(STRINGS.APP_LABEL_NEW_TRANSACTION, self)
         self.groupBox_transaction_label.setFont(FONTS.APP_NEW_TRANSACTION)
         self.groupBox_transaction = QGroupBox()
         self.layout_transaction = QVBoxLayout()
-        
+        #meta label for the last transaction part of the window, the user can scroll through the past transaction, search and sort them
         self.groupBox_lastTransactions_label = QLabel(STRINGS.APP_LABEL_LAST_TRANSACTIONS, self)
         self.groupBox_lastTransactions_label.setFont(FONTS.APP_NEW_TRANSACTION)
         self.groupBox_lastTransactions = QGroupBox()
         self.layout_lastTransaction = QVBoxLayout()
-
+        #meta label for the edit part of the window, the user can rename, delete and merge products, categories and persons
         self.groupBox_edit_label = QLabel(STRINGS.APP_LABEL_EDIT, self)
         self.groupBox_edit_label.setFont(FONTS.APP_NEW_TRANSACTION)
         self.groupBox_edit = QGroupBox()
         self.layout_edit = QVBoxLayout()
         self.layout_edit.setAlignment(Qt.AlignmentFlag.AlignTop)
 
-        #adds the Widgets to the "new transaction" part of the window
-        self.addWidgetsNewTrans()
-        self.addWidgetsLastTrans()
-        self.addWidgetsEdit()
-        self.setToolTips()
-        self.updateFilter()
+        self.addWidgetsNewTrans()       #adds the Widgets to the "new transaction" part of the window
+        self.addWidgetsLastTrans()      #adds the Widgets to the "last transaction" part of the window
+        self.addWidgetsEdit()           #adds the Widgets to the "edit" part of the window
+        self.setToolTips()              #set the tooltips for the tab
+        self.updateFilter()             #updates the filter (init the filter)
 
         #sets the layouts and add these to the grid
         self.groupBox_transaction.setLayout(self.layout_transaction)
@@ -387,28 +379,31 @@ class Window(QDialog):
         handles the behavior of these widgets too
         :return: void
         """
+        #********************FILTER**********************************
         #creates the filter buttons
         layout_filter = QHBoxLayout()
         widget_filter = QWidget()
+        #change filter button, opens a new window where the user can change the filter settings
         self.filter_button = QPushButton(STRINGS.APP_BUTTON_FILTER_OFF)
         self.filter_button.clicked.connect(self.Eopen_filter)
         layout_filter.addWidget(self.filter_button)
-
+        #resets the filter button
         self.reset_fiter_button = QPushButton(STRINGS.APP_BUTTON_FILTER_RESET)
         self.reset_fiter_button.clicked.connect(self.Ereset_filter)
         layout_filter.addWidget(self.reset_fiter_button)
 
-        #number of transactions label
+        #number of transactions label, shows the number of currently visible transactions (applied to the filter)
         self.num_trans_label = QLabel("Placeholder")
         layout_filter.addWidget(self.num_trans_label)
 
         widget_filter.setLayout(layout_filter)
         self.layout_lastTransaction.addWidget(widget_filter)
 
+        #********************SORT************************************
         #creates the sort buttons
         layout_sort = QHBoxLayout()
         widget_sort = QWidget()
-        
+        #sort for date, cashflow or product name
         self.scroll_sort_date_button = QPushButton(STRINGS.APP_BUTTON_LAST_TRANSACTIONS_DATE)
         self.scroll_sort_cf_button = QPushButton(STRINGS.APP_BUTTON_LAST_TRANSACTIONS_CASHFLOW)
         self.scroll_sort_product_button = QPushButton(STRINGS.APP_BUTTON_LAST_TRANSACTIONS_PRODUCT)
@@ -416,6 +411,7 @@ class Window(QDialog):
         self.sort_buttons = [self.scroll_sort_date_button, self.scroll_sort_cf_button, self.scroll_sort_product_button]
         
         for sort_button in self.sort_buttons:
+            #set some aesthetics and connect to the right event handler
             sort_button.setFont(FONTS.APP_LAST_TRANSACTION_SORT)
             sort_button.setIcon(ICONS.SORT_DEFAULT)
             layout_sort.addWidget(sort_button)
@@ -424,6 +420,7 @@ class Window(QDialog):
         widget_sort.setLayout(layout_sort)
         self.layout_lastTransaction.addWidget(widget_sort)
 
+        #********************SCROLLAREA******************************
         #creates a scrollarea with a vertical scroll bar and no horizontal scroll bar
         self.scrollarea = QScrollArea()
         self.scrollarea.setWidgetResizable(True)
@@ -443,13 +440,15 @@ class Window(QDialog):
         self.scrollarea.setWidget(self.scroll_widget)
         self.layout_lastTransaction.addWidget(self.scrollarea)
 
+        #********************IMPORT_EXPORT_CSV***********************
         #set buttons for loading/exporting
         load_export_hbox = QHBoxLayout()
         load_export_widget = QWidget()
+        #import button
         self.load_trans_button = QPushButton(STRINGS.APP_BUTTON_LOAD)
         self.load_trans_button.clicked.connect(self.Eload_csv)
         load_export_hbox.addWidget(self.load_trans_button)
-
+        #export button
         self.export_trans_button = QPushButton(STRINGS.APP_BUTTON_EXPORT)
         self.export_trans_button.clicked.connect(self.Eexport_csv)
         load_export_hbox.addWidget(self.export_trans_button)
@@ -770,7 +769,6 @@ class Window(QDialog):
         groupbox_merging.setLayout(layout_merging)
         self.layout_edit.addWidget(groupbox_merging)
 
-
     def createSecondTabLayout(self):
         """
         creates layout components and add UI components to that layout
@@ -779,7 +777,7 @@ class Window(QDialog):
         """
         assert("grid" in map(lambda x: x[0], vars(self).items())), STRINGS.ERROR_GRID_NOT_DEFINED
         self.grid2 = QGridLayout()  #layout for the first tab
-        self.grid2.addWidget(InvestTab(self.backend))
+        self.grid2.addWidget(InvestTab(self.backend))   #add the invest widget that is handled in a own class
         self.tab2.setLayout(self.grid2)
 
 
@@ -2861,24 +2859,43 @@ class CalendarWindow(QDialog):
 
 
 class InvestTab(QWidget):
+    """
+    this widget is made of all ui components needed for the investment tab
+    this widget just needs to be added to the layout of this tab
+    """
     def __init__(self, backend):
-        super().__init__()
-        self.grid = QGridLayout()
+        """
+        basic constructor
+        takes the backend as an argument to get to the data needed for this tab
+        :param backend: object<Backend>
+        :return: void
+        """
+        super().__init__()  #creates a widget (the widget that the object contains of)
+
+        self.grid = QGridLayout()       #layout for the object
         self.grid.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
-        self.backend = backend
+        self.backend = backend  #saves the backend
 
-        self.InitWindow()
+        self.InitWidget()       #creates the base state of the widget
 
-    def InitWindow(self):
+    def InitWidget(self):
+        """
+        this init method should be called in the constructor after creating a layout for the widget
+        the ui components and base states are created
+        :return: void
+        """
         assert("grid" in map(lambda x: x[0], vars(self).items())), STRINGS.ERROR_GRID_NOT_DEFINED
         
+        #********************FORM************************************
+        #here you can enter a new investment or edit a past investment
+        #label for the form
         self.label_form = QLabel(STRINGS.INVFORM_LABEL_NEW_INV)
         self.label_form.setFont(FONTS.APP_NEW_TRANSACTION)
         self.label_form.setFixedSize(self.label_form.sizeHint())
         self.grid.addWidget(self.label_form, 0, 0)
         
-        self.addWidgetsForm()
-        self.switchToBuyMode()
+        self.addWidgetsForm()       #add the ui components to build the form
+        self.switchToBuyMode()      #at default the "buy" option is selected, the user can choose which kind of transaction should be done
 
         self.setLayout(self.grid)
         self.adjustSize()
@@ -2890,11 +2907,14 @@ class InvestTab(QWidget):
         handles the behavior of these widgets too
         :return: void
         """
+        assert("grid" in map(lambda x: x[0], vars(self).items())), STRINGS.ERROR_GRID_NOT_DEFINED
+        #create the layout and widget for the whole form
         self.layout_form = QVBoxLayout()
         self.layout_form.setSpacing(20)
         self.widget_form = QGroupBox()
 
         #********************CALENDAR********************************
+        #the user can select on which date the investment was made
         self.date_edit = QCalendarWidget()
         self.date_edit.setMinimumDate(QDate(1900, 1, 1))
         self.date_edit.setMaximumDate(QDate.currentDate())
@@ -2904,13 +2924,16 @@ class InvestTab(QWidget):
 
         #********************CHOSE_TRADE_TYPE************************
         #holds the comboBox for choosing the type of the transaction
+        #the user can choose from trading types. There are "buy", "dividend" or "sell"
         group_trade_type = QGroupBox()
         layout_trade_type = QVBoxLayout()
 
+        #creates the label for the trade type
         self.trade_type_label = QLabel(STRINGS.INVFORM_LABEL_TRADE_TYPE)
         self.trade_type_label.setFont(FONTS.APP_NEW_TRANSACTION_CF)
         layout_trade_type.addWidget(self.trade_type_label)
 
+        #creates the combo from which the user can choose the trade type
         self.trade_type_combo = QComboBox()
         self.trade_type_combo.setMaxVisibleItems(20)
         self.trade_type_combo.setStyleSheet("combobox-popup: 0;")
@@ -2924,6 +2947,8 @@ class InvestTab(QWidget):
 
         #********************YAHOO_TICKER****************************
         #holds the widget for the input of the ticker you bought or selled
+        #the user can enter a yahoo ticker from the asset he bought
+        #if the form is in sell or dividend mode, this input will be replaced by a combobox from which the user can choose a owned asset
         self.groupbox_ticker_num = QGroupBox()
         self.hgrid_ticker_num = QGridLayout()
         
@@ -2933,20 +2958,22 @@ class InvestTab(QWidget):
 
         #ticker input
         self.ticker_edit = QLineEdit()
-        self.ticker_completer = QCompleter(self.backend.getTickerNames())
+        self.ticker_completer = QCompleter(self.backend.getTickerNames())   #backend call to get the ticker names
         self.ticker_completer.setCaseSensitivity(False)
         self.ticker_edit.setCompleter(self.ticker_completer)      #add an autocompleter
         self.ticker_edit.textChanged.connect(self.Echange_ticker_text)
         self.hgrid_ticker_num.addWidget(self.ticker_edit, 1, 0)
 
         #********************NUMBER OF ASSETS************************
+        #the user can enter the number of assets that are bought from the given ticker
+        #if the form is in sell or dividend mode, the number is limited by the amount of owned assets
         #number of assets label
         self.number_label = QLabel(STRINGS.INVFORM_LABEL_NUMBER)
         self.hgrid_ticker_num.addWidget(self.number_label, 0, 1)
 
         #number of assets input
         self.number_edit = QLineEdit()
-        self.number_edit.textChanged.connect(self.Eenter_only_numbers)
+        self.number_edit.textChanged.connect(self.Eenter_only_positive_numbers)
         self.number_edit.textChanged.connect(self.Echange_number_text)
         self.hgrid_ticker_num.addWidget(self.number_edit, 1, 1)
 
@@ -2956,6 +2983,8 @@ class InvestTab(QWidget):
 
         #********************PRICE********************************
         #holds the labels and inputs for the price of the asset
+        #the user can enter the price to which the asset was bought or selled (or the dividend in dividend mode)
+        #the user can enter the price per asset or the price for the whole transaction (or dividend). They will be synced automatically
         grid_price = QGridLayout()
         groupbox_price_full = QGroupBox()
 
@@ -2980,12 +3009,12 @@ class InvestTab(QWidget):
 
         #price per asset input
         self.ppa_edit = QLineEdit()
-        self.ppa_edit.textChanged.connect(self.Eenter_only_numbers)
+        self.ppa_edit.textChanged.connect(self.Eenter_only_positive_numbers)
         grid_price.addWidget(self.ppa_edit, 3, 1)
 
         #full price input
         self.fullp_edit = QLineEdit()
-        self.fullp_edit.textChanged.connect(self.Eenter_only_numbers)
+        self.fullp_edit.textChanged.connect(self.Eenter_only_positive_numbers)
         grid_price.addWidget(self.fullp_edit, 3, 2)
 
         #sets up the layout for this group
@@ -2994,6 +3023,8 @@ class InvestTab(QWidget):
 
         #********************FEES********************************
         #holds the labels and inputs for the fees and costs occured by the transaction
+        #the user can enter the amount of other costs that are paid. 
+        #the amount of trading fees for buying and selling and the taxes for dividends and selling
         self.grid_fee = QGridLayout()
         groupbox_fee_full = QGroupBox()
 
@@ -3014,7 +3045,7 @@ class InvestTab(QWidget):
 
         #trading fee input
         self.tradingfee_edit = QLineEdit()
-        self.tradingfee_edit.textChanged.connect(self.Eenter_only_numbers)
+        self.tradingfee_edit.textChanged.connect(self.Eenter_only_positive_numbers)
         self.grid_fee.addWidget(self.tradingfee_edit, 3, 1)
 
         #taxes label
@@ -3023,7 +3054,7 @@ class InvestTab(QWidget):
         
         #taxes input
         self.tax_edit = QLineEdit()
-        self.tax_edit.textChanged.connect(self.Eenter_only_numbers)
+        self.tax_edit.textChanged.connect(self.Eenter_only_positive_numbers)
         self.grid_fee.addWidget(self.tax_edit, 3, 2)
 
         #sets up the layout for this group
@@ -3034,12 +3065,14 @@ class InvestTab(QWidget):
         #submit investment button
         self.submit_widget = QWidget()
         self.submit_layout = QHBoxLayout()
+
         self.submit_button = QPushButton(STRINGS.INVFORM_BUTTON_SUBMIT)
         self.submit_button.setFont(FONTS.APP_NEW_TRANSACTION_SUBMIT)
         #at default the button is disabled, you need to fill out all required fields to activate it
         self.submit_button.setEnabled(False)
         self.submit_button.clicked.connect(self.Esubmit_investment)
         self.submit_layout.addWidget(self.submit_button)
+
         self.submit_widget.setLayout(self.submit_layout)
         self.layout_form.addWidget(self.submit_widget)
 
@@ -3049,69 +3082,92 @@ class InvestTab(QWidget):
         self.grid.addWidget(self.widget_form, 1, 0)
 
     def switchToBuyMode(self):
-        self.wipeForm()
+        """
+        this method will change the ui of the form to match a buy
+        this includes: renaming of labels, disabling and enabling input fields 
+        and replacing the combo box for the assets with an input box
+        :return: void
+        """
+        self.wipeForm() #delete all data that is currently in the form (except date)
+        #renaming labels
         self.ticker_label.setText(STRINGS.INVFORM_LABEL_TICKER)
-
+        self.number_label.setText(STRINGS.INVFORM_LABEL_NUMBER)
+        self.price_label.setText(STRINGS.INVFORM_LABEL_PRICE)
+        self.ppa_label.setText(STRINGS.INVFORM_LABEL_PRICE_PER_ASSET)
+        self.fullp_label.setText(STRINGS.INVFORM_LABEL_PRICE_FULL)
+        #replace the combo box with an input box (the user can indeed buy an asset that he currently dont have)
         self.ticker_edit.deleteLater()
-        #ticker input
         self.ticker_edit = QLineEdit()
         self.ticker_completer = QCompleter(self.backend.getTickerNames())
         self.ticker_completer.setCaseSensitivity(False)
         self.ticker_edit.setCompleter(self.ticker_completer)      #add an autocompleter
         self.ticker_edit.textChanged.connect(self.Echange_ticker_text)
         self.hgrid_ticker_num.addWidget(self.ticker_edit, 1, 0)
-
-        self.number_label.setText(STRINGS.INVFORM_LABEL_NUMBER)
-
-        self.price_label.setText(STRINGS.INVFORM_LABEL_PRICE)
-        self.ppa_label.setText(STRINGS.INVFORM_LABEL_PRICE_PER_ASSET)
-        self.fullp_label.setText(STRINGS.INVFORM_LABEL_PRICE_FULL)
-        self.tradingfee_edit.setEnabled(True)
-        self.tax_edit.setEnabled(False)
+        #disabling and enabling input fields 
+        self.tradingfee_edit.setEnabled(True)       #in buy mode there are trading fees
+        self.tax_edit.setEnabled(False)             #but no taxes
         
     def switchToDividendMode(self):
-        self.wipeForm()
+        """
+        this method will change the ui of the form to match a dividend
+        this includes: renaming of labels, disabling and enabling input fields 
+        and replacing the input field with a combobox for the assets
+        :return: void
+        """
+        self.wipeForm() #delete all data that is currently in the form (except date)
+        #renaming labels
         self.ticker_label.setText(STRINGS.INVFORM_LABEL_SELECT_STOCK)
-
-        self.ticker_edit.deleteLater()
-        self.ticker_edit = QComboBox()
-        self.ticker_edit.setMaxVisibleItems(20)
-        self.ticker_edit.setStyleSheet("combobox-popup: 0;")
-        self.ticker_edit.addItems(self.backend.getAvailableShortNames())
-        self.ticker_edit.currentTextChanged.connect(self.Eselect_ticker)
-        self.ticker_edit.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        self.hgrid_ticker_num.addWidget(self.ticker_edit, 1, 0)
-
         self.number_label.setText(STRINGS.INVFORM_LABEL_NUMBER_DIV_SHARES)
-
         self.price_label.setText(STRINGS.INVFORM_LABEL_DIVIDEND_RECEIVED)
         self.ppa_label.setText(STRINGS.INVFORM_LABEL_DIVIDEND_PER_SHARE)
         self.fullp_label.setText(STRINGS.INVFORM_LABEL_DIVIDEND_FULL)
-        self.tradingfee_edit.setEnabled(False)
-        self.tax_edit.setEnabled(True)
-
-    def switchToSellMode(self):
-        self.wipeForm()
-        self.ticker_label.setText(STRINGS.INVFORM_LABEL_SELECT_STOCK)
-
+        #replace the input field from the buy mode with a comboBox (the user can only get a dividend from stocks he already owns)
         self.ticker_edit.deleteLater()
         self.ticker_edit = QComboBox()
         self.ticker_edit.setMaxVisibleItems(20)
         self.ticker_edit.setStyleSheet("combobox-popup: 0;")
         self.ticker_edit.addItems(self.backend.getAvailableShortNames())
-        self.ticker_edit.currentTextChanged.connect(self.Eselect_ticker)
+        self.ticker_edit.currentTextChanged.connect(self.Eselect_asset)
         self.ticker_edit.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.hgrid_ticker_num.addWidget(self.ticker_edit, 1, 0)
+        #disabling and enabling input fields 
+        self.tradingfee_edit.setEnabled(False)  #in dividend mode there are no trading fees
+        self.tax_edit.setEnabled(True)          #but taxes
 
+    def switchToSellMode(self):
+        """
+        this method will change the ui of the form to match a sell
+        this includes: renaming of labels, disabling and enabling input fields 
+        and replacing the input field with a combobox for the assets
+        :return: void
+        """
+        self.wipeForm() #delete all data that is currently in the form (except date)
+        #renaming labels
+        self.ticker_label.setText(STRINGS.INVFORM_LABEL_SELECT_STOCK)
         self.number_label.setText(STRINGS.INVFORM_LABEL_NUMBER)
-
         self.price_label.setText(STRINGS.INVFORM_LABEL_PRICE)
         self.ppa_label.setText(STRINGS.INVFORM_LABEL_PRICE_PER_ASSET)
         self.fullp_label.setText(STRINGS.INVFORM_LABEL_PRICE_FULL)
-        self.tradingfee_edit.setEnabled(True)
-        self.tax_edit.setEnabled(True)
+        #replace the input field from the buy mode with a comboBox (the user can only sell a stock he already owns)
+        self.ticker_edit.deleteLater()
+        self.ticker_edit = QComboBox()
+        self.ticker_edit.setMaxVisibleItems(20)
+        self.ticker_edit.setStyleSheet("combobox-popup: 0;")
+        self.ticker_edit.addItems(self.backend.getAvailableShortNames())
+        self.ticker_edit.currentTextChanged.connect(self.Eselect_asset)
+        self.ticker_edit.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.hgrid_ticker_num.addWidget(self.ticker_edit, 1, 0)
+        #disabling and enabling input fields 
+        self.tradingfee_edit.setEnabled(True)   #in sell mode there are trading fees
+        self.tax_edit.setEnabled(True)          #and taxes
 
     def wipeForm(self):
+        """
+        this method deletes all data except the date out of the form
+        :return: void
+        """
+        #before the text of an input field is set to an empty string, we have to check whether thats actually an input field
+        #because in the different modes of the form there might be one input field replaced with some other non input field
         if type(self.ticker_edit) == QLineEdit:
             self.ticker_edit.setText("")
         if type(self.ppa_edit) == QLineEdit:
@@ -3126,7 +3182,7 @@ class InvestTab(QWidget):
             self.tradingfee_edit.setText("")
 
 
-    def Eenter_only_numbers(self):
+    def Eenter_only_positive_numbers(self):
         """
         Event handler
         activates if the text in an input changed
@@ -3135,25 +3191,74 @@ class InvestTab(QWidget):
         :return: void
         """
         assert(type(self.sender()) == QLineEdit), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
-        self.sender().setText(utils.only_numbers(self.sender(), negatives=False))
+        self.sender().setText(utils.only_numbers(self.sender(), negatives=False))   #redirects to a event handler
     
+    def Eenter_only__numbers(self):
+        """
+        Event handler
+        activates if the text in an input changed
+        if a non number related symbol is entered, this handler deletes it.
+        Makes sure that the input is a valid float
+        :return: void
+        """
+        assert(type(self.sender()) == QLineEdit), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
+        self.sender().setText(utils.only_numbers(self.sender(), negatives=True))   #redirects to a event handler 
+
     def Echange_ticker_text(self):
+        """
+        event handler
+        activates if the user types something into the ticker input field (only in buy mode)
+        :return: void
+        """
+        assert(self.sender() == self.ticker_edit and type(self.ticker_edit) == QLineEdit), STRINGS.getTypeErrorString(self.sender(), "sender", QLineEdit)
         pass
 
     def Echange_number_text(self):
+        """
+        event handler
+        activates if the user types something into the number input field
+        :return: void
+        """
+        assert(self.sender() == self.number_edit), STRINGS.getTypeErrorString(self.sender(), "sender", self.number_edit)
         pass
 
     def Eselect_trading_type(self):
+        """
+        event handler
+        activates if the user selects an item from the trade type combo box
+        change the form mode to the selected type
+        :return: void
+        """
+        assert(self.sender() == self.trade_type_combo), STRINGS.getTypeErrorString(self.sender(), "sender", self.trade_type_combo)
         match self.sender().currentText():
+            #check which text is selected and switch to that mode
             case STRINGS.INVFORM_TYPE_DIVIDEND:
                 self.switchToDividendMode()
             case STRINGS.INVFORM_TYPE_BUY:
                 self.switchToBuyMode()
             case STRINGS.INVFORM_TYPE_SELL:
                 self.switchToSellMode()
+            case _:
+                #if not other case is met, the programm will land here
+                #the selected text is not in the possible choices
+                assert(False), STRINGS.ERROR_TRADE_TYPE_NOT_VALID+self.sender().currentText()
 
-    def Eselect_ticker(self):
+    def Eselect_asset(self):
+        """
+        event handler
+        activates if the user selects a asset from the combo box in sell or dividend mode
+        fills out the form with the data of that asset
+        :return: void
+        """
+        assert(self.sender() == self.ticker_edit and type(self.ticker_edit) == QComboBox), STRINGS.getTypeErrorString(self.sender(), "sender", QComboBox)
         pass
 
     def Esubmit_investment(self):
+        """
+        event handler
+        activates if the user submits the investment
+        verifies the data and adds the investment to the system
+        :return: void
+        """
+        assert(self.sender() == self.submit_button), STRINGS.getTypeErrorString(self.sender(), "sender", self.submit_button)
         pass
