@@ -882,3 +882,17 @@ class Backend:
             print("Some error occured with the old data")
         
 
+#***********************INVESTMENT******************************
+    def getTickerNames(self):
+        """
+        getter for ticker names
+        :return: Iterable[str<ticker1>, ...]
+        """
+        return ["ticker1", "ticker2"]
+    
+    def getAvailableShortNames(self):
+        """
+        getter for stock names
+        :return: Iterable[str<stock name1>, ...]
+        """
+        return ["stock1", "stock2"]

@@ -16,6 +16,9 @@ class ENG:
     #Main Window Strings
     APP_TITLE = "Finance tracker"
     APP_ICON = "media/icon.png"
+
+    APP_TAB1 = "Transactions"
+    APP_TAB2 = "Investments"
     
     APP_LABEL_NEW_TRANSACTION = "Add new transaction"
     APP_LABEL_NEW_TRANSACTION_CF = "Enter the gain or loss of the transaction:"
@@ -29,7 +32,7 @@ class ENG:
     APP_LABEL_NEW_TRANSACTION_NUMBER = "Number of products:"
     APP_LABEL_NEW_TRANSACTION_PERSON = "Add a new person:"
 
-    APP_LABEL_LAST_TRANSACTIONS = "Your last transactions"
+    APP_LABEL_LAST_TRANSACTIONS = "Your transactions"
 
     APP_LABEL_EDIT = "Edit Products, Categories and Persons"
 
@@ -118,6 +121,30 @@ class ENG:
 
     #CalendarWindow Strings
     CWINDOW_TITLE = "Choose a date"
+
+    #invest tab strings
+    INVFORM_LABEL_NEW_INV = "Add new investment"
+    INVFORM_LABEL_TICKER = "Yahoo ticker:"
+    INVFORM_LABEL_NUMBER = "Number of assets:"
+    INVFORM_LABEL_PRICE = "Transaction price:"
+    INVFORM_LABEL_PRICE_PER_ASSET = f"Per asset (in {CURRENCY}):"
+    INVFORM_LABEL_PRICE_FULL = f"For all assets (in {CURRENCY}):"
+    INVFORM_LABEL_FEES = "Other costs and fees:"
+    INVFORM_LABEL_TRADINGFEE = f"Trading fees (in {CURRENCY}):"
+    INVFORM_LABEL_TAX = f"Taxes (in {CURRENCY}):"
+    INVFORM_LABEL_TRADE_TYPE = "Trade type:"
+    INVFORM_LABEL_SELECT_STOCK = "Select asset:"
+    INVFORM_LABEL_NUMBER_DIV_SHARES = "Number of dividend shares:"
+    INVFORM_LABEL_DIVIDEND_RECEIVED = "Dividends received:"
+    INVFORM_LABEL_DIVIDEND_PER_SHARE = f"Per share (in {CURRENCY}):"
+    INVFORM_LABEL_DIVIDEND_FULL = f"For all shares (in {CURRENCY}):"
+
+    INVFORM_BUTTON_SUBMIT = "Add investment"
+
+    INVFORM_TYPE_BUY = "Buy"
+    INVFORM_TYPE_DIVIDEND = "Dividend"
+    INVFORM_TYPE_SELL = "Sell"
+    
 
     #tooltips
     TOOLTIP_SUBMIT_BUTTON = "Fill out the form and submit with this button"

@@ -13,7 +13,7 @@ from ui_datatypes import Combo, Inputs, TransactionList
 from fullstack_utils import SortEnum, utils, Filter
 
 from PyQt5.QtWidgets import QGridLayout, QLabel, QGroupBox, QVBoxLayout, QHBoxLayout, QPushButton, QDialog, QWidget, QSizePolicy
-from PyQt5.QtWidgets import QSpinBox, QCalendarWidget, QLineEdit, QCompleter, QComboBox, QMessageBox, QScrollArea, QFileDialog
+from PyQt5.QtWidgets import QSpinBox, QCalendarWidget, QLineEdit, QCompleter, QComboBox, QMessageBox, QScrollArea, QFileDialog, QTabWidget
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import QDate, Qt
 
@@ -75,23 +75,32 @@ class Window(QDialog):
         :return: void
         """
         self.setWindowTitle(self.title)
-        #self.setGeometry(self.left, self.top, self.width, self.height)
         self.setWindowIcon(self.icon)
+        
+        self.tab = QTabWidget()
+        self.tab1 = QWidget()
+        self.tab2 = QWidget()
         self.grid = QGridLayout()       #sets the layout of the complete window
 
-        self.createLayout()             #create the layout with all components
+        self.createFirstTabLayout()             #create the layout of the first tab with all components
+        self.createSecondTabLayout()            #creates the layout for the second tab
+        
+        self.tab.addTab(self.tab1, STRINGS.APP_TAB1)
+        self.tab.addTab(self.tab2, STRINGS.APP_TAB2)
 
+        self.grid.addWidget(self.tab)
         self.setLayout(self.grid)
 
         self.show() #show the window
     
-    def createLayout(self):
+    def createFirstTabLayout(self):
         """
         creates layout components and add UI components to that layout
         build the window
         :return: void
         """
         assert("grid" in map(lambda x: x[0], vars(self).items())), STRINGS.ERROR_GRID_NOT_DEFINED
+        self.grid1 = QGridLayout()  #layout for the first tab
 
         self.groupBox_transaction_label = QLabel(STRINGS.APP_LABEL_NEW_TRANSACTION, self)
         self.groupBox_transaction_label.setFont(FONTS.APP_NEW_TRANSACTION)
@@ -118,16 +127,17 @@ class Window(QDialog):
 
         #sets the layouts and add these to the grid
         self.groupBox_transaction.setLayout(self.layout_transaction)
-        self.grid.addWidget(self.groupBox_transaction_label, 0, 0)
-        self.grid.addWidget(self.groupBox_transaction, 1, 0)
+        self.grid1.addWidget(self.groupBox_transaction_label, 0, 0)
+        self.grid1.addWidget(self.groupBox_transaction, 1, 0)
 
         self.groupBox_lastTransactions.setLayout(self.layout_lastTransaction)
-        self.grid.addWidget(self.groupBox_lastTransactions_label, 0, 1)
-        self.grid.addWidget(self.groupBox_lastTransactions, 1, 1)
+        self.grid1.addWidget(self.groupBox_lastTransactions_label, 0, 1)
+        self.grid1.addWidget(self.groupBox_lastTransactions, 1, 1)
 
         self.groupBox_edit.setLayout(self.layout_edit)
-        self.grid.addWidget(self.groupBox_edit_label, 0, 2)
-        self.grid.addWidget(self.groupBox_edit, 1, 2)
+        self.grid1.addWidget(self.groupBox_edit_label, 0, 2)
+        self.grid1.addWidget(self.groupBox_edit, 1, 2)
+        self.tab1.setLayout(self.grid1)
 
     def addWidgetsNewTrans(self):
         """
@@ -760,6 +770,17 @@ class Window(QDialog):
         groupbox_merging.setLayout(layout_merging)
         self.layout_edit.addWidget(groupbox_merging)
 
+
+    def createSecondTabLayout(self):
+        """
+        creates layout components and add UI components to that layout
+        build the window
+        :return: void
+        """
+        assert("grid" in map(lambda x: x[0], vars(self).items())), STRINGS.ERROR_GRID_NOT_DEFINED
+        self.grid2 = QGridLayout()  #layout for the first tab
+        self.grid2.addWidget(InvestTab(self.backend))
+        self.tab2.setLayout(self.grid2)
 
 
     def enableEditMode(self, transaction:Transaction):
@@ -2837,3 +2858,302 @@ class CalendarWindow(QDialog):
         """
         self.date = self.calendar.selectedDate()
         self.close()
+
+
+class InvestTab(QWidget):
+    def __init__(self, backend):
+        super().__init__()
+        self.grid = QGridLayout()
+        self.grid.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+        self.backend = backend
+
+        self.InitWindow()
+
+    def InitWindow(self):
+        assert("grid" in map(lambda x: x[0], vars(self).items())), STRINGS.ERROR_GRID_NOT_DEFINED
+        
+        self.label_form = QLabel(STRINGS.INVFORM_LABEL_NEW_INV)
+        self.label_form.setFont(FONTS.APP_NEW_TRANSACTION)
+        self.label_form.setFixedSize(self.label_form.sizeHint())
+        self.grid.addWidget(self.label_form, 0, 0)
+        
+        self.addWidgetsForm()
+        self.switchToBuyMode()
+
+        self.setLayout(self.grid)
+        self.adjustSize()
+    
+    def addWidgetsForm(self):
+        """
+        adds the Widgets to the form part of the window
+        you can create your investments here
+        handles the behavior of these widgets too
+        :return: void
+        """
+        self.layout_form = QVBoxLayout()
+        self.layout_form.setSpacing(20)
+        self.widget_form = QGroupBox()
+
+        #********************CALENDAR********************************
+        self.date_edit = QCalendarWidget()
+        self.date_edit.setMinimumDate(QDate(1900, 1, 1))
+        self.date_edit.setMaximumDate(QDate.currentDate())
+        #removes the vertical header (week of the year) to save space
+        self.date_edit.setVerticalHeaderFormat(QCalendarWidget.VerticalHeaderFormat.NoVerticalHeader)
+        self.layout_form.addWidget(self.date_edit)
+
+        #********************CHOSE_TRADE_TYPE************************
+        #holds the comboBox for choosing the type of the transaction
+        group_trade_type = QGroupBox()
+        layout_trade_type = QVBoxLayout()
+
+        self.trade_type_label = QLabel(STRINGS.INVFORM_LABEL_TRADE_TYPE)
+        self.trade_type_label.setFont(FONTS.APP_NEW_TRANSACTION_CF)
+        layout_trade_type.addWidget(self.trade_type_label)
+
+        self.trade_type_combo = QComboBox()
+        self.trade_type_combo.setMaxVisibleItems(20)
+        self.trade_type_combo.setStyleSheet("combobox-popup: 0;")
+        self.trade_type_combo.addItems([STRINGS.INVFORM_TYPE_BUY, STRINGS.INVFORM_TYPE_DIVIDEND, STRINGS.INVFORM_TYPE_SELL])
+        self.trade_type_combo.setCurrentText(STRINGS.INVFORM_TYPE_BUY)
+        self.trade_type_combo.currentTextChanged.connect(self.Eselect_trading_type)
+        layout_trade_type.addWidget(self.trade_type_combo, alignment=Qt.AlignmentFlag.AlignLeft)
+
+        group_trade_type.setLayout(layout_trade_type)
+        self.layout_form.addWidget(group_trade_type)
+
+        #********************YAHOO_TICKER****************************
+        #holds the widget for the input of the ticker you bought or selled
+        self.groupbox_ticker_num = QGroupBox()
+        self.hgrid_ticker_num = QGridLayout()
+        
+        #ticker label
+        self.ticker_label = QLabel(STRINGS.INVFORM_LABEL_TICKER)
+        self.hgrid_ticker_num.addWidget(self.ticker_label, 0, 0)
+
+        #ticker input
+        self.ticker_edit = QLineEdit()
+        self.ticker_completer = QCompleter(self.backend.getTickerNames())
+        self.ticker_completer.setCaseSensitivity(False)
+        self.ticker_edit.setCompleter(self.ticker_completer)      #add an autocompleter
+        self.ticker_edit.textChanged.connect(self.Echange_ticker_text)
+        self.hgrid_ticker_num.addWidget(self.ticker_edit, 1, 0)
+
+        #********************NUMBER OF ASSETS************************
+        #number of assets label
+        self.number_label = QLabel(STRINGS.INVFORM_LABEL_NUMBER)
+        self.hgrid_ticker_num.addWidget(self.number_label, 0, 1)
+
+        #number of assets input
+        self.number_edit = QLineEdit()
+        self.number_edit.textChanged.connect(self.Eenter_only_numbers)
+        self.number_edit.textChanged.connect(self.Echange_number_text)
+        self.hgrid_ticker_num.addWidget(self.number_edit, 1, 1)
+
+        #completes this group
+        self.groupbox_ticker_num.setLayout(self.hgrid_ticker_num)
+        self.layout_form.addWidget(self.groupbox_ticker_num)
+
+        #********************PRICE********************************
+        #holds the labels and inputs for the price of the asset
+        grid_price = QGridLayout()
+        groupbox_price_full = QGroupBox()
+
+        #meta label for the group
+        price_meta_widget = QWidget()
+        self.price_meta_layout = QHBoxLayout()
+        self.price_meta_layout.setContentsMargins(0,0,0,0)
+        self.price_label = QLabel(STRINGS.INVFORM_LABEL_PRICE)
+        self.price_label.setFont(FONTS.APP_NEW_TRANSACTION_CF)
+        self.price_meta_layout.addWidget(self.price_label)
+
+        price_meta_widget.setLayout(self.price_meta_layout)
+        grid_price.addWidget(price_meta_widget, 0, 0, 1, 2)
+
+        #price per asset label
+        self.ppa_label = QLabel(STRINGS.INVFORM_LABEL_PRICE_PER_ASSET)
+        grid_price.addWidget(self.ppa_label, 2, 1)
+
+        #full price label
+        self.fullp_label = QLabel(STRINGS.INVFORM_LABEL_PRICE_FULL)
+        grid_price.addWidget(self.fullp_label, 2, 2)
+
+        #price per asset input
+        self.ppa_edit = QLineEdit()
+        self.ppa_edit.textChanged.connect(self.Eenter_only_numbers)
+        grid_price.addWidget(self.ppa_edit, 3, 1)
+
+        #full price input
+        self.fullp_edit = QLineEdit()
+        self.fullp_edit.textChanged.connect(self.Eenter_only_numbers)
+        grid_price.addWidget(self.fullp_edit, 3, 2)
+
+        #sets up the layout for this group
+        groupbox_price_full.setLayout(grid_price)
+        self.layout_form.addWidget(groupbox_price_full)
+
+        #********************FEES********************************
+        #holds the labels and inputs for the fees and costs occured by the transaction
+        self.grid_fee = QGridLayout()
+        groupbox_fee_full = QGroupBox()
+
+        #meta label for the group
+        fee_meta_widget = QWidget()
+        self.fee_meta_layout = QHBoxLayout()
+        self.fee_meta_layout.setContentsMargins(0,0,0,0)
+        self.fee_label = QLabel(STRINGS.INVFORM_LABEL_FEES)
+        self.fee_label.setFont(FONTS.APP_NEW_TRANSACTION_CF)
+        self.fee_meta_layout.addWidget(self.fee_label)
+
+        fee_meta_widget.setLayout(self.fee_meta_layout)
+        self.grid_fee.addWidget(fee_meta_widget, 0, 0, 1, 2)
+
+        #trading fee label
+        self.tradingfee_label = QLabel(STRINGS.INVFORM_LABEL_TRADINGFEE)
+        self.grid_fee.addWidget(self.tradingfee_label, 2, 1)
+
+        #trading fee input
+        self.tradingfee_edit = QLineEdit()
+        self.tradingfee_edit.textChanged.connect(self.Eenter_only_numbers)
+        self.grid_fee.addWidget(self.tradingfee_edit, 3, 1)
+
+        #taxes label
+        self.tax_label = QLabel(STRINGS.INVFORM_LABEL_TAX)
+        self.grid_fee.addWidget(self.tax_label, 2, 2)
+        
+        #taxes input
+        self.tax_edit = QLineEdit()
+        self.tax_edit.textChanged.connect(self.Eenter_only_numbers)
+        self.grid_fee.addWidget(self.tax_edit, 3, 2)
+
+        #sets up the layout for this group
+        groupbox_fee_full.setLayout(self.grid_fee)
+        self.layout_form.addWidget(groupbox_fee_full)
+
+        #********************SUBMIT_BUTTON***************************
+        #submit investment button
+        self.submit_widget = QWidget()
+        self.submit_layout = QHBoxLayout()
+        self.submit_button = QPushButton(STRINGS.INVFORM_BUTTON_SUBMIT)
+        self.submit_button.setFont(FONTS.APP_NEW_TRANSACTION_SUBMIT)
+        #at default the button is disabled, you need to fill out all required fields to activate it
+        self.submit_button.setEnabled(False)
+        self.submit_button.clicked.connect(self.Esubmit_investment)
+        self.submit_layout.addWidget(self.submit_button)
+        self.submit_widget.setLayout(self.submit_layout)
+        self.layout_form.addWidget(self.submit_widget)
+
+        self.widget_form.setLayout(self.layout_form)
+        self.widget_form.setFixedSize(self.widget_form.sizeHint())
+        
+        self.grid.addWidget(self.widget_form, 1, 0)
+
+    def switchToBuyMode(self):
+        self.wipeForm()
+        self.ticker_label.setText(STRINGS.INVFORM_LABEL_TICKER)
+
+        self.ticker_edit.deleteLater()
+        #ticker input
+        self.ticker_edit = QLineEdit()
+        self.ticker_completer = QCompleter(self.backend.getTickerNames())
+        self.ticker_completer.setCaseSensitivity(False)
+        self.ticker_edit.setCompleter(self.ticker_completer)      #add an autocompleter
+        self.ticker_edit.textChanged.connect(self.Echange_ticker_text)
+        self.hgrid_ticker_num.addWidget(self.ticker_edit, 1, 0)
+
+        self.number_label.setText(STRINGS.INVFORM_LABEL_NUMBER)
+
+        self.price_label.setText(STRINGS.INVFORM_LABEL_PRICE)
+        self.ppa_label.setText(STRINGS.INVFORM_LABEL_PRICE_PER_ASSET)
+        self.fullp_label.setText(STRINGS.INVFORM_LABEL_PRICE_FULL)
+        self.tradingfee_edit.setEnabled(True)
+        self.tax_edit.setEnabled(False)
+        
+    def switchToDividendMode(self):
+        self.wipeForm()
+        self.ticker_label.setText(STRINGS.INVFORM_LABEL_SELECT_STOCK)
+
+        self.ticker_edit.deleteLater()
+        self.ticker_edit = QComboBox()
+        self.ticker_edit.setMaxVisibleItems(20)
+        self.ticker_edit.setStyleSheet("combobox-popup: 0;")
+        self.ticker_edit.addItems(self.backend.getAvailableShortNames())
+        self.ticker_edit.currentTextChanged.connect(self.Eselect_ticker)
+        self.ticker_edit.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.hgrid_ticker_num.addWidget(self.ticker_edit, 1, 0)
+
+        self.number_label.setText(STRINGS.INVFORM_LABEL_NUMBER_DIV_SHARES)
+
+        self.price_label.setText(STRINGS.INVFORM_LABEL_DIVIDEND_RECEIVED)
+        self.ppa_label.setText(STRINGS.INVFORM_LABEL_DIVIDEND_PER_SHARE)
+        self.fullp_label.setText(STRINGS.INVFORM_LABEL_DIVIDEND_FULL)
+        self.tradingfee_edit.setEnabled(False)
+        self.tax_edit.setEnabled(True)
+
+    def switchToSellMode(self):
+        self.wipeForm()
+        self.ticker_label.setText(STRINGS.INVFORM_LABEL_SELECT_STOCK)
+
+        self.ticker_edit.deleteLater()
+        self.ticker_edit = QComboBox()
+        self.ticker_edit.setMaxVisibleItems(20)
+        self.ticker_edit.setStyleSheet("combobox-popup: 0;")
+        self.ticker_edit.addItems(self.backend.getAvailableShortNames())
+        self.ticker_edit.currentTextChanged.connect(self.Eselect_ticker)
+        self.ticker_edit.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.hgrid_ticker_num.addWidget(self.ticker_edit, 1, 0)
+
+        self.number_label.setText(STRINGS.INVFORM_LABEL_NUMBER)
+
+        self.price_label.setText(STRINGS.INVFORM_LABEL_PRICE)
+        self.ppa_label.setText(STRINGS.INVFORM_LABEL_PRICE_PER_ASSET)
+        self.fullp_label.setText(STRINGS.INVFORM_LABEL_PRICE_FULL)
+        self.tradingfee_edit.setEnabled(True)
+        self.tax_edit.setEnabled(True)
+
+    def wipeForm(self):
+        if type(self.ticker_edit) == QLineEdit:
+            self.ticker_edit.setText("")
+        if type(self.ppa_edit) == QLineEdit:
+            self.ppa_edit.setText("")
+        if type(self.fullp_edit) == QLineEdit:
+            self.fullp_edit.setText("")
+        if type(self.tax_edit) == QLineEdit:
+            self.tax_edit.setText("")
+        if type(self.number_edit) == QLineEdit:
+            self.number_edit.setText("")
+        if type(self.tradingfee_edit) == QLineEdit:
+            self.tradingfee_edit.setText("")
+
+
+    def Eenter_only_numbers(self):
+        """
+        Event handler
+        activates if the text in an input changed
+        if a non number related symbol is entered, this handler deletes it.
+        Makes sure that the input is a non negative valid float
+        :return: void
+        """
+        assert(type(self.sender()) == QLineEdit), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
+        self.sender().setText(utils.only_numbers(self.sender(), negatives=False))
+    
+    def Echange_ticker_text(self):
+        pass
+
+    def Echange_number_text(self):
+        pass
+
+    def Eselect_trading_type(self):
+        match self.sender().currentText():
+            case STRINGS.INVFORM_TYPE_DIVIDEND:
+                self.switchToDividendMode()
+            case STRINGS.INVFORM_TYPE_BUY:
+                self.switchToBuyMode()
+            case STRINGS.INVFORM_TYPE_SELL:
+                self.switchToSellMode()
+
+    def Eselect_ticker(self):
+        pass
+
+    def Esubmit_investment(self):
+        pass
