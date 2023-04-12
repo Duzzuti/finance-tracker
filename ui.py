@@ -9,7 +9,7 @@ from gui_constants import FONTS, ICONS
 from constants import CONSTANTS
 from backend import Backend
 from backend_datatypes import Transaction
-from ui_datatypes import Combo, Inputs, TransactionList
+from ui_datatypes import Combo, Inputs, TransactionList, InvestmentList
 from fullstack_utils import SortEnum, utils, Filter
 
 from PyQt5.QtWidgets import QGridLayout, QLabel, QGroupBox, QVBoxLayout, QHBoxLayout, QPushButton, QDialog, QWidget, QSizePolicy
@@ -2875,6 +2875,7 @@ class InvestTab(QWidget):
         self.grid = QGridLayout()       #layout for the object
         self.grid.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
         self.backend = backend  #saves the backend
+        self.InvestmentList = InvestmentList(self.backend.getInvestments, self.Eedit_last_investment)
 
         self.InitWidget()       #creates the base state of the widget
 
@@ -2895,6 +2896,7 @@ class InvestTab(QWidget):
         self.grid.addWidget(self.label_form, 0, 0)
         
         self.addWidgetsForm()       #add the ui components to build the form
+        self.addWidgetsLastInvestments()    #add the ui components to build the last investments part
         self.switchToBuyMode()      #at default the "buy" option is selected, the user can choose which kind of transaction should be done
 
         self.setLayout(self.grid)
@@ -3081,6 +3083,99 @@ class InvestTab(QWidget):
         
         self.grid.addWidget(self.widget_form, 1, 0)
 
+    def addWidgetsLastInvestments(self):
+        """
+        adds the Widgets to the last investments part of the window
+        you can see your investments here and click on them to edit
+        handles the behavior of these widgets too
+        :return: void
+        """
+        assert("grid" in map(lambda x: x[0], vars(self).items())), STRINGS.ERROR_GRID_NOT_DEFINED
+        #create the layout and widget for the whole part
+        self.layout_investments = QVBoxLayout()
+        self.layout_investments.setSpacing(20)
+        self.widget_investments = QGroupBox()
+        #********************FILTER**********************************
+        #creates the filter buttons
+        layout_filter = QHBoxLayout()
+        widget_filter = QWidget()
+        #change filter button, opens a new window where the user can change the filter settings
+        self.filter_button = QPushButton(STRINGS.APP_BUTTON_FILTER_OFF)
+        self.filter_button.clicked.connect(self.Eopen_filter)
+        layout_filter.addWidget(self.filter_button)
+        #resets the filter button
+        self.reset_fiter_button = QPushButton(STRINGS.APP_BUTTON_FILTER_RESET)
+        self.reset_fiter_button.clicked.connect(self.Ereset_filter)
+        layout_filter.addWidget(self.reset_fiter_button)
+
+        #number of investments label, shows the number of currently visible trades (applied to the filter)
+        self.num_trade_label = QLabel("Placeholder")
+        layout_filter.addWidget(self.num_trade_label)
+
+        widget_filter.setLayout(layout_filter)
+        self.layout_investments.addWidget(widget_filter)
+
+        #********************SORT************************************
+        #creates the sort buttons
+        layout_sort = QHBoxLayout()
+        widget_sort = QWidget()
+        #sort for date, price for the trade or short name
+        self.scroll_sort_date_button = QPushButton(STRINGS.APP_BUTTON_LAST_TRANSACTIONS_DATE)
+        self.scroll_sort_price_button = QPushButton(STRINGS.APP_BUTTON_LAST_TRANSACTIONS_CASHFLOW)
+        self.scroll_sort_name_button = QPushButton(STRINGS.APP_BUTTON_LAST_TRANSACTIONS_PRODUCT)
+
+        self.sort_buttons = [self.scroll_sort_date_button, self.scroll_sort_price_button, self.scroll_sort_name_button]
+        
+        for sort_button in self.sort_buttons:
+            #set some aesthetics and connect to the right event handler
+            sort_button.setFont(FONTS.APP_LAST_TRANSACTION_SORT)
+            sort_button.setIcon(ICONS.SORT_DEFAULT)
+            layout_sort.addWidget(sort_button)
+            sort_button.clicked.connect(self.Esort_investments)
+
+        widget_sort.setLayout(layout_sort)
+        self.layout_investments.addWidget(widget_sort)
+
+        #********************SCROLLAREA******************************
+        #creates a scrollarea with a vertical scroll bar and no horizontal scroll bar
+        self.scrollarea = QScrollArea()
+        self.scrollarea.setWidgetResizable(True)
+        self.scrollarea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.scrollarea.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        self.scrollarea.setSizePolicy(QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.MinimumExpanding)
+
+        self.scroll_widget = QWidget()      #inner widget, holds the buttons
+        self.scroll_vbox = QVBoxLayout()    #layout for the inner widget
+        self.scroll_vbox.setAlignment(Qt.AlignmentFlag.AlignTop)    #buttons should build up from the top
+
+        self.InvestmentList.setLayout(self.scroll_vbox)  #sets the layout inside the datatype
+        self.sortInvestments(SortEnum.DATE, True)            #loads the buttons from the backend
+
+        #sets the layout of the inner widget and sets this widget in the scrollarea, finally adds the scrollarea to the main layout
+        self.scroll_widget.setLayout(self.scroll_vbox)
+        self.scrollarea.setWidget(self.scroll_widget)
+        self.layout_investments.addWidget(self.scrollarea)
+
+        #********************IMPORT_EXPORT_CSV***********************
+        #set buttons for loading/exporting
+        load_export_hbox = QHBoxLayout()
+        load_export_widget = QWidget()
+        #import button
+        self.load_inv_button = QPushButton(STRINGS.APP_BUTTON_LOAD)
+        self.load_inv_button.clicked.connect(self.Eload_csv)
+        load_export_hbox.addWidget(self.load_inv_button)
+        #export button
+        self.export_inv_button = QPushButton(STRINGS.APP_BUTTON_EXPORT)
+        self.export_inv_button.clicked.connect(self.Eexport_csv)
+        load_export_hbox.addWidget(self.export_inv_button)
+
+        load_export_widget.setLayout(load_export_hbox)
+        self.layout_investments.addWidget(load_export_widget)
+
+        self.widget_investments.setLayout(self.layout_investments)
+        self.widget_investments.setFixedSize(self.widget_investments.sizeHint())
+        self.grid.addWidget(self.widget_investments, 1, 1)
+
     def switchToBuyMode(self):
         """
         this method will change the ui of the form to match a buy
@@ -3181,6 +3276,23 @@ class InvestTab(QWidget):
         if type(self.tradingfee_edit) == QLineEdit:
             self.tradingfee_edit.setText("")
 
+    def sortInvestments(self, sortElement:SortEnum, up:bool=True):
+        """
+        this method sets the right icon for the sort buttons and makes sure the investments are sorted
+        :param sortElement: object<SortEnum> after which category should be sorted?
+        :param up: bool<from A-Z, new-old, or small-big>
+        :return: void
+        """
+        #sets all icons to the default
+        for sort_button in self.sort_buttons:
+            sort_button.setIcon(ICONS.SORT_DEFAULT)
+
+        #gets the right icon depending on the sort order
+        icon = ICONS.SORT_UP if up else ICONS.SORT_DOWN
+        self.sort_buttons[sortElement.value].setIcon(icon)  #sets that icon to the right button
+        self.backend.sortInvestments(sortElement, up)  #sets the sort rule in the backend
+        self.InvestmentList.updateLastInvestments()         #gets the new data from the backend and display it
+
 
     def Eenter_only_positive_numbers(self):
         """
@@ -3261,4 +3373,22 @@ class InvestTab(QWidget):
         :return: void
         """
         assert(self.sender() == self.submit_button), STRINGS.getTypeErrorString(self.sender(), "sender", self.submit_button)
+        pass
+
+    def Eopen_filter(self):
+        pass
+
+    def Ereset_filter(self):
+        pass
+
+    def Esort_investments(self):
+        pass
+
+    def Eedit_last_investment(self):
+        pass
+
+    def Eload_csv(self):
+        pass
+
+    def Eexport_csv(self):
         pass

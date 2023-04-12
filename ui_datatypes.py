@@ -3,7 +3,7 @@ This module provides the datatypes used by the ui
 """
 from PyQt5.QtWidgets import QComboBox, QVBoxLayout, QPushButton, QLabel, QHBoxLayout, QSizePolicy
 from PyQt5.QtCore import QDate, Qt
-from backend_datatypes import Transaction, Person
+from backend_datatypes import Transaction, Person, Investment
 from strings import ENG as STRINGS
 from constants import CONSTANTS
 from backend import Dbenchmark
@@ -408,4 +408,134 @@ class TransactionList:
         element_button.adjustSize() #makes the content fit
         element_button.clicked.connect(self.func_event_handler)    #connect with event handler
         self.transaction_product_name_dict[transaction] = product_string
+        return element_button
+
+
+class InvestmentList:
+    """
+    The InvestmentList class sets up a list of PushButton objects, that are added in a scrollarea
+    The PushButtons should represent the investment the user has taken
+    The user should be able to click on these buttons to view and edit that investment
+    """
+    def __init__(self, func_get_investments:callable, func_event_handler:callable):
+        """
+        basic constructor is setting up the InvestmentList datatype, 
+        you have to provide a function that returns a list of investments which are displayed and an event handler for the buttons
+        :param func_get_investments: function<gets list of investment objects>
+        :param func_event_handler: function<event handler for pressing a button>
+        :return: void
+        """
+        assert(callable(func_get_investments)), STRINGS.getTypeErrorString(func_get_investments, "func_get_investments", "function")
+        self.layout = None  #the layout that is used to add the PushButtons
+        self.func_get_investments = func_get_investments
+        self.func_event_handler = func_event_handler
+        self.buttons_investment_dict = {}      #saves the buttons to investments to avoid uneccessary updates
+        self.investment_button_dict = {}      #saves the investments to buttons to avoid uneccessary updates
+        self.investment_short_name_dict = {} #saves the current short name label text on the button for each investment
+    
+    def setLayout(self, layout:QVBoxLayout):
+        """
+        sets the layout which holds the PushButtons, has to be done before using this object
+        :param layout: Some pyqt5 layout type<layout in which the buttons are added and removed>
+        :return: void
+        """
+        assert(type(layout) == QVBoxLayout), STRINGS.getTypeErrorString(layout, "layout", QVBoxLayout)
+        self.layout = layout
+
+    def updateLastInvestments(self):
+        """
+        updates the buttons by getting the new investment data from the backend
+        :return: void
+        """
+        assert(self.layout != False), STRINGS.ERROR_NO_LAYOUT
+        #deletes all current buttons
+        for i in reversed(range(self.layout.count())): 
+            self.layout.removeWidget(self.layout.itemAt(i).widget())
+
+        #sets up the buttons
+        self.buttons_investment_dict = {}
+        new_investments = []
+        for investment in self.func_get_investments():
+            if not investment in self.investment_button_dict:
+                #if we dont know the button, a new one is created
+                button = self._getInvestmentButton(investment)
+                self.investment_button_dict[investment] = button
+            elif not investment.short_name == self.investment_short_name_dict[investment]:
+                #short name got changed
+                button = self._getInvestmentButton(investment)
+                self.investment_button_dict[investment] = button
+            else:
+                #the button is already created
+                button = self.investment_button_dict[investment]
+            new_investments.append(investment)
+            self.layout.addWidget(button)  
+            self.buttons_investment_dict[button] = investment
+        
+        #syncing the two hashmaps
+        #if the user deletes or changes one investment it has to be deleted from the transaction_button_dict
+        if len(self.buttons_investment_dict.keys()) != len(self.investment_button_dict.keys()):
+            cur_inv = list(self.investment_button_dict.keys())
+            s = set(new_investments)
+            for dif in [x for x in cur_inv if x not in s]:
+                self.investment_button_dict.pop(dif)
+
+    def getInvestmentForButton(self, button:QPushButton):
+        """
+        getter for a investment object coresponding to a given button
+        :param button: object<PushButton>
+        :return: object<Investment>
+        """
+        assert(button in self.buttons_investment_dict.keys()), STRINGS.ERROR_BUTTON_NOT_FOUND
+        return self.buttons_investment_dict[button]
+
+    def getInvestmentCount(self):
+        """
+        getter for the number of investments currently shown
+        :return: int<number>
+        """
+        return len(self.buttons_investment_dict.keys())
+
+    def _getInvestmentButton(self, investment:Investment):
+        """
+        gets a PushButton object created using a Investment object. This method is labeling a button with investment data
+        :param transaction: object<Investment>
+        :return: object<PushButton>
+        """
+        assert(self.layout != False), STRINGS.ERROR_NO_LAYOUT
+        assert(type(investment) == Investment), STRINGS.getTypeErrorString(investment, "investment", Investment)
+        
+        element_button = QPushButton()
+        element_layout = QHBoxLayout()  #layout for the button
+        element_layout.setContentsMargins(10, 3, 10, 3)     #CHANGE
+
+        #some label with investment data
+        date_string = investment.date.strftime('[%d %b %Y]')
+        cashflow_string = str(investment.price)+STRINGS.CURRENCY
+        name_string = investment.asset.short_name
+        #define the labels that are on the button
+        date_label = QLabel(date_string)
+        empty_label = QLabel("")
+        cashflow_label = QLabel(cashflow_string)
+        name_label = QLabel(name_string)
+        #placeholder between date and cashflow
+        empty_label.setFixedSize(10, 1)
+        #set their size Policys to match a convenient pattern
+        date_label.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Expanding)
+        empty_label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Expanding)
+        cashflow_label.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Expanding)
+        name_label.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+        #sets their text alignments on the labels
+        date_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        cashflow_label.setAlignment(Qt.AlignmentFlag.AlignRight)
+        name_label.setAlignment(Qt.AlignmentFlag.AlignRight)
+        #adds them to the button layout
+        element_layout.addWidget(date_label)
+        element_layout.addWidget(empty_label)
+        element_layout.addWidget(cashflow_label)
+        element_layout.addWidget(name_label)
+
+        element_button.setLayout(element_layout)
+        element_button.adjustSize() #makes the content fit
+        element_button.clicked.connect(self.func_event_handler)    #connect with event handler
+        self.investment_short_name_dict[investment] = name_string
         return element_button

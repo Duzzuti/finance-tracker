@@ -1,3 +1,6 @@
+"""
+this module is providing the datatypes that are used by the backend
+"""
 import datetime
 
 class PersonCategory:
@@ -50,3 +53,23 @@ class Transaction:
             return sorted(map(lambda x: x.name.lower(), self.why_persons))
         else:
             return list(map(lambda x: x.name.lower(), self.why_persons))
+
+
+class Asset:
+    def __init__(self, ticker_symbol:str, short_name:str) -> None:
+        self.ticker_symbol = ticker_symbol
+        self.short_name = short_name
+
+
+class Investment:
+    def __init__(self, date:datetime.date, asset:Asset, number:float, price_per_asset:float, tradingfee:float, tax:float):
+        """
+        
+        """
+        self.date = date
+        self.number = number
+        self.asset = asset
+        self.price_per_asset = price_per_asset
+        self.price = price_per_asset * number
+        self.tradingfee = tradingfee
+        self.tax = tax

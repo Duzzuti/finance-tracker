@@ -13,7 +13,7 @@ import hashlib
 from threading import Thread
 from strings import ENG as STRINGS
 from PyQt5.QtWidgets import QMessageBox
-from backend_datatypes import Product, Person, Transaction
+from backend_datatypes import Product, Person, Transaction, Investment, Asset
 from fullstack_utils import SortEnum, Filter
 
 def Dsave(func):
@@ -75,7 +75,7 @@ class Backend:
         self.setNewPassword("jsa0pidfhuj89awhfp9ghqwp9fh9awgh8p9wrghf98ahgwf98gep89")    #standard password
 
         self.sortCriteria = [SortEnum.DATE.value, True]
-
+        self.initInvestments()
         if load:
             self._load()
         self.clean(full=True)
@@ -643,7 +643,7 @@ class Backend:
         :return: void
         """
         self.sortCriteria = [sortElement, up]
-        if sortElement == SortEnum.PRODUCT:
+        if sortElement == SortEnum.NAME:
             self.transactions.sort(key=lambda x: x.product.name.lower(), reverse=not(up))
         elif sortElement == SortEnum.CASHFLOW:
             self.transactions.sort(key=lambda x: x.cashflow, reverse=up)
@@ -883,6 +883,9 @@ class Backend:
         
 
 #***********************INVESTMENT******************************
+    def initInvestments(self):
+        self.investments = []
+
     def getTickerNames(self):
         """
         getter for ticker names
@@ -896,3 +899,23 @@ class Backend:
         :return: Iterable[str<stock name1>, ...]
         """
         return ["stock1", "stock2"]
+
+    def getInvestments(self):
+        return [Investment(datetime.date.today(), Asset("sym", "stock_name"), 10, 196.53, 1.99, 0.5)]
+
+    def sortInvestments(self, sortElement:SortEnum, up:bool):
+        """
+        sorts the investments given the sort criteria. should also sort new adds too
+        :param sortElement: object<SortEnum>
+        :param up: bool<ascending?>
+        :return: void
+        """
+        self.sortCriteria = [sortElement, up]
+        if sortElement == SortEnum.NAME:
+            self.investments.sort(key=lambda x: x.asset.short_name.lower(), reverse=not(up))
+        elif sortElement == SortEnum.CASHFLOW:
+            self.investments.sort(key=lambda x: x.price, reverse=up)
+        elif sortElement == SortEnum.DATE:
+            self.investments.sort(key=lambda x: x.date, reverse=up)
+        else:
+            assert(False), STRINGS.ERROR_SORTELEMENT_OUT_OF_RANGE+str(sortElement)

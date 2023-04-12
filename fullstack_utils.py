@@ -47,7 +47,7 @@ class SortEnum(Enum):
     """
     DATE = 0
     CASHFLOW = 1
-    PRODUCT = 2
+    NAME = 2
 
 
 class Filter:
