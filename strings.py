@@ -8,6 +8,7 @@ class ENG:
 
     #META Strings
     CURRENCY = "€"
+    CURRENCY_STRING = "EUR"
     COMMA = "."
     BIG_NUMBER_SEPARATER = ","
     COMMAS = [".", ","]
@@ -254,3 +255,4 @@ class ENG:
     ERROR_WRONG_SENDER = "The slot is connected to the wrong sender (slot, sender): "
     ERROR_WRONG_SIGN_CONTENT = "The content of sign is not valid. Should be: "+APP_LABEL_NEW_TRANSACTION_CF_SIGN_MINUS+" or "+APP_LABEL_NEW_TRANSACTION_CF_SIGN_PLUS+" but its: "
     ERROR_WRONG_PRODUCT_NAME_FORMAT = "The provided product name is not lowercase: "
+    ERROR_WRONG_DATA_LENGTH = "The data given to the backend has the wrong length: "

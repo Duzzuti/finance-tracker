@@ -2874,8 +2874,9 @@ class InvestTab(QWidget):
 
         self.grid = QGridLayout()       #layout for the object
         self.grid.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
-        self.backend = backend  #saves the backend
+        self.backend:Backend = backend  #saves the backend
         self.InvestmentList = InvestmentList(self.backend.getInvestments, self.Eedit_last_investment)
+        self.Inputs = Inputs(["ticker", "number", "price"], self.activateSubmitButton, self.deactivateSubmitButton)
 
         self.InitWidget()       #creates the base state of the widget
 
@@ -3012,11 +3013,13 @@ class InvestTab(QWidget):
         #price per asset input
         self.ppa_edit = QLineEdit()
         self.ppa_edit.textChanged.connect(self.Eenter_only_positive_numbers)
+        self.ppa_edit.textChanged.connect(self.Echange_price_text)
         grid_price.addWidget(self.ppa_edit, 3, 1)
 
         #full price input
         self.fullp_edit = QLineEdit()
         self.fullp_edit.textChanged.connect(self.Eenter_only_positive_numbers)
+        self.fullp_edit.textChanged.connect(self.Echange_price_text)
         grid_price.addWidget(self.fullp_edit, 3, 2)
 
         #sets up the layout for this group
@@ -3293,6 +3296,64 @@ class InvestTab(QWidget):
         self.backend.sortInvestments(sortElement, up)  #sets the sort rule in the backend
         self.InvestmentList.updateLastInvestments()         #gets the new data from the backend and display it
 
+    def activateSubmitButton(self):
+        """
+        activates the submit button, gets called after all required inputs are done
+        :return: void
+        """
+        self.submit_button.setEnabled(True)
+    
+    def deactivateSubmitButton(self):
+        """
+        deactivates the submit button, gets called if not all required inputs are done
+        :return: void
+        """
+        self.submit_button.setEnabled(False)
+
+    def getDataFromForm(self):
+        """
+        gets the contents of the form and parse them to the right datatypes
+        if some data are not readable (empty, or non number data) it returns 0 for that data
+        :return: list[datetime.date<date of the transaction>, str<trade_type>, str<ticker>, float<number>, float<ppa>, float<tradingfee>, float<tax>]
+        """
+        date = self.date_edit.selectedDate().toPyDate()
+
+        match self.trade_type_combo.currentText():
+            case STRINGS.INVFORM_TYPE_BUY:
+                trade_type = "buy"
+            case STRINGS.INVFORM_TYPE_SELL:
+                trade_type = "sell"
+            case STRINGS.INVFORM_TYPE_DIVIDEND:
+                trade_type = "dividend"
+            case _:
+                print("some invalid trading type "+self.trade_type_combo.currentText())
+                raise ValueError
+            
+        if type(self.ticker_edit) == QLineEdit:
+            #Buy mode
+            assert(trade_type == "buy")
+            ticker = self.ticker_edit.text()
+        else:
+            assert(trade_type != "buy")
+            ticker = self.backend.getTickerForName(self.ticker_edit.currentText())
+        try:
+            number = float(self.number_edit.text())
+        except:
+            number = 0.0
+        try:
+            ppa = float(self.ppa_edit.text())
+        except:
+            ppa = 0.0
+        try:
+            tradingfee = float(self.tradingfee_edit.text())
+        except:
+            tradingfee = 0.0
+        try:
+            tax = float(self.tax_edit.text())
+        except:
+            tax = 0.0
+        return (date, trade_type, ticker, number, ppa, tradingfee, tax)
+
 
     def Eenter_only_positive_numbers(self):
         """
@@ -3323,7 +3384,10 @@ class InvestTab(QWidget):
         :return: void
         """
         assert(self.sender() == self.ticker_edit and type(self.ticker_edit) == QLineEdit), STRINGS.getTypeErrorString(self.sender(), "sender", QLineEdit)
-        pass
+        if self.sender().text() != "":
+            self.Inputs.setInput("ticker", True)
+        else:
+            self.Inputs.setInput("ticker", False)
 
     def Echange_number_text(self):
         """
@@ -3332,7 +3396,25 @@ class InvestTab(QWidget):
         :return: void
         """
         assert(self.sender() == self.number_edit), STRINGS.getTypeErrorString(self.sender(), "sender", self.number_edit)
-        pass
+        try:
+            float(self.sender().text())
+            self.Inputs.setInput("number", True)
+        except:
+            self.Inputs.setInput("number", False)
+
+    def Echange_price_text(self):
+        """
+        event handler
+        activates if the user types something into the price input fields
+        :return: void
+        """
+        assert(self.sender() in [self.fullp_edit, self.ppa_edit]), STRINGS.getTypeErrorString(self.sender(), "sender", "price inputs")
+        try:
+            float(self.sender().text())
+            self.Inputs.setInput("price", True)
+        except:
+            self.Inputs.setInput("price", False)
+
 
     def Eselect_trading_type(self):
         """
@@ -3363,7 +3445,10 @@ class InvestTab(QWidget):
         :return: void
         """
         assert(self.sender() == self.ticker_edit and type(self.ticker_edit) == QComboBox), STRINGS.getTypeErrorString(self.sender(), "sender", QComboBox)
-        pass
+        if self.sender().currentText() != "":
+            self.Inputs.setInput("ticker", True)
+        else:
+            self.Inputs.setInput("ticker", False)
 
     def Esubmit_investment(self):
         """
@@ -3373,7 +3458,11 @@ class InvestTab(QWidget):
         :return: void
         """
         assert(self.sender() == self.submit_button), STRINGS.getTypeErrorString(self.sender(), "sender", self.submit_button)
-        pass
+        data = self.getDataFromForm()
+        success = self.backend.addInvestment(data)
+        if not success:
+            print(self.backend.error_string)
+        
 
     def Eopen_filter(self):
         pass

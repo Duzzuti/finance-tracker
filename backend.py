@@ -4,12 +4,13 @@ it is providing some api methods, that are used by the frontend
 """
 import datetime
 import time
-import pandas
 import math
+import pandas
 import pickle
 from cryptography.fernet import Fernet
 import base64
 import hashlib
+import yfinance
 from threading import Thread
 from strings import ENG as STRINGS
 from PyQt5.QtWidgets import QMessageBox
@@ -26,13 +27,23 @@ def Dsave(func):
         return ret
     return wrapper
 
-def Dsort(func):
+def DsortTrans(func):
     """
     decorator, which runs the function and executes a sort afterwards
     """
     def wrapper(self, *args):
         ret = func(self, *args)
-        Thread(target=self.sortTransactions, args=(self.sortCriteria[0], self.sortCriteria[1])).start()
+        Thread(target=self.sortTransactions, args=(self.sortCriteriaTrans[0], self.sortCriteriaTrans[1])).start()
+        return ret
+    return wrapper
+
+def DsortInv(func):
+    """
+    decorator, which runs the function and executes a sort afterwards
+    """
+    def wrapper(self, *args):
+        ret = func(self, *args)
+        Thread(target=self.sortInvestments, args=(self.sortCriteriaInv[0], self.sortCriteriaInv[1])).start()
         return ret
     return wrapper
 
@@ -74,10 +85,11 @@ class Backend:
         #if the user has a password set, he will input it on the start and exchange this password  
         self.setNewPassword("jsa0pidfhuj89awhfp9ghqwp9fh9awgh8p9wrghf98ahgwf98gep89")    #standard password
 
-        self.sortCriteria = [SortEnum.DATE.value, True]
+        self.sortCriteriaTrans = [SortEnum.DATE.value, True]
         self.initInvestments()
         if load:
             self._load()
+            self._save()    
         self.clean(full=True)
 
     def setNewPassword(self, password:str):
@@ -337,7 +349,7 @@ class Backend:
         return Transaction(date, product_obj, number, full_cf, ftperson_objects, whyperson_objects)
 
     @Dsave
-    @Dsort
+    @DsortTrans
     def addTransaction(self, transaction:Transaction):
         """
         adds a new transaction to the existing ones, pls validate it first with getTransactionObject
@@ -350,7 +362,7 @@ class Backend:
         self.transactions.append(transaction)
 
     @Dsave
-    @Dsort
+    @DsortTrans
     def deleteTransaction(self, transaction:Transaction):
         """
         deletes a given transaction from the system
@@ -375,7 +387,7 @@ class Backend:
                 return
 
     @Dsave
-    @Dsort
+    @DsortTrans
     def renameCategory(self, category:str, new_category:str):
         """
         renames the given category to the new_category name
@@ -397,7 +409,7 @@ class Backend:
         self.categories.append(new_category)
 
     @Dsave
-    @Dsort
+    @DsortTrans
     def renamePerson(self, person_name:str, new_person_name:str):
         """
         renames the given person to the new_person_name
@@ -429,7 +441,7 @@ class Backend:
             self.persons.append(person)
 
     @Dsave
-    @Dsort
+    @DsortTrans
     def renameProduct(self, product_name:str, new_product_name:str):
         """
         renames the given product to the new_product_name
@@ -454,7 +466,7 @@ class Backend:
             self.persons.append(product)
 
     @Dsave
-    @Dsort
+    @DsortTrans
     def deleteCategoryByName(self, category:str):
         """
         deletes the given category from the system
@@ -472,7 +484,7 @@ class Backend:
         self.categories.pop(list(map(lambda x: x.lower(), self.categories)).index(category))
 
     @Dsave
-    @Dsort
+    @DsortTrans
     def deletePersonByName(self, person_name:str):
         """
         deletes the given person from the system
@@ -496,7 +508,7 @@ class Backend:
             self.persons.pop(list(map(lambda x: x.name.lower(), self.persons)).index(person_name))
 
     @Dsave
-    @Dsort
+    @DsortTrans
     def deleteProductByName(self, product_name:str):
         """
         deletes the given product from the system
@@ -517,7 +529,7 @@ class Backend:
             self.products.pop(list(map(lambda x: x.name.lower(), self.products)).index(product_name))
 
     @Dsave
-    @Dsort
+    @DsortTrans
     def mergeCategory(self, category1:str, category2:str, new_category:str):
         """
         merges two given categories into a new one and name it like new_category
@@ -559,7 +571,7 @@ class Backend:
         self.categories.append(new_category)
 
     @Dsave
-    @Dsort
+    @DsortTrans
     def mergePerson(self, person1:str, person2:str, new_person:str):
         """
         merges two given persons into a new one and name it like new_person
@@ -608,7 +620,7 @@ class Backend:
                 transaction.why_persons.append(person)
 
     @Dsave
-    @Dsort
+    @DsortTrans
     def mergeProduct(self, product1:str, product2:str, new_product:str):
         """
         merges two given products into a new one and name it like new_product
@@ -642,7 +654,7 @@ class Backend:
         :param up: bool<ascending?>
         :return: void
         """
-        self.sortCriteria = [sortElement, up]
+        self.sortCriteriaTrans = [sortElement, up]
         if sortElement == SortEnum.NAME:
             self.transactions.sort(key=lambda x: x.product.name.lower(), reverse=not(up))
         elif sortElement == SortEnum.CASHFLOW:
@@ -850,7 +862,7 @@ class Backend:
         saves, the backend object in a file
         :return: void
         """
-        dumped_data = pickle.dumps([self.products, self.categories, self.persons, self.transactions])
+        dumped_data = pickle.dumps([self.products, self.categories, self.persons, self.transactions, self.investments, self.current_assets, self.ticker_symbols, self.ticker_shares_dict])
         dec_file = open("data.fin", "wb")
         dec_file.write(Fernet(self._key).encrypt(dumped_data))
         dec_file.close()
@@ -878,30 +890,73 @@ class Backend:
             self.categories = saved[1]
             self.persons =  saved[2]
             self.transactions = saved[3]
+            self.investments = saved[4]
+            self.current_assets = saved[5]
+            self.ticker_symbols = saved[6]
+            self.ticker_shares_dict = saved[7]
         except:
             print("Some error occured with the old data")
         
 
 #***********************INVESTMENT******************************
     def initInvestments(self):
-        self.investments = []
+        """
+        initialise the investment part of the backend
+        sets up some required datatyes
+        :return: void
+        """
+        self.investments:list[Investment] = []       #saves all investment objects
+        self.current_assets:list[Asset] = []    #saves all current assets hold by the user
+        self.ticker_symbols:list[str] = []           #a list of tickers used by the user (we can import some tickers here)
+        self.ticker_shares_dict:dict[str, float] = {}             #saves the current number of shares that the user is holding per asset
+        self.sortCriteriaInv = [SortEnum.DATE, True]
+        self.timeout_time = 1.0   #time in seconds the programm should wait for a api response before throwing
 
     def getTickerNames(self):
         """
         getter for ticker names
         :return: Iterable[str<ticker1>, ...]
         """
-        return ["ticker1", "ticker2"]
+        return self.ticker_symbols
     
     def getAvailableShortNames(self):
         """
         getter for stock names
         :return: Iterable[str<stock name1>, ...]
         """
-        return ["stock1", "stock2"]
+        return list(sorted(map(lambda x: x.short_name, self.current_assets)))
 
     def getInvestments(self):
-        return [Investment(datetime.date.today(), Asset("sym", "stock_name"), 10, 196.53, 1.99, 0.5)]
+        """
+        getter for investment objects
+        these are sorted like the sort criteria is specified
+        :return: Iterable[Investment]
+        """
+        return self.investments
+
+    def getTickerForName(self, name:str):
+        """
+        gets the ticker symbol from the given short name of the asset
+        :param name: str<name of the asset>
+        :return: str<ticker>
+        """
+        for asset in self.current_assets:
+            if asset.short_name == name:
+                return asset.ticker_symbol
+        print("error finding the name in the current assets")
+        raise ValueError
+
+    def getSharesForAsset(self, ticker_symbol:str):
+        """
+        getter for the number of shares currently hold of the given asset
+        :param ticker_symbol: str<ticker symbol of the asset from which the number of shares should be got>
+        :return: void
+        """
+        if ticker_symbol in self.ticker_shares_dict:
+            return self.ticker_shares_dict[ticker_symbol]
+        else:
+            #user dont hold this asset right now
+            return 0
 
     def sortInvestments(self, sortElement:SortEnum, up:bool):
         """
@@ -910,7 +965,7 @@ class Backend:
         :param up: bool<ascending?>
         :return: void
         """
-        self.sortCriteria = [sortElement, up]
+        self.sortCriteriaTrans = [sortElement, up]
         if sortElement == SortEnum.NAME:
             self.investments.sort(key=lambda x: x.asset.short_name.lower(), reverse=not(up))
         elif sortElement == SortEnum.CASHFLOW:
@@ -919,3 +974,83 @@ class Backend:
             self.investments.sort(key=lambda x: x.date, reverse=up)
         else:
             assert(False), STRINGS.ERROR_SORTELEMENT_OUT_OF_RANGE+str(sortElement)
+
+    def addInvestment(self, data:list[str, str, float, float, float, float]):
+        """
+        takes in some data from the form 
+        validates them first and adds the investment to the system if not error occurred
+        :param data: list[datetime.date<date of the transaction>, str<trade_type>, str<ticker>, float<number>, float<ppa>, float<tradingfee>, float<tax>]
+        :return: bool<success?>
+        """
+        assert(len(data) == 7), STRINGS.ERROR_WRONG_DATA_LENGTH+str(data)
+        date, trade_type, ticker_symbol, number, ppa, tradingfee, tax = data
+        #some type and range checks
+        assert(type(date) == datetime.date), STRINGS.getTypeErrorString(date, "date", datetime.date)
+        assert(type(trade_type) == str), STRINGS.getTypeErrorString(trade_type, "trade_type", str)
+        assert(type(ticker_symbol) == str), STRINGS.getTypeErrorString(ticker_symbol, "ticker", str)
+        assert(type(number) == float), STRINGS.getTypeErrorString(number, "number", float)
+        assert(type(ppa) == float), STRINGS.getTypeErrorString(ppa, "ppa", float)
+        assert(type(tradingfee) == float), STRINGS.getTypeErrorString(tradingfee, "tradingfee", float)
+        assert(type(tax) == float), STRINGS.getTypeErrorString(tax, "tax", float)
+
+        assert(trade_type in ["buy", "sell", "dividend"]), STRINGS.ERROR_TRADE_TYPE_NOT_VALID+trade_type
+        if not datetime.date(1900, 1, 1) <= date <= datetime.date.today():
+            #date out of range
+            self.error_string = f"The provided date is out of range (between 1900-1-1 and today): {date.isoformat()}"
+        if number <= 0 or ppa <= 0 or tradingfee < 0 or tax < 0:
+            #data out of range
+            self.error_string = "some of the following rules are broken:\nnumber of assets <= 0 \nprice per asset <= 0\n tradingfee < 0\ntax < 0"
+            return False
+        self.ticker_obj = False
+        thread = Thread(target=self._loadTicker, args=[ticker_symbol])
+        thread.start()
+        thread.join(self.timeout_time)
+        ticker_obj = self.ticker_obj
+        if ticker_obj == False:
+            self.error_string = f"ticker could not be loaded, because of network error or api errors.\nPlease try again later"
+            return False
+        try:
+            ticker_obj.info
+        except:
+            self.error_string = f"no data to the ticker with the symbol {ticker_symbol} could be found.\nCauses can be:\nThere was a network error\nThe api of yahoo finance has some errors or is not reachable at the moment\nThe provided ticker does not exist"
+            return False
+        try:
+            short_name = ticker_obj.info["shortName"]
+            cur = ticker_obj.info["currency"]
+        except:
+            self.error_string = f"the ticker symbol exists but has no name and currency data"
+            return False
+        if cur != STRINGS.CURRENCY_STRING:
+            self.error_string = f"the ticker you provided is not in your currency.\nYour currency: {STRINGS.CURRENCY_STRING}, asset currency: {cur}"
+            return False
+        
+        asset = Asset(ticker_symbol, short_name)
+        current_shares = self.getSharesForAsset(ticker_symbol)
+        if trade_type != "buy" and current_shares < number:
+            self.error_string = f"you only have {current_shares} shares of this asset.\nYou cannot sell/get dividend from {number} shares"
+            return False
+        inv_obj = Investment(date, asset, number, ppa, tradingfee, tax)
+        if inv_obj in self.investments:
+            self.error_string = "This investment is already added"
+            return False
+        self.investments.append(inv_obj)
+        if trade_type == "buy":
+            if ticker_symbol in self.ticker_shares_dict:
+                self.ticker_shares_dict[ticker_symbol] += number
+            else:
+                self.ticker_shares_dict[ticker_symbol] = number
+        elif trade_type == "sell":
+            if ticker_symbol in self.ticker_shares_dict:
+                self.ticker_shares_dict[ticker_symbol] -= number
+            else:
+                self.ticker_shares_dict[ticker_symbol] = number
+        return True
+
+    def _loadTicker(self, ticker_symbol:str):
+        """
+        extern method for loading the ticker on an other thread
+        :param ticker_symbol: str<symbol of the ticker you wanna load>
+        :return: void
+        """
+        self.ticker_obj = yfinance.Ticker(ticker_symbol)
+        return
