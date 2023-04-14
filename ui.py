@@ -2844,6 +2844,7 @@ class InvestTab(QWidget):
         self.backend:Backend = backend  #saves the backend
         self.InvestmentList = InvestmentList(self.backend.getInvestments, self.Eedit_last_investment)
         self.Inputs = Inputs(["ticker", "number", "price"], self.activateSubmitButton, self.deactivateSubmitButton)
+        self.mode = "buy"
 
         self.InitWidget()       #creates the base state of the widget
 
@@ -2865,7 +2866,7 @@ class InvestTab(QWidget):
         
         self.addWidgetsForm()       #add the ui components to build the form
         self.addWidgetsLastInvestments()    #add the ui components to build the last investments part
-        self.switchToBuyMode()      #at default the "buy" option is selected, the user can choose which kind of transaction should be done
+        self.switchMode()      #switches to the set mode
 
         self.setLayout(self.grid)
         self.adjustSize()
@@ -3156,6 +3157,7 @@ class InvestTab(QWidget):
         and replacing the combo box for the assets with an input box
         :return: void
         """
+        self.mode = "buy"
         self.wipeForm() #delete all data that is currently in the form (except date)
         #renaming labels
         self.ticker_label.setText(STRINGS.INVFORM_LABEL_TICKER)
@@ -3182,6 +3184,7 @@ class InvestTab(QWidget):
         and replacing the input field with a combobox for the assets
         :return: void
         """
+        self.mode = "dividend"
         self.wipeForm() #delete all data that is currently in the form (except date)
         #renaming labels
         self.ticker_label.setText(STRINGS.INVFORM_LABEL_SELECT_STOCK)
@@ -3209,6 +3212,7 @@ class InvestTab(QWidget):
         and replacing the input field with a combobox for the assets
         :return: void
         """
+        self.mode = "sell"
         self.wipeForm() #delete all data that is currently in the form (except date)
         #renaming labels
         self.ticker_label.setText(STRINGS.INVFORM_LABEL_SELECT_STOCK)
@@ -3302,10 +3306,10 @@ class InvestTab(QWidget):
         if type(self.ticker_edit) == QLineEdit:
             #Buy mode
             assert(trade_type == "buy")
-            ticker = self.ticker_edit.text()
+            ticker = self.ticker_edit.text().lower()
         else:
             assert(trade_type != "buy")
-            ticker = self.backend.getTickerForName(self.ticker_edit.currentText())
+            ticker = self.backend.getTickerForName(self.ticker_edit.currentText()).lower()
         try:
             number = float(self.number_edit.text())
         except:
@@ -3323,6 +3327,27 @@ class InvestTab(QWidget):
         except:
             tax = 0.0
         return (date, trade_type, ticker, number, ppa, tradingfee, tax)
+
+    def switchMode(self):
+        match self.mode:
+            #check which mode is selected and switch to that mode
+            case "buy":
+                self.switchToBuyMode()
+            case "dividend":
+                self.switchToDividendMode()
+            case "sell":
+                self.switchToSellMode()
+            case _:
+                #if not other case is met, the programm will land here
+                #the selected text is not in the possible choices
+                assert(False), STRINGS.ERROR_TRADE_TYPE_NOT_VALID+self.sender().currentText()
+
+    def investmentChanged(self):
+        self.switchMode()   #reload the form
+        self.ticker_completer = QCompleter(self.backend.getTickerNames())   #backend call to get the ticker names
+        self.ticker_completer.setCaseSensitivity(False)
+        self.ticker_edit.setCompleter(self.ticker_completer)      #add an autocompleter
+        self.InvestmentList.updateLastInvestments()
 
 
     def Eenter_only_positive_numbers(self):
@@ -3480,6 +3505,8 @@ class InvestTab(QWidget):
         success = self.backend.addInvestment(data)
         if not success:
             QMessageBox.critical(self, STRINGS.CRITICAL_ADD_INVESTMENT_TITLE, self.backend.error_string)
+        else:
+            self.investmentChanged()
 
 
     def Eopen_filter(self):

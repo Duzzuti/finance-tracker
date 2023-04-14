@@ -62,10 +62,11 @@ class Asset:
 
 
 class Investment:
-    def __init__(self, date:datetime.date, asset:Asset, number:float, price_per_asset:float, tradingfee:float, tax:float):
+    def __init__(self, trade_type:str, date:datetime.date, asset:Asset, number:float, price_per_asset:float, tradingfee:float, tax:float):
         """
         
         """
+        self.trade_type = trade_type
         self.date = date
         self.number = number
         self.asset = asset

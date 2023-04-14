@@ -460,7 +460,7 @@ class InvestmentList:
                 #if we dont know the button, a new one is created
                 button = self._getInvestmentButton(investment)
                 self.investment_button_dict[investment] = button
-            elif not investment.short_name == self.investment_short_name_dict[investment]:
+            elif not investment.asset.short_name == self.investment_short_name_dict[investment]:
                 #short name got changed
                 button = self._getInvestmentButton(investment)
                 self.investment_button_dict[investment] = button

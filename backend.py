@@ -907,7 +907,7 @@ class Backend:
         """
         self.investments:list[Investment] = []       #saves all investment objects
         self.current_assets:list[Asset] = []    #saves all current assets hold by the user
-        self.ticker_symbols:list[str] = []           #a list of tickers used by the user (we can import some tickers here)
+        self.ticker_symbols:dict[str, True] = {}           #a list of tickers used by the user (we can import some tickers here)
         self.ticker_shares_dict:dict[str, float] = {}             #saves the current number of shares that the user is holding per asset
         self.sortCriteriaInv = [SortEnum.DATE, True]
         self.timeout_time = 1.0   #time in seconds the programm should wait for a api response before throwing
@@ -932,6 +932,7 @@ class Backend:
         these are sorted like the sort criteria is specified
         :return: Iterable[Investment]
         """
+        print(self.investments)
         return self.investments
 
     def getTickerForName(self, name:str):
@@ -976,6 +977,7 @@ class Backend:
             assert(False), STRINGS.ERROR_SORTELEMENT_OUT_OF_RANGE+str(sortElement)
     
     @Dsave
+    @DsortInv
     def addInvestment(self, data:list[str, str, float, float, float, float]):
         """
         takes in some data from the form 
@@ -1030,7 +1032,7 @@ class Backend:
         if trade_type != "buy" and current_shares < number:
             self.error_string = f"you only have {current_shares} shares of this asset.\nYou cannot sell/get dividend from {number} shares"
             return False
-        inv_obj = Investment(date, asset, number, ppa, tradingfee, tax)
+        inv_obj = Investment(trade_type, date, asset, number, ppa, tradingfee, tax)
         if inv_obj in self.investments:
             self.error_string = "This investment is already added"
             return False
@@ -1045,7 +1047,50 @@ class Backend:
                 self.ticker_shares_dict[ticker_symbol] -= number
             else:
                 self.ticker_shares_dict[ticker_symbol] = number
+
+        self.ticker_symbols[ticker_symbol] = True
+        if self.ticker_shares_dict[ticker_symbol] > 0:
+            if not(asset in self.current_assets):
+                self.current_assets.append(asset)
+        else:
+            self.ticker_shares_dict.pop(ticker_symbol)
+            if asset in self.current_assets:
+                self.current_assets.remove(asset)
         return True
+    
+    @Dsave
+    @DsortInv
+    def _update(self):
+        tcurrent_assets = []
+        tticker_shares_dict = {}
+        self.sortInvestments(SortEnum.DATE, False)
+        for inv in self.investments:
+            inv:Investment
+            match inv.trade_type:
+                case "buy":
+                    if inv.asset.ticker_symbol in tticker_shares_dict:
+                        tticker_shares_dict[inv.asset.ticker_symbol] += inv.number
+                    else:
+                        tticker_shares_dict[inv.asset.ticker_symbol] = inv.number
+                case "sell":
+                    if inv.asset.ticker_symbol in tticker_shares_dict:
+                        tticker_shares_dict[inv.asset.ticker_symbol] -= inv.number
+                    else:
+                        tticker_shares_dict[inv.asset.ticker_symbol] = -inv.number
+            if tticker_shares_dict[inv.asset.ticker_symbol] > 0:
+                if not inv.asset in tcurrent_assets:
+                    tcurrent_assets.append(inv.asset)
+            else:
+                if inv.asset in tcurrent_assets:
+                    tcurrent_assets.remove(inv.asset)
+            inv.asset.ticker_symbol[self.ticker_symbols] = True
+                
+    @Dsave
+    def _reset(self):
+        self.investments:list[Investment] = []       #saves all investment objects
+        self.current_assets:list[Asset] = []    #saves all current assets hold by the user
+        self.ticker_symbols:dict[str, True] = {}           #a list of tickers used by the user (we can import some tickers here)
+        self.ticker_shares_dict:dict[str, float] = {}             #saves the current number of shares that the user is holding per asset
 
     def _loadTicker(self, ticker_symbol:str):
         """
