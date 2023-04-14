@@ -1,24 +1,41 @@
+"""
+this module holds constants that are used in the gui
+"""
 from PyQt5.QtGui import QFont, QIcon, QPixmap
 
 class FONTS:
-    APP_NEW_TRANSACTION = QFont("Arial", 18, italic=True)
-    APP_NEW_TRANSACTION.setBold(True)
+    """
+    all used fonts of the program are stored here, you can easily change them
+    """
+    BIG_ITALIC_BOLD = QFont("Arial", 18, italic=True)
+    BIG_ITALIC_BOLD.setBold(True)
 
-    APP_NEW_TRANSACTION_CF = QFont("Arial", 12, italic=True)
+    ITALIC = QFont("Arial", 12, italic=True)
 
-    APP_NEW_TRANSACTION_SUBMIT = QFont("Arial", 16)
-    APP_NEW_TRANSACTION_SUBMIT.setBold(True)
+    BIG_BOLD = QFont("Arial", 16)
+    BIG_BOLD.setBold(True)
 
-    APP_LAST_TRANSACTION_SORT = QFont("Arial", 10)
-    APP_LAST_TRANSACTION_SORT_ACTIVE = QFont("Arial", 10)
-    APP_LAST_TRANSACTION_SORT_ACTIVE.setBold(True)
+    SMALL = QFont("Arial", 10)
+    SMALL_BOLD = QFont("Arial", 10)
+    SMALL_BOLD.setBold(True)
 
-    FWINDOW = QFont("Arial", 13, italic=True)
-    FWINDOW.setUnderline(True)
+    ITALIC_UNDERLINE = QFont("Arial", 13, italic=True)
+    ITALIC_UNDERLINE.setUnderline(True)
 
 class ICONS:
-    def compare(icon1:QIcon, icon2:QIcon):
-        return icon1.pixmap(128, 128).toImage() == icon2.pixmap(128, 128).toImage()
+    """
+    all icons and pixmaps that are used in the program are stored here
+    """
+    def compare(icon1:QIcon, icon2:QIcon, x:int=128, y:int=128):
+        """
+        this method compares two icons
+        :param icon1: QIcon<the first icon that should be compared>
+        :param icon2: QIcon<the second icon that should be compared>
+        :param x: int<x dimension of the icons>
+        :param y: int<y dimension of the icons>
+        :return: bool<are the icons the same?>
+        """
+        return icon1.pixmap(x, y).toImage() == icon2.pixmap(x, y).toImage()
     
     SORT_DEFAULT = QIcon("media/sort_default.png")
     SORT_UP = QIcon("media/sort_up.png")

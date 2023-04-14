@@ -1004,39 +1004,51 @@ class Backend:
             #data out of range
             self.error_string = "some of the following rules are broken:\nnumber of assets <= 0 \nprice per asset <= 0\n tradingfee < 0\ntax < 0"
             return False
+        
+        #gets the ticker object from the api
+        #sets up a variable that should store the Ticker object
         self.ticker_obj = False
-        thread = Thread(target=self._loadTicker, args=[ticker_symbol])
+        #calling the loadTicker method on a new thread to avoid hanging program
+        thread = Thread(target=self._loadTicker, args=[ticker_symbol])  
         thread.start()
+        #if no ticker is got after a given timeout the program returns with a connection error
         thread.join(self.timeout_time)
-        ticker_obj = self.ticker_obj
+        ticker_obj = self.ticker_obj    
         if ticker_obj == False:
+            #could not load the ticker object, because its still false
             self.error_string = f"ticker could not be loaded, because of network error or api errors.\nPlease try again later"
             return False
         try:
             ticker_obj.info
         except:
+            #ticker was loaded but not valid (there are no information about this ticker)
             self.error_string = f"no data to the ticker with the symbol {ticker_symbol} could be found.\nCauses can be:\nThere was a network error\nThe api of yahoo finance has some errors or is not reachable at the moment\nThe provided ticker does not exist"
             return False
         try:
             short_name = ticker_obj.info["shortName"]
             cur = ticker_obj.info["currency"]
         except:
+            #there are still not enough informations to work with
             self.error_string = f"the ticker symbol exists but has no name and currency data"
             return False
         if cur != STRINGS.CURRENCY_STRING:
-            self.error_string = f"the ticker you provided is not in your currency.\nYour currency: {STRINGS.CURRENCY_STRING}, asset currency: {cur}"
+            #the ticker selected by the user has a different currency than the set currency of the program (that is invalid)
+            self.error_string = f"the ticker you provided is not in your currency.\nYour currency: {STRINGS.CURRENCY_STRING}, asset currency: {cur}\nPlease provide the ticker with your currency"
             return False
         
-        asset = Asset(ticker_symbol, short_name)
-        current_shares = self.getSharesForAsset(ticker_symbol)
+        asset = Asset(ticker_symbol, short_name)    #creates the asset object
+        current_shares = self.getSharesForAsset(ticker_symbol)  #get the current hold assets by the user
         if trade_type != "buy" and current_shares < number:
+            #the user is trying to sell (or get a dividend from) more shares than currently hold
             self.error_string = f"you only have {current_shares} shares of this asset.\nYou cannot sell/get dividend from {number} shares"
             return False
-        inv_obj = Investment(trade_type, date, asset, number, ppa, tradingfee, tax)
+        inv_obj = Investment(trade_type, date, asset, number, ppa, tradingfee, tax) #create the investment object
         if inv_obj in self.investments:
+            #the user tries to add the same investment twice
             self.error_string = "This investment is already added"
             return False
-        self.investments.append(inv_obj)
+        self.investments.append(inv_obj)    #adds the investment
+        #adds/subtractes the shares that are bought/sold from the dict
         if trade_type == "buy":
             if ticker_symbol in self.ticker_shares_dict:
                 self.ticker_shares_dict[ticker_symbol] += number
@@ -1046,21 +1058,24 @@ class Backend:
             if ticker_symbol in self.ticker_shares_dict:
                 self.ticker_shares_dict[ticker_symbol] -= number
             else:
-                self.ticker_shares_dict[ticker_symbol] = number
+                assert(False)
 
-        self.ticker_symbols[ticker_symbol] = True
+        self.ticker_symbols[ticker_symbol] = True   #adds this ticker symbol to the symbol list
+        #adds the asset to the current assets if more than zero shares are hold
         if self.ticker_shares_dict[ticker_symbol] > 0:
             if not(asset in self.current_assets):
                 self.current_assets.append(asset)
-        else:
+        elif self.ticker_shares_dict[ticker_symbol] == 0:
             self.ticker_shares_dict.pop(ticker_symbol)
             if asset in self.current_assets:
                 self.current_assets.remove(asset)
+        else:
+            assert(False)
         return True
     
     @Dsave
     @DsortInv
-    def _update(self):
+    def _update(self):  #WORK
         tcurrent_assets = []
         tticker_shares_dict = {}
         self.sortInvestments(SortEnum.DATE, False)
@@ -1087,6 +1102,11 @@ class Backend:
                 
     @Dsave
     def _reset(self):
+        """
+        resets the investment datatypes
+        THIS WILL DELETE ALL INVESTMENT DATA
+        :return: void
+        """
         self.investments:list[Investment] = []       #saves all investment objects
         self.current_assets:list[Asset] = []    #saves all current assets hold by the user
         self.ticker_symbols:dict[str, True] = {}           #a list of tickers used by the user (we can import some tickers here)

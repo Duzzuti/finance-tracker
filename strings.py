@@ -1,18 +1,39 @@
+"""
+this module stores all strings that are used in the programm
+you can add your own language and the programm can easily adapt to that language
+"""
 class ENG:
+    """
+    all strings in english are stored here
+    """
     def getTypeErrorString(arg, arg_name,  _type):
+        """
+        gets the error string, if some argument has the wrong type
+        :param arg: any<argument that has the wrong type>
+        :param arg_name: str<the name of the argument>
+        :param _type: type<the type the argument should have>
+        :return: str<error message>
+        """
         return f"The argument '{arg_name}' is not of type {_type}: {arg}"
 
     def getListTypeErrorString(arg, arg_name, inner_type):
+        """
+        gets the error string, if some list argument is either not a list or its contents are the wrong type
+        :param arg: any<list argument that has the wrong type>
+        :param arg_name: str<the name of the list argument>
+        :param _type: type<the type the contents of the list should have>
+        :return: str<error message>
+        """
         return f"The list '{arg_name}' is not of type list or/and the contents are not of type {inner_type}: {arg}"
 
 
     #META Strings
-    CURRENCY = "€"
-    CURRENCY_STRING = "EUR"
-    COMMA = "."
+    CURRENCY = "€"                  #currency sign
+    CURRENCY_STRING = "EUR"         #currency abbreviation
+    COMMA = "."                     #the comma that is used in the programm (all other commas are replaced with this)
     BIG_NUMBER_SEPARATER = ","
-    COMMAS = [".", ","]
-    ZERO_STRINGS = ["", " ", "."]
+    COMMAS = [".", ","]             #all accepted commas
+    ZERO_STRINGS = ["", " ", "."]   #strings that should evaluate to zero if we want a number as an input
 
     #Main Window Strings
     APP_TITLE = "Finance tracker"
@@ -222,7 +243,10 @@ class ENG:
     ERROR_CATEGORY_CONTAINS_NOT_ENOUGH_CHAR = "The category contains less than 3 visible characters: "
     ERROR_PERSON_CONTAINS_NOT_ENOUGH_CHAR = "The person contains less than 3 visible characters: "
     ERROR_PRODUCT_CONTAINS_NOT_ENOUGH_CHAR = "The product contains less than 1 visible characters: "
-    ERROR_NUMBER_ZERO_OR_LESS = "The number of products is not greater than zero: "
+    ERROR_NUMBER_ZERO_OR_LESS = "The number of products/assets is not greater than zero: "
+    ERROR_PRICE_ZERO_OR_LESS = "The price of the asset is not greater than zero: "
+    ERROR_TRADINGFEE_LESS_ZERO = "The tradingfee is below zero: "
+    ERROR_TAX_LESS_ZERO = "The tax is below zero: "
     ERROR_CASHFLOW_ZERO = "The given Cashflow is zero: "
     ERROR_NOT_ALL_CATEGORIES_ARE_VALID = "There are some categories, which are not in the database: "
     ERROR_NOT_ALL_FTPERSONS_ARE_VALID = "There are some from/to persons, which are not in the database: "

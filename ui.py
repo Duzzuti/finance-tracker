@@ -96,17 +96,17 @@ class Window(QDialog):
         self.grid1 = QGridLayout()  #layout for the first tab
         #meta label for the form part of the window, where the user can edit and create new transactions
         self.groupBox_transaction_label = QLabel(STRINGS.APP_LABEL_NEW_TRANSACTION, self)
-        self.groupBox_transaction_label.setFont(FONTS.APP_NEW_TRANSACTION)
+        self.groupBox_transaction_label.setFont(FONTS.BIG_ITALIC_BOLD)
         self.groupBox_transaction = QGroupBox()
         self.layout_transaction = QVBoxLayout()
         #meta label for the last transaction part of the window, the user can scroll through the past transaction, search and sort them
         self.groupBox_lastTransactions_label = QLabel(STRINGS.APP_LABEL_LAST_TRANSACTIONS, self)
-        self.groupBox_lastTransactions_label.setFont(FONTS.APP_NEW_TRANSACTION)
+        self.groupBox_lastTransactions_label.setFont(FONTS.BIG_ITALIC_BOLD)
         self.groupBox_lastTransactions = QGroupBox()
         self.layout_lastTransaction = QVBoxLayout()
         #meta label for the edit part of the window, the user can rename, delete and merge products, categories and persons
         self.groupBox_edit_label = QLabel(STRINGS.APP_LABEL_EDIT, self)
-        self.groupBox_edit_label.setFont(FONTS.APP_NEW_TRANSACTION)
+        self.groupBox_edit_label.setFont(FONTS.BIG_ITALIC_BOLD)
         self.groupBox_edit = QGroupBox()
         self.layout_edit = QVBoxLayout()
         self.layout_edit.setAlignment(Qt.AlignmentFlag.AlignTop)
@@ -192,7 +192,7 @@ class Window(QDialog):
         self.cf_meta_layout = QHBoxLayout()
         self.cf_meta_layout.setContentsMargins(0,0,0,0)
         self.trans_cf_label = QLabel(STRINGS.APP_LABEL_NEW_TRANSACTION_CF)
-        self.trans_cf_label.setFont(FONTS.APP_NEW_TRANSACTION_CF)
+        self.trans_cf_label.setFont(FONTS.ITALIC)
         self.cf_meta_layout.addWidget(self.trans_cf_label)
 
         cf_meta_widget.setLayout(self.cf_meta_layout)
@@ -363,7 +363,7 @@ class Window(QDialog):
         self.submit_widget = QWidget()
         self.submit_layout = QHBoxLayout()
         self.submit_button = QPushButton(STRINGS.APP_BUTTON_NEW_TRANSACTION_SUBMIT)
-        self.submit_button.setFont(FONTS.APP_NEW_TRANSACTION_SUBMIT)
+        self.submit_button.setFont(FONTS.BIG_BOLD)
         #at default the button is disabled, you need to fill out all required fields to activate it
         #this is monitored by the input object
         self.submit_button.setEnabled(False)
@@ -412,7 +412,7 @@ class Window(QDialog):
         
         for sort_button in self.sort_buttons:
             #set some aesthetics and connect to the right event handler
-            sort_button.setFont(FONTS.APP_LAST_TRANSACTION_SORT)
+            sort_button.setFont(FONTS.SMALL)
             sort_button.setIcon(ICONS.SORT_DEFAULT)
             layout_sort.addWidget(sort_button)
             sort_button.clicked.connect(self.Esort_transactions)
@@ -466,7 +466,7 @@ class Window(QDialog):
         #********************RENAMING********************************
         #renaming label
         label_renaming = QLabel(STRINGS.APP_LABEL_RENAMING)
-        label_renaming.setFont(FONTS.APP_NEW_TRANSACTION_SUBMIT)
+        label_renaming.setFont(FONTS.BIG_BOLD)
         #renaming groupbox
         self.layout_edit.addWidget(label_renaming)
         groupbox_renaming = QGroupBox()
@@ -568,7 +568,7 @@ class Window(QDialog):
         #********************DELETING********************************
         #deleting label
         label_deleting = QLabel(STRINGS.APP_LABEL_DELETING)
-        label_deleting.setFont(FONTS.APP_NEW_TRANSACTION_SUBMIT)
+        label_deleting.setFont(FONTS.BIG_BOLD)
         #deleting groupbox
         self.layout_edit.addWidget(label_deleting)
         groupbox_deleting = QGroupBox()
@@ -646,7 +646,7 @@ class Window(QDialog):
         #********************MERGING*********************************
         #merging label
         label_merging = QLabel(STRINGS.APP_LABEL_MERGING)
-        label_merging.setFont(FONTS.APP_NEW_TRANSACTION_SUBMIT)
+        label_merging.setFont(FONTS.BIG_BOLD)
         #merging groupbox
         self.layout_edit.addWidget(label_merging)
         groupbox_merging = QGroupBox()
@@ -818,12 +818,12 @@ class Window(QDialog):
         self.submit_button.setEnabled(True)
 
         delete_button = QPushButton(STRINGS.APP_BUTTON_EDIT_TRANSACTION_DELETE)
-        delete_button.setFont(FONTS.APP_NEW_TRANSACTION_SUBMIT)
+        delete_button.setFont(FONTS.BIG_BOLD)
         delete_button.setStyleSheet("color:red")
         self.submit_layout.addWidget(delete_button)
 
         cancel_button = QPushButton(STRINGS.APP_BUTTON_EDIT_TRANSACTION_CANCEL)
-        cancel_button.setFont(FONTS.APP_NEW_TRANSACTION_SUBMIT)
+        cancel_button.setFont(FONTS.BIG_BOLD)
         self.submit_layout.addWidget(cancel_button)
 
         #disconnect renaming ui components
@@ -2277,7 +2277,7 @@ class FilterWindow(QDialog):
         self.main_label_layout = QHBoxLayout()
         self.main_label_layout.setContentsMargins(0,0,0,0)
         self.main_label = QLabel(STRINGS.FWINDOW_LABEL)
-        self.main_label.setFont(FONTS.APP_NEW_TRANSACTION)
+        self.main_label.setFont(FONTS.BIG_ITALIC_BOLD)
         self.main_label_layout.addWidget(self.main_label)
         main_label_widget.setLayout(self.main_label_layout)
         self.grid.addWidget(main_label_widget, 0, 0)
@@ -2292,7 +2292,7 @@ class FilterWindow(QDialog):
         self.date_label_layout = QHBoxLayout()
         self.date_label_layout.setContentsMargins(0,0,0,0)
         self.date_label = QLabel(STRINGS.FWINDOW_LABEL_DATE)
-        self.date_label.setFont(FONTS.FWINDOW)
+        self.date_label.setFont(FONTS.ITALIC_UNDERLINE)
         self.date_label_layout.addWidget(self.date_label)
         date_label_widget.setLayout(self.date_label_layout)
         layout_date.addWidget(date_label_widget, 0, 0)
@@ -2323,7 +2323,7 @@ class FilterWindow(QDialog):
         self.product_label_layout = QHBoxLayout()
         self.product_label_layout.setContentsMargins(0,0,0,0)
         self.product_label = QLabel(STRINGS.FWINDOW_LABEL_PRODUCT)
-        self.product_label.setFont(FONTS.FWINDOW)
+        self.product_label.setFont(FONTS.ITALIC_UNDERLINE)
         self.product_label_layout.addWidget(self.product_label)
         product_label_widget.setLayout(self.product_label_layout)
         grid_prod.addWidget(product_label_widget, 0, 0)
@@ -2363,7 +2363,7 @@ class FilterWindow(QDialog):
         self.cashflow_label_layout = QHBoxLayout()
         self.cashflow_label_layout.setContentsMargins(0,0,0,0)
         self.cashflow_label = QLabel(STRINGS.FWINDOW_LABEL_CASHFLOW)
-        self.cashflow_label.setFont(FONTS.FWINDOW)
+        self.cashflow_label.setFont(FONTS.ITALIC_UNDERLINE)
         self.cashflow_label_layout.addWidget(self.cashflow_label)
         cashflow_label_widget.setLayout(self.cashflow_label_layout)
         grid_cf.addWidget(cashflow_label_widget, 0, 0)
@@ -2430,7 +2430,7 @@ class FilterWindow(QDialog):
         self.category_label_layout = QHBoxLayout()
         self.category_label_layout.setContentsMargins(0,0,0,0)
         self.category_label = QLabel(STRINGS.FWINDOW_LABEL_CATEGORY)
-        self.category_label.setFont(FONTS.FWINDOW)
+        self.category_label.setFont(FONTS.ITALIC_UNDERLINE)
         self.category_label_layout.addWidget(self.category_label)
         category_label_widget.setLayout(self.category_label_layout)
         grid_cat.addWidget(category_label_widget, 0, 0)
@@ -2463,7 +2463,7 @@ class FilterWindow(QDialog):
         self.person_label_layout = QHBoxLayout()
         self.person_label_layout.setContentsMargins(0,0,0,0)
         self.person_label = QLabel(STRINGS.FWINDOW_LABEL_PERSON)
-        self.person_label.setFont(FONTS.FWINDOW)
+        self.person_label.setFont(FONTS.ITALIC_UNDERLINE)
         self.person_label_layout.addWidget(self.person_label)
         person_label_widget.setLayout(self.person_label_layout)
         grid_person.addWidget(person_label_widget, 0, 0)
@@ -2513,7 +2513,7 @@ class FilterWindow(QDialog):
         self.submit_widget = QWidget()
         self.submit_layout = QHBoxLayout()
         self.submit_button = QPushButton(STRINGS.FWINDOW_LABEL_SET_FILTER)
-        self.submit_button.setFont(FONTS.APP_NEW_TRANSACTION_SUBMIT)
+        self.submit_button.setFont(FONTS.BIG_BOLD)
         self.submit_button.clicked.connect(self.Esubmit_filter)
         self.submit_layout.addWidget(self.submit_button)
         self.submit_widget.setLayout(self.submit_layout)
@@ -2860,7 +2860,7 @@ class InvestTab(QWidget):
         #here you can enter a new investment or edit a past investment
         #label for the form
         self.label_form = QLabel(STRINGS.INVFORM_LABEL_NEW_INV)
-        self.label_form.setFont(FONTS.APP_NEW_TRANSACTION)
+        self.label_form.setFont(FONTS.BIG_ITALIC_BOLD)
         self.label_form.setFixedSize(self.label_form.sizeHint())
         self.grid.addWidget(self.label_form, 0, 0)
         
@@ -2901,7 +2901,7 @@ class InvestTab(QWidget):
 
         #creates the label for the trade type
         self.trade_type_label = QLabel(STRINGS.INVFORM_LABEL_TRADE_TYPE)
-        self.trade_type_label.setFont(FONTS.APP_NEW_TRANSACTION_CF)
+        self.trade_type_label.setFont(FONTS.ITALIC)
         layout_trade_type.addWidget(self.trade_type_label)
 
         #creates the combo from which the user can choose the trade type
@@ -2917,7 +2917,7 @@ class InvestTab(QWidget):
         self.layout_form.addWidget(group_trade_type)
 
         #********************YAHOO_TICKER****************************
-        #holds the widget for the input of the ticker you bought or selled
+        #holds the widget for the input of the ticker you bought or sold
         #the user can enter a yahoo ticker from the asset he bought
         #if the form is in sell or dividend mode, this input will be replaced by a combobox from which the user can choose a owned asset
         self.groupbox_ticker_num = QGroupBox()
@@ -2955,7 +2955,7 @@ class InvestTab(QWidget):
 
         #********************PRICE********************************
         #holds the labels and inputs for the price of the asset
-        #the user can enter the price to which the asset was bought or selled (or the dividend in dividend mode)
+        #the user can enter the price to which the asset was bought or sold (or the dividend in dividend mode)
         #the user can enter the price per asset or the price for the whole transaction (or dividend). They will be synced automatically
         grid_price = QGridLayout()
         groupbox_price_full = QGroupBox()
@@ -2965,7 +2965,7 @@ class InvestTab(QWidget):
         self.price_meta_layout = QHBoxLayout()
         self.price_meta_layout.setContentsMargins(0,0,0,0)
         self.price_label = QLabel(STRINGS.INVFORM_LABEL_PRICE)
-        self.price_label.setFont(FONTS.APP_NEW_TRANSACTION_CF)
+        self.price_label.setFont(FONTS.ITALIC)
         self.price_meta_layout.addWidget(self.price_label)
 
         price_meta_widget.setLayout(self.price_meta_layout)
@@ -3009,7 +3009,7 @@ class InvestTab(QWidget):
         self.fee_meta_layout = QHBoxLayout()
         self.fee_meta_layout.setContentsMargins(0,0,0,0)
         self.fee_label = QLabel(STRINGS.INVFORM_LABEL_FEES)
-        self.fee_label.setFont(FONTS.APP_NEW_TRANSACTION_CF)
+        self.fee_label.setFont(FONTS.ITALIC)
         self.fee_meta_layout.addWidget(self.fee_label)
 
         fee_meta_widget.setLayout(self.fee_meta_layout)
@@ -3043,7 +3043,7 @@ class InvestTab(QWidget):
         self.submit_layout = QHBoxLayout()
 
         self.submit_button = QPushButton(STRINGS.INVFORM_BUTTON_SUBMIT)
-        self.submit_button.setFont(FONTS.APP_NEW_TRANSACTION_SUBMIT)
+        self.submit_button.setFont(FONTS.BIG_BOLD)
         #at default the button is disabled, you need to fill out all required fields to activate it
         self.submit_button.setEnabled(False)
         self.submit_button.clicked.connect(self.Esubmit_investment)
@@ -3102,7 +3102,7 @@ class InvestTab(QWidget):
         
         for sort_button in self.sort_buttons:
             #set some aesthetics and connect to the right event handler
-            sort_button.setFont(FONTS.APP_LAST_TRANSACTION_SORT)
+            sort_button.setFont(FONTS.SMALL)
             sort_button.setIcon(ICONS.SORT_DEFAULT)
             layout_sort.addWidget(sort_button)
             sort_button.clicked.connect(self.Esort_investments)
