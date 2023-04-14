@@ -40,6 +40,24 @@ class utils:
                 return text.replace(_char, "")
         return text
 
+    def getNumberFromLineEdit(edit:QLineEdit):
+        """
+        extracts the number out of a line edit that contains text
+        :param edit: QLineEdit<input field that contains the number>
+        :return: float<number in the edit, or 0 if its not valid>
+        """
+        assert(type(edit) == QLineEdit), STRINGS.getTypeErrorString(edit, "edit", QLineEdit)
+        try:
+            #gets the new value of the input
+            value = float(edit.text())
+        except:
+            if not edit.text() in STRINGS.ZERO_STRINGS:
+                #some non valid inputs are read. The synchronization cannot be completed
+                print(STRINGS.ERROR_CONVERT_STRING_TO_INT+edit.text())
+                return 0.0
+            #if we just got some blank text or a comma. We set the value to zero
+            value = 0.0
+        return value
 
 class SortEnum(Enum):
     """

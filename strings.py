@@ -182,6 +182,8 @@ class ENG:
     #critical
     CRITICAL_IMPORT_TRANSACTIONS_TITLE = "Error importing transactions"
     CRITICAL_IMPORT_TRANSACTIONS = "Some errors are occured while importing the transactions.\nThe csv file was probably not in the right format\nYour data got lost due to this error, please load your backup (your full data backup) that you have made (hopefully :))"
+    CRITICAL_ADD_INVESTMENT_TITLE = "Error while adding the investment"
+
 
     #info
     INFO_TRANSACTION_WAS_NOT_ADDED = "The transaction was not added"

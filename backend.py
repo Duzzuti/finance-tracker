@@ -974,7 +974,8 @@ class Backend:
             self.investments.sort(key=lambda x: x.date, reverse=up)
         else:
             assert(False), STRINGS.ERROR_SORTELEMENT_OUT_OF_RANGE+str(sortElement)
-
+    
+    @Dsave
     def addInvestment(self, data:list[str, str, float, float, float, float]):
         """
         takes in some data from the form 

@@ -1315,78 +1315,45 @@ class Window(QDialog):
         edit = self.sender()
         #if the price per product was changed
         if edit == self.trans_ppp_edit:
-            try:
-                #gets the new value of the input
-                value = float(edit.text())
-            except:
-                if not edit.text() in STRINGS.ZERO_STRINGS:
-                    #some non valid inputs are read. The synchronization cannot be completed
-                    print(STRINGS.ERROR_CONVERT_STRING_TO_INT+edit.text())
-                    return
-                #if we just got some blank text or a comma. We set the value to zero
-                value = 0
+            value = utils.getNumberFromLineEdit(edit)
             
             #gets the number of products (its a spinBox, that is why it has to be an int)
             number = self.trans_number_spin_box.value()
 
             #disconnect from this event handler to prevent recursion
             self.trans_fullp_edit.textChanged.disconnect(self.Esync_cashflows)
-            self.trans_ppp_edit.textChanged.disconnect(self.Esync_cashflows)
 
             assert(type(value) in (float, int) and type(number) in (float, int)), STRINGS.ERROR_NOT_TYPE_NUM+str(number)+", "+str(value)
             self.trans_fullp_edit.setText(str(value*number))    #sets the synced cashflow
             #connect to this event handler again
             self.trans_fullp_edit.textChanged.connect(self.Esync_cashflows)
-            self.trans_ppp_edit.textChanged.connect(self.Esync_cashflows)
         
         #if the full price was changed
         if edit == self.trans_fullp_edit:
-            try:
-                #gets the new value of the input
-                value = float(edit.text())
-            except:
-                if not edit.text() in STRINGS.ZERO_STRINGS:
-                    #some non valid inputs are read. The synchronization cannot be completed
-                    print(STRINGS.ERROR_CONVERT_STRING_TO_INT+edit.text())
-                    return
-                #if we just got some blank text or a comma. We set the value to zero
-                value = 0
+            value = utils.getNumberFromLineEdit(edit)
             
             #gets the number of products (its a spinBox, that is why it has to be an int)
             number = self.trans_number_spin_box.value()
 
             #disconnect from this event handler to prevent recursion
-            self.trans_fullp_edit.textChanged.disconnect(self.Esync_cashflows)
             self.trans_ppp_edit.textChanged.disconnect(self.Esync_cashflows)
 
             assert(type(value) in (float, int) and type(number) in (float, int)), STRINGS.ERROR_NOT_TYPE_NUM+str(number)+", "+str(value)
             self.trans_ppp_edit.setText(str(value/number))      #sets the synced cashflow
             #connect to this event handler again
-            self.trans_fullp_edit.textChanged.connect(self.Esync_cashflows)
             self.trans_ppp_edit.textChanged.connect(self.Esync_cashflows)
 
         #if the product number was changed
         if edit == self.trans_number_spin_box:
-            try:
-                #gets the value of the price per product input
-                value = float(self.trans_ppp_edit.text())
-            except:
-                if not self.trans_ppp_edit.text() in STRINGS.ZERO_STRINGS:
-                    #some non valid inputs are read. The synchronization cannot be completed
-                    print(STRINGS.ERROR_CONVERT_STRING_TO_INT+self.trans_ppp_edit.text())
-                    return
-                #if we just got some blank text or a comma. We set the value to zero
-                value = 0
+            value = utils.getNumberFromLineEdit(self.trans_ppp_edit)
             #gets the number of products (its a spinBox, that is why it has to be an int)
             number = edit.value()
             #disconnect from this event handler to prevent recursion
             self.trans_fullp_edit.textChanged.disconnect(self.Esync_cashflows)
-            self.trans_ppp_edit.textChanged.disconnect(self.Esync_cashflows)
             assert(type(value) in (float, int) and type(number) in (float, int)), STRINGS.ERROR_NOT_TYPE_NUM+str(number)+", "+str(value)
             self.trans_fullp_edit.setText(str(value*number))                #sets the synced cashflow
             #connect to this event handler again
             self.trans_fullp_edit.textChanged.connect(self.Esync_cashflows)
-            self.trans_ppp_edit.textChanged.connect(self.Esync_cashflows)
     
     def Ecategory_choosed(self):
         """
@@ -2978,6 +2945,7 @@ class InvestTab(QWidget):
         self.number_edit = QLineEdit()
         self.number_edit.textChanged.connect(self.Eenter_only_positive_numbers)
         self.number_edit.textChanged.connect(self.Echange_number_text)
+        self.number_edit.textChanged.connect(self.Esync_cashflows)
         self.hgrid_ticker_num.addWidget(self.number_edit, 1, 1)
 
         #completes this group
@@ -3014,12 +2982,14 @@ class InvestTab(QWidget):
         self.ppa_edit = QLineEdit()
         self.ppa_edit.textChanged.connect(self.Eenter_only_positive_numbers)
         self.ppa_edit.textChanged.connect(self.Echange_price_text)
+        self.ppa_edit.textChanged.connect(self.Esync_cashflows)
         grid_price.addWidget(self.ppa_edit, 3, 1)
 
         #full price input
         self.fullp_edit = QLineEdit()
         self.fullp_edit.textChanged.connect(self.Eenter_only_positive_numbers)
         self.fullp_edit.textChanged.connect(self.Echange_price_text)
+        self.fullp_edit.textChanged.connect(self.Esync_cashflows)
         grid_price.addWidget(self.fullp_edit, 3, 2)
 
         #sets up the layout for this group
@@ -3377,6 +3347,54 @@ class InvestTab(QWidget):
         assert(type(self.sender()) == QLineEdit), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
         self.sender().setText(utils.only_numbers(self.sender(), negatives=True))   #redirects to a event handler 
 
+    def Esync_cashflows(self):
+        """
+        Event handler
+        activates if the text in an cashflow input changed (or asset number)
+        syncs the cashflow by taking the changed input and the asset number as the base to calculate the other cashflow input
+        if the asset number is changed, the base is the price per asset and the full price gets synced
+        :return: void
+        """
+        assert(self.sender() in (self.ppa_edit, self.fullp_edit, self.number_edit)), STRINGS.ERROR_WRONG_SENDER+inspect.stack()[0][3]+", "+self.sender()
+        edit = self.sender()
+        value = utils.getNumberFromLineEdit(edit)
+        #if the price per asset was changed
+        if edit == self.ppa_edit:
+            #gets the number of assets
+            number = utils.getNumberFromLineEdit(self.number_edit)
+
+            #disconnect from this event handler to prevent recursion
+            self.fullp_edit.textChanged.disconnect(self.Esync_cashflows)
+
+            assert(type(value) in (float, int) and type(number) in (float, int)), STRINGS.ERROR_NOT_TYPE_NUM+str(number)+", "+str(value)
+            self.fullp_edit.setText(str(value*number))    #sets the synced cashflow
+            #connect to this event handler again
+            self.fullp_edit.textChanged.connect(self.Esync_cashflows)
+        
+        #if the full price was changed
+        if edit == self.fullp_edit:
+            #gets the number of assets
+            number = utils.getNumberFromLineEdit(self.number_edit)
+
+            #disconnect from this event handler to prevent recursion
+            self.ppa_edit.textChanged.disconnect(self.Esync_cashflows)
+
+            assert(type(value) in (float, int) and type(number) in (float, int)), STRINGS.ERROR_NOT_TYPE_NUM+str(number)+", "+str(value)
+            self.ppa_edit.setText(str(value/number))      #sets the synced cashflow
+            #connect to this event handler again
+            self.ppa_edit.textChanged.connect(self.Esync_cashflows)
+
+        #if the product number was changed
+        if edit == self.number_edit:
+            number = value
+            value = utils.getNumberFromLineEdit(self.ppa_edit)
+            #disconnect from this event handler to prevent recursion
+            self.fullp_edit.textChanged.disconnect(self.Esync_cashflows)
+            assert(type(value) in (float, int) and type(number) in (float, int)), STRINGS.ERROR_NOT_TYPE_NUM+str(number)+", "+str(value)
+            self.fullp_edit.setText(str(value*number))                #sets the synced cashflow
+            #connect to this event handler again
+            self.fullp_edit.textChanged.connect(self.Esync_cashflows)
+
     def Echange_ticker_text(self):
         """
         event handler
@@ -3461,8 +3479,8 @@ class InvestTab(QWidget):
         data = self.getDataFromForm()
         success = self.backend.addInvestment(data)
         if not success:
-            print(self.backend.error_string)
-        
+            QMessageBox.critical(self, STRINGS.CRITICAL_ADD_INVESTMENT_TITLE, self.backend.error_string)
+
 
     def Eopen_filter(self):
         pass
