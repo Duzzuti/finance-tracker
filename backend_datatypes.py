@@ -136,8 +136,15 @@ class Asset:
         """
         assert(type(ticker_symbol) == str), STRINGS.getTypeErrorString(ticker_symbol, "ticker_symbol", str)
         assert(type(short_name) == str), STRINGS.getTypeErrorString(short_name, "short_name", str)
-        self.ticker_symbol = ticker_symbol
+        self.ticker_symbol = ticker_symbol.lower()
         self.short_name = short_name
+    
+    def __hash__(self) -> int:
+        """
+        we can compare two assets in a hash map
+        if they have the same values stored, they are the same
+        """
+        return hash(self.ticker_symbol+self.short_name)
 
 
 class Investment:
@@ -179,3 +186,11 @@ class Investment:
         self.price = price_per_asset * number
         self.tradingfee = tradingfee
         self.tax = tax
+
+    def __hash__(self) -> int:
+        """
+        we can compare two investments in a hash map
+        if they have the same values stored, they are the same
+        """
+        return hash(self.trade_type+self.date.isoformat()+str(hash(self.asset))+str(self.number)+str(self.price_per_asset)+str(self.tradingfee)+str(self.tax))
+    

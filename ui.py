@@ -3343,6 +3343,11 @@ class InvestTab(QWidget):
                 assert(False), STRINGS.ERROR_TRADE_TYPE_NOT_VALID+self.sender().currentText()
 
     def investmentChanged(self):
+        """
+        this method is called if the investments got changed
+        it will add the new investments to the completer and combos
+        :return: void
+        """
         self.switchMode()   #reload the form
         self.ticker_completer = QCompleter(self.backend.getTickerNames())   #backend call to get the ticker names
         self.ticker_completer.setCaseSensitivity(False)
@@ -3400,7 +3405,8 @@ class InvestTab(QWidget):
         if edit == self.fullp_edit:
             #gets the number of assets
             number = utils.getNumberFromLineEdit(self.number_edit)
-
+            if not number:  #number is zero
+                return
             #disconnect from this event handler to prevent recursion
             self.ppa_edit.textChanged.disconnect(self.Esync_cashflows)
 

@@ -10,7 +10,7 @@ import pickle
 from cryptography.fernet import Fernet
 import base64
 import hashlib
-import yfinance
+import yahooquery
 from threading import Thread
 from strings import ENG as STRINGS
 from PyQt5.QtWidgets import QMessageBox
@@ -21,42 +21,42 @@ def Dsave(func):
     """
     decorator, which runs the function and executes a save afterwards
     """
-    def wrapper(self, *args):
+    def wrapper_save(self, *args):
         ret = func(self, *args)
         Thread(target=self._save).start()
         return ret
-    return wrapper
+    return wrapper_save
 
 def DsortTrans(func):
     """
     decorator, which runs the function and executes a sort afterwards
     """
-    def wrapper(self, *args):
+    def wrapper_sort_trans(self, *args):
         ret = func(self, *args)
         Thread(target=self.sortTransactions, args=(self.sortCriteriaTrans[0], self.sortCriteriaTrans[1])).start()
         return ret
-    return wrapper
+    return wrapper_sort_trans
 
 def DsortInv(func):
     """
     decorator, which runs the function and executes a sort afterwards
     """
-    def wrapper(self, *args):
+    def wrapper_sort_inv(self, *args):
         ret = func(self, *args)
         Thread(target=self.sortInvestments, args=(self.sortCriteriaInv[0], self.sortCriteriaInv[1])).start()
         return ret
-    return wrapper
+    return wrapper_sort_inv
 
 def Dbenchmark(func):   #DEBUGONLY
     """
     decorator, which runs the function and prints the runtime
     """
-    def wrapper(self, *args, **kwargs):
-        start = time.time()
+    def wrapper_bench(self, *args, **kwargs):
+        start = time.perf_counter()
         ret = func(self, *args, **kwargs)
-        print(func.__name__+" \tneeded "+str(time.time() - start)+"s")
+        print(func.__name__+" \tneeded "+str(time.perf_counter() - start)+"s")
         return ret
-    return wrapper
+    return wrapper_bench
 
 
 class Backend:
@@ -882,6 +882,7 @@ class Backend:
             dumped_data = Fernet(self._key).decrypt(data_file.read())
         except:
             print("Some error with the key or loaded data")
+            data_file.close()
             return
         data_file.close()
         try:
@@ -896,6 +897,7 @@ class Backend:
             self.ticker_shares_dict = saved[7]
         except:
             print("Some error occured with the old data")
+        Thread(target=self.initAfterLoad).start()   #init the loaded data in an other thread
         
 
 #***********************INVESTMENT******************************
@@ -906,11 +908,23 @@ class Backend:
         :return: void
         """
         self.investments:list[Investment] = []       #saves all investment objects
+        self.investment_dict:dict[Investment, True] = {}     #saves all investment object in a hash map
         self.current_assets:list[Asset] = []    #saves all current assets hold by the user
         self.ticker_symbols:dict[str, True] = {}           #a list of tickers used by the user (we can import some tickers here)
         self.ticker_shares_dict:dict[str, float] = {}             #saves the current number of shares that the user is holding per asset
         self.sortCriteriaInv = [SortEnum.DATE, True]
         self.timeout_time = 1.0   #time in seconds the programm should wait for a api response before throwing
+
+    def initAfterLoad(self):
+        """
+        this method gets called after the data is loaded from the file.
+        Its a threaded method. Operations on the loaded data are performed
+        :return: void
+        """
+        #create a hashmap with all investments
+        for i in self.investments:
+            if not i in self.investment_dict:
+                self.investment_dict[i] = True
 
     def getTickerNames(self):
         """
@@ -958,7 +972,7 @@ class Backend:
         else:
             #user dont hold this asset right now
             return 0
-
+    @Dbenchmark
     def sortInvestments(self, sortElement:SortEnum, up:bool):
         """
         sorts the investments given the sort criteria. should also sort new adds too
@@ -975,7 +989,7 @@ class Backend:
             self.investments.sort(key=lambda x: x.date, reverse=up)
         else:
             assert(False), STRINGS.ERROR_SORTELEMENT_OUT_OF_RANGE+str(sortElement)
-    
+    @Dbenchmark
     @Dsave
     @DsortInv
     def addInvestment(self, data:list[str, str, float, float, float, float]):
@@ -987,6 +1001,7 @@ class Backend:
         """
         assert(len(data) == 7), STRINGS.ERROR_WRONG_DATA_LENGTH+str(data)
         date, trade_type, ticker_symbol, number, ppa, tradingfee, tax = data
+        ticker_symbol = ticker_symbol.lower()
         #some type and range checks
         assert(type(date) == datetime.date), STRINGS.getTypeErrorString(date, "date", datetime.date)
         assert(type(trade_type) == str), STRINGS.getTypeErrorString(trade_type, "trade_type", str)
@@ -1013,20 +1028,20 @@ class Backend:
         thread.start()
         #if no ticker is got after a given timeout the program returns with a connection error
         thread.join(self.timeout_time)
-        ticker_obj = self.ticker_obj    
+        ticker_obj:yahooquery.Ticker = self.ticker_obj    
         if ticker_obj == False:
             #could not load the ticker object, because its still false
             self.error_string = f"ticker could not be loaded, because of network error or api errors.\nPlease try again later"
             return False
         try:
-            ticker_obj.info
+            ticker_obj.quote_type[ticker_symbol]
         except:
             #ticker was loaded but not valid (there are no information about this ticker)
             self.error_string = f"no data to the ticker with the symbol {ticker_symbol} could be found.\nCauses can be:\nThere was a network error\nThe api of yahoo finance has some errors or is not reachable at the moment\nThe provided ticker does not exist"
             return False
         try:
-            short_name = ticker_obj.info["shortName"]
-            cur = ticker_obj.info["currency"]
+            short_name = ticker_obj.quote_type[ticker_symbol]["shortName"]
+            cur = ticker_obj.price[ticker_symbol]["currency"]
         except:
             #there are still not enough informations to work with
             self.error_string = f"the ticker symbol exists but has no name and currency data"
@@ -1037,69 +1052,84 @@ class Backend:
             return False
         
         asset = Asset(ticker_symbol, short_name)    #creates the asset object
-        current_shares = self.getSharesForAsset(ticker_symbol)  #get the current hold assets by the user
-        if trade_type != "buy" and current_shares < number:
-            #the user is trying to sell (or get a dividend from) more shares than currently hold
-            self.error_string = f"you only have {current_shares} shares of this asset.\nYou cannot sell/get dividend from {number} shares"
-            return False
         inv_obj = Investment(trade_type, date, asset, number, ppa, tradingfee, tax) #create the investment object
-        if inv_obj in self.investments:
+        if inv_obj in self.investment_dict:
             #the user tries to add the same investment twice
             self.error_string = "This investment is already added"
             return False
         self.investments.append(inv_obj)    #adds the investment
-        #adds/subtractes the shares that are bought/sold from the dict
-        if trade_type == "buy":
-            if ticker_symbol in self.ticker_shares_dict:
-                self.ticker_shares_dict[ticker_symbol] += number
-            else:
-                self.ticker_shares_dict[ticker_symbol] = number
-        elif trade_type == "sell":
-            if ticker_symbol in self.ticker_shares_dict:
-                self.ticker_shares_dict[ticker_symbol] -= number
-            else:
-                assert(False)
+        self.investment_dict[inv_obj] = True    #adds the investment to the map
 
-        self.ticker_symbols[ticker_symbol] = True   #adds this ticker symbol to the symbol list
-        #adds the asset to the current assets if more than zero shares are hold
-        if self.ticker_shares_dict[ticker_symbol] > 0:
-            if not(asset in self.current_assets):
-                self.current_assets.append(asset)
-        elif self.ticker_shares_dict[ticker_symbol] == 0:
-            self.ticker_shares_dict.pop(ticker_symbol)
-            if asset in self.current_assets:
-                self.current_assets.remove(asset)
+        if self._update():
+            #added transaction successfully
+            return True
         else:
-            assert(False)
-        return True
-    
-    @Dsave
-    @DsortInv
-    def _update(self):  #WORK
+            #some error occured
+            self.investments.remove(inv_obj)
+            self.investment_dict.pop(inv_obj)
+            self.error_string = "The investment was not added.\nFollowing error occured:\n"+self.error_string
+            return False
+    @Dbenchmark
+    def _update(self):
+        """
+        this method should be called after a new investment is added
+        the program iterates over all investments sorted by date and validates them
+        if no error occured the class variables are overritten
+        :return: bool<success?>
+        """
+        #creates the temp variables
         tcurrent_assets = []
         tticker_shares_dict = {}
-        self.sortInvestments(SortEnum.DATE, False)
+        self.sortInvestments(SortEnum.DATE, False)  #sorts the investments (after that we should sort it back)
         for inv in self.investments:
-            inv:Investment
             match inv.trade_type:
                 case "buy":
                     if inv.asset.ticker_symbol in tticker_shares_dict:
+                        #user buys an asset that is already in the portfolio
                         tticker_shares_dict[inv.asset.ticker_symbol] += inv.number
                     else:
+                        #user buys an asset that is not in the portfolio
                         tticker_shares_dict[inv.asset.ticker_symbol] = inv.number
                 case "sell":
                     if inv.asset.ticker_symbol in tticker_shares_dict:
+                        #user sells a asset that is already in the portfolio (should check on negative shares)
                         tticker_shares_dict[inv.asset.ticker_symbol] -= inv.number
                     else:
-                        tticker_shares_dict[inv.asset.ticker_symbol] = -inv.number
-            if tticker_shares_dict[inv.asset.ticker_symbol] > 0:
+                        #the user is trying to sell shares, but there are no currently hold
+                        self.error_string = f"you have no shares of this asset.\nYou cannot sell shares"
+                        return False
+                case "dividend":
+                    if inv.asset.ticker_symbol in tticker_shares_dict:
+                        #user gets a dividend from an asset that is in the portfolio
+                        if tticker_shares_dict[inv.asset.ticker_symbol] - inv.number < 0:
+                            #the user is trying to get a dividend from more shares than currently hold
+                            self.error_string = f"you only have {tticker_shares_dict[inv.asset.ticker_symbol]} shares of this asset.\nYou cannot get dividend from {inv.number} shares"
+                            return False
+                    else:
+                        #the user is trying to get a dividend from this asset, but there is no share currently hold
+                        self.error_string = f"you have no shares of this asset.\nYou cannot get dividend from this asset"
+                        return False
+            if tticker_shares_dict[inv.asset.ticker_symbol] < 0:
+                #the user is trying to sell more shares than currently hold
+                self.error_string = f"you only have {tticker_shares_dict[inv.asset.ticker_symbol]} shares of this asset.\nYou cannot sell {inv.number} shares"
+                return False
+            elif tticker_shares_dict[inv.asset.ticker_symbol] > 0:
+                #the user is now holding this asset
                 if not inv.asset in tcurrent_assets:
+                    #add it to the current assets if its not already added
                     tcurrent_assets.append(inv.asset)
             else:
                 if inv.asset in tcurrent_assets:
+                    #remove the asset from the current assets, because the user no longer holds this asset
                     tcurrent_assets.remove(inv.asset)
-            inv.asset.ticker_symbol[self.ticker_symbols] = True
-                
+            #saves the ticker
+            self.ticker_symbols[inv.asset.ticker_symbol] = True
+        #update succeeded
+        #load the data into the class
+        self.current_assets = tcurrent_assets
+        self.ticker_shares_dict = tticker_shares_dict
+        return True    
+    
     @Dsave
     def _reset(self):
         """
@@ -1111,12 +1141,12 @@ class Backend:
         self.current_assets:list[Asset] = []    #saves all current assets hold by the user
         self.ticker_symbols:dict[str, True] = {}           #a list of tickers used by the user (we can import some tickers here)
         self.ticker_shares_dict:dict[str, float] = {}             #saves the current number of shares that the user is holding per asset
-
+    @Dbenchmark
     def _loadTicker(self, ticker_symbol:str):
         """
         extern method for loading the ticker on an other thread
         :param ticker_symbol: str<symbol of the ticker you wanna load>
         :return: void
         """
-        self.ticker_obj = yfinance.Ticker(ticker_symbol)
+        self.ticker_obj = yahooquery.Ticker(ticker_symbol)
         return
