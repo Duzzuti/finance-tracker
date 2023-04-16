@@ -2843,7 +2843,7 @@ class InvestTab(QWidget):
         self.grid.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
         self.backend:Backend = backend  #saves the backend
         self.InvestmentList = InvestmentList(self.backend.getInvestments, self.Eedit_last_investment)
-        self.Inputs = Inputs(["ticker", "number", "price"], self.activateSubmitButton, self.deactivateSubmitButton)
+        self.InputsInvestment = Inputs(["ticker", "number", "price"], self.activateSubmitButton, self.deactivateSubmitButton)
         self.mode = "buy"
 
         self.InitWidget()       #creates the base state of the widget
@@ -3204,6 +3204,10 @@ class InvestTab(QWidget):
         #disabling and enabling input fields 
         self.tradingfee_edit.setEnabled(False)  #in dividend mode there are no trading fees
         self.tax_edit.setEnabled(True)          #but taxes
+        if self.ticker_edit.currentText() != "":
+            self.InputsInvestment.setInput("ticker", True)
+        else:
+            self.InputsInvestment.setInput("ticker", False)
 
     def switchToSellMode(self):
         """
@@ -3232,6 +3236,10 @@ class InvestTab(QWidget):
         #disabling and enabling input fields 
         self.tradingfee_edit.setEnabled(True)   #in sell mode there are trading fees
         self.tax_edit.setEnabled(True)          #and taxes
+        if self.ticker_edit.currentText() != "":
+            self.InputsInvestment.setInput("ticker", True)
+        else:
+            self.InputsInvestment.setInput("ticker", False)
 
     def wipeForm(self):
         """
@@ -3252,6 +3260,7 @@ class InvestTab(QWidget):
             self.number_edit.setText("")
         if type(self.tradingfee_edit) == QLineEdit:
             self.tradingfee_edit.setText("")
+        self.InputsInvestment.reset()
 
     def sortInvestments(self, sortElement:SortEnum, up:bool=True):
         """
@@ -3349,9 +3358,10 @@ class InvestTab(QWidget):
         :return: void
         """
         self.switchMode()   #reload the form
-        self.ticker_completer = QCompleter(self.backend.getTickerNames())   #backend call to get the ticker names
-        self.ticker_completer.setCaseSensitivity(False)
-        self.ticker_edit.setCompleter(self.ticker_completer)      #add an autocompleter
+        if self.mode == "buy":
+            self.ticker_completer = QCompleter(self.backend.getTickerNames())   #backend call to get the ticker names
+            self.ticker_completer.setCaseSensitivity(False)
+            self.ticker_edit.setCompleter(self.ticker_completer)      #add an autocompleter
         self.InvestmentList.updateLastInvestments()
 
 
@@ -3434,9 +3444,9 @@ class InvestTab(QWidget):
         """
         assert(self.sender() == self.ticker_edit and type(self.ticker_edit) == QLineEdit), STRINGS.getTypeErrorString(self.sender(), "sender", QLineEdit)
         if self.sender().text() != "":
-            self.Inputs.setInput("ticker", True)
+            self.InputsInvestment.setInput("ticker", True)
         else:
-            self.Inputs.setInput("ticker", False)
+            self.InputsInvestment.setInput("ticker", False)
 
     def Echange_number_text(self):
         """
@@ -3447,9 +3457,9 @@ class InvestTab(QWidget):
         assert(self.sender() == self.number_edit), STRINGS.getTypeErrorString(self.sender(), "sender", self.number_edit)
         try:
             float(self.sender().text())
-            self.Inputs.setInput("number", True)
+            self.InputsInvestment.setInput("number", True)
         except:
-            self.Inputs.setInput("number", False)
+            self.InputsInvestment.setInput("number", False)
 
     def Echange_price_text(self):
         """
@@ -3460,9 +3470,9 @@ class InvestTab(QWidget):
         assert(self.sender() in [self.fullp_edit, self.ppa_edit]), STRINGS.getTypeErrorString(self.sender(), "sender", "price inputs")
         try:
             float(self.sender().text())
-            self.Inputs.setInput("price", True)
+            self.InputsInvestment.setInput("price", True)
         except:
-            self.Inputs.setInput("price", False)
+            self.InputsInvestment.setInput("price", False)
 
 
     def Eselect_trading_type(self):
@@ -3495,9 +3505,9 @@ class InvestTab(QWidget):
         """
         assert(self.sender() == self.ticker_edit and type(self.ticker_edit) == QComboBox), STRINGS.getTypeErrorString(self.sender(), "sender", QComboBox)
         if self.sender().currentText() != "":
-            self.Inputs.setInput("ticker", True)
+            self.InputsInvestment.setInput("ticker", True)
         else:
-            self.Inputs.setInput("ticker", False)
+            self.InputsInvestment.setInput("ticker", False)
 
     def Esubmit_investment(self):
         """

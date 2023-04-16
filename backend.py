@@ -946,7 +946,6 @@ class Backend:
         these are sorted like the sort criteria is specified
         :return: Iterable[Investment]
         """
-        print(self.investments)
         return self.investments
 
     def getTickerForName(self, name:str):
@@ -989,6 +988,19 @@ class Backend:
             self.investments.sort(key=lambda x: x.date, reverse=up)
         else:
             assert(False), STRINGS.ERROR_SORTELEMENT_OUT_OF_RANGE+str(sortElement)
+    
+    def printInvestments(self): #DEBUGONLY
+        """
+        prints the current investment data for debug purposes
+        :return: void
+        """
+        self.sortInvestments(SortEnum.DATE, False)
+        print(list(map(lambda x: x.date.isoformat()+" "+x.trade_type+" "+x.asset.ticker_symbol+" "+str(x.number), self.investments)))
+        print(self.investment_dict)
+        print(list(map(lambda x: x.ticker_symbol+" "+x.short_name, self.current_assets)))
+        print(self.ticker_symbols)
+        print(self.ticker_shares_dict)
+
     @Dbenchmark
     @Dsave
     @DsortInv
@@ -1010,7 +1022,7 @@ class Backend:
         assert(type(ppa) == float), STRINGS.getTypeErrorString(ppa, "ppa", float)
         assert(type(tradingfee) == float), STRINGS.getTypeErrorString(tradingfee, "tradingfee", float)
         assert(type(tax) == float), STRINGS.getTypeErrorString(tax, "tax", float)
-
+        self.printInvestments() #DEBUGONLY
         assert(trade_type in ["buy", "sell", "dividend"]), STRINGS.ERROR_TRADE_TYPE_NOT_VALID+trade_type
         if not datetime.date(1900, 1, 1) <= date <= datetime.date.today():
             #date out of range
@@ -1111,15 +1123,15 @@ class Backend:
                         return False
             if tticker_shares_dict[inv.asset.ticker_symbol] < 0:
                 #the user is trying to sell more shares than currently hold
-                self.error_string = f"you only have {tticker_shares_dict[inv.asset.ticker_symbol]} shares of this asset.\nYou cannot sell {inv.number} shares"
+                self.error_string = f"you only have {tticker_shares_dict[inv.asset.ticker_symbol] + inv.number} shares of this asset.\nYou cannot sell {inv.number} shares"
                 return False
             elif tticker_shares_dict[inv.asset.ticker_symbol] > 0:
                 #the user is now holding this asset
-                if not inv.asset in tcurrent_assets:
+                if not hash(inv.asset) in map(lambda x: hash(x), tcurrent_assets):
                     #add it to the current assets if its not already added
                     tcurrent_assets.append(inv.asset)
             else:
-                if inv.asset in tcurrent_assets:
+                if hash(inv.asset) in map(lambda x: hash(x), tcurrent_assets):
                     #remove the asset from the current assets, because the user no longer holds this asset
                     tcurrent_assets.remove(inv.asset)
             #saves the ticker

@@ -280,6 +280,14 @@ class Inputs:
                 return False
         return True
 
+    def reset(self):
+        """
+        resets the inputs to false
+        :return: void
+        """
+        for i in self.input_dict:
+            self.input_dict[i] = False  #sets all requirements to false
+
 
 class TransactionList:
     """
