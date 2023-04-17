@@ -1133,7 +1133,7 @@ class Backend:
             else:
                 if hash(inv.asset) in map(lambda x: hash(x), tcurrent_assets):
                     #remove the asset from the current assets, because the user no longer holds this asset
-                    tcurrent_assets.remove(inv.asset)
+                    tcurrent_assets.pop(list(map(lambda x: hash(x), tcurrent_assets)).index(hash(inv.asset)))
             #saves the ticker
             self.ticker_symbols[inv.asset.ticker_symbol] = True
         #update succeeded
