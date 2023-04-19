@@ -42,3 +42,11 @@ class ICONS:
     SORT_DOWN = QIcon("media/sort_down.png")
     INFO = QIcon("media/info.png")
     INFO_PIXMAP = QPixmap("media/info.png")
+
+class COLORS:
+    """
+    all colors that are used in the program are stored here
+    """
+    RED = "#ff0000"
+    GREEN = "#007700"
+    BLUE = "#0000ff"

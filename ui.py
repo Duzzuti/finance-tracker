@@ -2845,6 +2845,7 @@ class InvestTab(QWidget):
         self.InvestmentList = InvestmentList(self.backend.getInvestments, self.Eedit_last_investment)
         self.InputsInvestment = Inputs(["ticker", "number", "price"], self.activateSubmitButton, self.deactivateSubmitButton)
         self.mode = "buy"
+        self.edit_mode = False  #true if the user clicks a past investment to edit that investment
 
         self.InitWidget()       #creates the base state of the widget
 
@@ -3094,9 +3095,9 @@ class InvestTab(QWidget):
         layout_sort = QHBoxLayout()
         widget_sort = QWidget()
         #sort for date, price for the trade or short name
-        self.scroll_sort_date_button = QPushButton(STRINGS.APP_BUTTON_LAST_TRANSACTIONS_DATE)
-        self.scroll_sort_price_button = QPushButton(STRINGS.APP_BUTTON_LAST_TRANSACTIONS_CASHFLOW)
-        self.scroll_sort_name_button = QPushButton(STRINGS.APP_BUTTON_LAST_TRANSACTIONS_PRODUCT)
+        self.scroll_sort_date_button = QPushButton(STRINGS.INVFORM_LAST_INVESTMENTS_DATE)
+        self.scroll_sort_price_button = QPushButton(STRINGS.INVFORM_LAST_INVESTMENTS_CASHFLOW)
+        self.scroll_sort_name_button = QPushButton(STRINGS.INVFORM_LAST_INVESTMENTS_ASSET)
 
         self.sort_buttons = [self.scroll_sort_date_button, self.scroll_sort_price_button, self.scroll_sort_name_button]
         
@@ -3532,7 +3533,20 @@ class InvestTab(QWidget):
         pass
 
     def Esort_investments(self):
-        pass
+        """
+        event handler
+        activates if the user clicks a button, which should sort the investments
+        the handler calculates how the investments should be sorted depending on the current states
+        :return: void
+        """
+        assert(type(self.sender()) == QPushButton), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
+        assert(self.sender() in self.sort_buttons), STRINGS.ERROR_SENDER_NOT_IN_SORT_BUTTONS
+        assert(not self.edit_mode), STRINGS.ERROR_IN_EDIT_MODE
+        sortElement:SortEnum = SortEnum(self.sort_buttons.index(self.sender()))
+        up = True   #sort ascending
+        if ICONS.compare(self.sender().icon(), ICONS.SORT_UP):
+            up = False    #last time we sorted asc, so now we sort descending
+        self.sortInvestments(sortElement, up)
 
     def Eedit_last_investment(self):
         pass

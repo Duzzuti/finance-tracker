@@ -1,11 +1,12 @@
 """
 This module provides the datatypes used by the ui
 """
-from PyQt5.QtWidgets import QComboBox, QVBoxLayout, QPushButton, QLabel, QHBoxLayout, QSizePolicy
+from PyQt5.QtWidgets import QComboBox, QVBoxLayout, QPushButton, QLabel, QHBoxLayout, QSizePolicy, QStyle
 from PyQt5.QtCore import QDate, Qt
 from backend_datatypes import Transaction, Person, Investment
 from strings import ENG as STRINGS
 from constants import CONSTANTS
+from gui_constants import COLORS
 from backend import Dbenchmark
 
 
@@ -388,7 +389,7 @@ class TransactionList:
 
         #some label with transaction data
         date_string = transaction.date.strftime('[%d %b %Y]')
-        cashflow_string = str(transaction.cashflow)+STRINGS.CURRENCY
+        cashflow_string = f"{transaction.cashflow:.2f}{STRINGS.CURRENCY}"
         product_string = transaction.product.name
         #define the labels that are on the button
         date_label = QLabel(date_string)
@@ -503,6 +504,41 @@ class InvestmentList:
         """
         return len(self.buttons_investment_dict.keys())
 
+    def getColor(self, trade_type:str):
+        """
+        gets the button color depending on the trade type
+        this call is case insensitive
+        :param trade_type: str<trade type of the investment>
+        :return: str<color string for the button>
+        """
+        assert(type(trade_type) == str), STRINGS.getTypeErrorString(trade_type, "trade_type", str)
+        match self.getTradeTypeString(trade_type):
+            case STRINGS.INVFORM_TYPE_BUY_BUTTON:
+                return COLORS.GREEN
+            case STRINGS.INVFORM_TYPE_DIVIDEND_BUTTON:
+                return COLORS.BLUE
+            case STRINGS.INVFORM_TYPE_SELL_BUTTON:
+                return COLORS.RED
+            case _:
+                assert(False)
+
+    def getTradeTypeString(self, trade_type:str):
+        """
+        gets the string that is shown on the buttons for the trade type
+        this call is case insensitive
+        :param trade_type: str<trade type of the investment>
+        :return: str<trade type string for the button>
+        """
+        assert(type(trade_type) == str), STRINGS.getTypeErrorString(trade_type, "trade_type", str)
+        if trade_type.lower() == STRINGS.INVFORM_TYPE_BUY.lower():
+            return STRINGS.INVFORM_TYPE_BUY_BUTTON
+        elif trade_type.lower() == STRINGS.INVFORM_TYPE_DIVIDEND.lower():
+            return STRINGS.INVFORM_TYPE_DIVIDEND_BUTTON
+        elif trade_type.lower() == STRINGS.INVFORM_TYPE_SELL.lower():
+            return STRINGS.INVFORM_TYPE_SELL_BUTTON
+        else:
+            assert(False)
+
     def _getInvestmentButton(self, investment:Investment):
         """
         gets a PushButton object created using a Investment object. This method is labeling a button with investment data
@@ -518,7 +554,7 @@ class InvestmentList:
 
         #some label with investment data
         date_string = investment.date.strftime('[%d %b %Y]')
-        cashflow_string = str(investment.price)+STRINGS.CURRENCY
+        cashflow_string = f"{investment.price:.2f}{STRINGS.CURRENCY}"
         name_string = investment.asset.short_name
         #define the labels that are on the button
         date_label = QLabel(date_string)
@@ -543,6 +579,8 @@ class InvestmentList:
         element_layout.addWidget(name_label)
 
         element_button.setLayout(element_layout)
+        color = self.getColor(investment.trade_type)
+        element_button.setStyleSheet("QPushButton {background-color:"+color+"}")
         element_button.adjustSize() #makes the content fit
         element_button.clicked.connect(self.func_event_handler)    #connect with event handler
         self.investment_short_name_dict[investment] = name_string
