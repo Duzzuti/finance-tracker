@@ -8,7 +8,7 @@ from strings import ENG as STRINGS
 from gui_constants import FONTS, ICONS
 from constants import CONSTANTS
 from backend import Backend
-from backend_datatypes import Transaction
+from backend_datatypes import Transaction, Investment
 from ui_datatypes import Combo, Inputs, TransactionList, InvestmentList
 from fullstack_utils import SortEnum, utils, Filter
 
@@ -992,8 +992,6 @@ class Window(QDialog):
             but.setEnabled(True)
         self.filter_button.setEnabled(True)
         self.reset_fiter_button.setEnabled(True)
-        for but in self.TransList.buttons_transaction_dict.keys():
-            but.setEnabled(True)
         self.load_trans_button.setEnabled(True)
         self.export_trans_button.setEnabled(True)
 
@@ -2842,7 +2840,7 @@ class InvestTab(QWidget):
         self.grid = QGridLayout()       #layout for the object
         self.grid.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
         self.backend:Backend = backend  #saves the backend
-        self.InvestmentList = InvestmentList(self.backend.getInvestments, self.Eedit_last_investment)
+        self.InvestmentList = InvestmentList(self.backend.getInvestments, self.Elast_inv_button_pressed)
         self.InputsInvestment = Inputs(["ticker", "number", "price"], self.activateSubmitButton, self.deactivateSubmitButton)
         self.mode = "buy"
         self.edit_mode = False  #true if the user clicks a past investment to edit that investment
@@ -3160,6 +3158,7 @@ class InvestTab(QWidget):
         """
         self.mode = "buy"
         self.wipeForm() #delete all data that is currently in the form (except date)
+        self.trade_type_combo.setCurrentText(STRINGS.INVFORM_TYPE_BUY)
         #renaming labels
         self.ticker_label.setText(STRINGS.INVFORM_LABEL_TICKER)
         self.number_label.setText(STRINGS.INVFORM_LABEL_NUMBER)
@@ -3187,6 +3186,7 @@ class InvestTab(QWidget):
         """
         self.mode = "dividend"
         self.wipeForm() #delete all data that is currently in the form (except date)
+        self.trade_type_combo.setCurrentText(STRINGS.INVFORM_TYPE_DIVIDEND)
         #renaming labels
         self.ticker_label.setText(STRINGS.INVFORM_LABEL_SELECT_STOCK)
         self.number_label.setText(STRINGS.INVFORM_LABEL_NUMBER_DIV_SHARES)
@@ -3219,6 +3219,7 @@ class InvestTab(QWidget):
         """
         self.mode = "sell"
         self.wipeForm() #delete all data that is currently in the form (except date)
+        self.trade_type_combo.setCurrentText(STRINGS.INVFORM_TYPE_SELL)
         #renaming labels
         self.ticker_label.setText(STRINGS.INVFORM_LABEL_SELECT_STOCK)
         self.number_label.setText(STRINGS.INVFORM_LABEL_NUMBER)
@@ -3339,6 +3340,10 @@ class InvestTab(QWidget):
         return (date, trade_type, ticker, number, ppa, tradingfee, tax)
 
     def switchMode(self):
+        """
+        switches the mode to the current set self.mode
+        :return: void
+        """
         match self.mode:
             #check which mode is selected and switch to that mode
             case "buy":
@@ -3352,6 +3357,107 @@ class InvestTab(QWidget):
                 #the selected text is not in the possible choices
                 assert(False), STRINGS.ERROR_TRADE_TYPE_NOT_VALID+self.sender().currentText()
 
+    def enableEditMode(self, investment:Investment):
+        """
+        sets the window into edit mode
+        That means it will load the investment data into the form and change some button labels and event handlers
+        it will add some buttons for canceling edit or accepting it (and leaving edit mode)
+        Moreover there will be some style changes to tell the user that its edit mode
+        :param investment: object<Investment> investment to load
+        :return: void
+        """
+        assert(type(investment) == Investment), STRINGS.getTypeErrorString(investment, "investment", Investment)
+        assert(self.choosed_inv_button != False), STRINGS.ERROR_NO_INVESTMENT_BUTTON_SET
+        assert(type(self.choosed_inv_button) == QPushButton), STRINGS.getTypeErrorString(self.choosed_inv_button, "self.choosed_inv_button", QPushButton)
+        assert(not self.edit_mode), STRINGS.ERROR_IN_EDIT_MODE
+        self.edit_mode = True
+        #switches to the correct mode in order to load the investment properly
+        self.mode = investment.trade_type
+        self.switchMode()
+
+        #loads the investment data into the form
+        self.date_edit.setSelectedDate(QDate(investment.date.year, investment.date.month, investment.date.day))    #date
+        if type(self.ticker_edit) == QLineEdit:
+            self.ticker_edit.setText(investment.asset.ticker_symbol)   #ticker name
+        else:
+            #set the short name if the form is not in buy mode
+            assert(type(self.ticker_edit) == QComboBox)
+            if not investment.asset.short_name in [self.ticker_edit.itemText(i) for i in range(self.ticker_edit.count())]:
+                #if the asset is not currently hold, we have to add it in the past to provide the user the right investment
+                self.ticker_edit.insertItem(0, investment.asset.short_name)
+            self.ticker_edit.setCurrentText(investment.asset.short_name)
+                
+        self.number_edit.setText(str(investment.number))     #assset count
+        self.ppa_edit.setText(str(abs(investment.price_per_asset)))   #price per asset, the full price is automatically synced
+        self.tradingfee_edit.setText(str(investment.tradingfee))
+        self.tax_edit.setText(str(investment.tax))
+
+        #make the gui look like edit mode
+        self.choosed_inv_button.setStyleSheet("QPushButton {background-color:#550000;}")
+        self.choosed_inv_button.adjustSize()
+        self.widget_form.setStyleSheet("QGroupBox {background-color:#ffcccc;}")
+        self.label_form.setText(STRINGS.INVFORM_LABEL_EDIT_INVESTMENT)
+
+        self.submit_button.setText(STRINGS.INVFORM_BUTTON_EDIT_INVESTMENT_SUBMIT)
+        #adding some new buttons, and connecting to the right event handler
+        self.submit_button.clicked.disconnect()
+        self.submit_button.setEnabled(True)
+
+        delete_button = QPushButton(STRINGS.INVFORM_BUTTON_EDIT_INVESTMENT_DELETE)
+        delete_button.setFont(FONTS.BIG_BOLD)
+        delete_button.setStyleSheet("color:red")
+        self.submit_layout.addWidget(delete_button)
+
+        cancel_button = QPushButton(STRINGS.INVFORM_BUTTON_EDIT_INVESTMENT_CANCEL)
+        cancel_button.setFont(FONTS.BIG_BOLD)
+        self.submit_layout.addWidget(cancel_button)
+
+        #connect with event handler
+        self.choosed_inv_button.clicked.disconnect()      #the choosen transaction should work as a cancel button too
+        self.choosed_inv_button.clicked.connect(self.Eedit_cancel)
+        self.submit_button.clicked.connect(self.Eedit_save_changes)
+        delete_button.clicked.connect(self.Eedit_delete_transaction)
+        cancel_button.clicked.connect(self.Eedit_cancel)
+        self.deactivateNonEditModeButtons()
+
+    def disableEditMode(self):
+        """
+        leaves the edit mode
+        that means that the gui is looking normal again and all data inside the form gets wiped
+        the event handlers will be connected correct again
+        :return: void
+        """
+        assert(self.edit_mode), STRINGS.ERROR_NOT_IN_EDIT_MODE
+        self.edit_mode = False
+
+        self.activateNonFormButtons()
+
+        #lets wipe some form data
+        self.wipeForm()
+
+        #lets change the looking of the gui
+        color = self.InvestmentList.getColor(self.InvestmentList.getInvestmentForButton(self.choosed_inv_button).trade_type)
+        self.choosed_inv_button.setStyleSheet("QPushButton {background-color:"+color+"}")
+        self.choosed_inv_button.adjustSize()
+        self.widget_form.setStyleSheet("")
+        self.label_form.setText(STRINGS.INVFORM_LABEL_NEW_INV)
+
+        self.submit_button.setText(STRINGS.INVFORM_BUTTON_SUBMIT)
+        for button in self.submit_widget.children():
+            if button != None and button != self.submit_button and button != self.submit_layout:
+                button.deleteLater()
+        
+        #connect to the right event handler
+        self.choosed_inv_button.clicked.disconnect()
+        self.choosed_inv_button.clicked.connect(self.Elast_inv_button_pressed)
+        self.submit_button.clicked.disconnect()
+        self.submit_button.setEnabled(False)
+        self.submit_button.clicked.connect(self.Esubmit_investment)
+
+        self.choosed_inv_button = False           #this transaction button is no more active
+        self.switchMode()
+        self.adjustSize()
+
     def investmentChanged(self):
         """
         this method is called if the investments got changed
@@ -3364,6 +3470,31 @@ class InvestTab(QWidget):
             self.ticker_completer.setCaseSensitivity(False)
             self.ticker_edit.setCompleter(self.ticker_completer)      #add an autocompleter
         self.InvestmentList.updateLastInvestments()
+
+
+    def activateNonFormButtons(self):
+        """
+        activates all buttons that are not in the form
+        :return: void
+        """
+        for but in self.sort_buttons:
+            but.setEnabled(True)
+        self.filter_button.setEnabled(True)
+        self.reset_fiter_button.setEnabled(True)
+        self.load_inv_button.setEnabled(True)
+        self.export_inv_button.setEnabled(True)
+
+    def deactivateNonEditModeButtons(self):
+        """
+        deactivates all buttons that are not used in edit mode
+        :return: void
+        """
+        for but in self.sort_buttons:
+            but.setEnabled(False)
+        self.filter_button.setEnabled(False)
+        self.reset_fiter_button.setEnabled(False)
+        self.load_inv_button.setEnabled(False)
+        self.export_inv_button.setEnabled(False)
 
 
     def Eenter_only_positive_numbers(self):
@@ -3519,10 +3650,11 @@ class InvestTab(QWidget):
         """
         assert(self.sender() == self.submit_button), STRINGS.getTypeErrorString(self.sender(), "sender", self.submit_button)
         data = self.getDataFromForm()
-        success = self.backend.addInvestment(data)
-        if not success:
+        success = self.backend.getInvestmentObject(data)
+        if success == False:
             QMessageBox.critical(self, STRINGS.CRITICAL_ADD_INVESTMENT_TITLE, self.backend.error_string)
         else:
+            self.backend.addInvestment(success)
             self.investmentChanged()
 
 
@@ -3548,11 +3680,71 @@ class InvestTab(QWidget):
             up = False    #last time we sorted asc, so now we sort descending
         self.sortInvestments(sortElement, up)
 
-    def Eedit_last_investment(self):
-        pass
-
     def Eload_csv(self):
         pass
 
     def Eexport_csv(self):
         pass
+
+    def Elast_inv_button_pressed(self):
+        """
+        event handler
+        activates if a investment button from the scrollarea is pressed
+        gets the investment conencted to that button and opens a view/edit investment window
+        :return: void
+        """
+        assert(type(self.sender()) == QPushButton), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
+        but = self.sender()
+        inv = self.InvestmentList.getInvestmentForButton(but)
+        if self.edit_mode:
+            #an other investment was choosen, so we wanna switch to that
+            self.disableEditMode()
+        self.choosed_inv_button = but
+        self.enableEditMode(inv)
+
+    def Eedit_cancel(self):
+        """
+        event handler 
+        activates if the user presses the cancel button
+        leaves edit mode, clears the form
+        :return: void
+        """
+        assert(type(self.sender()) == QPushButton), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
+        assert(self.edit_mode), STRINGS.ERROR_NOT_IN_EDIT_MODE
+        self.disableEditMode()
+
+    def Eedit_save_changes(self):
+        """
+        event handler
+        activates if the user wanna save the changes while editing a investment
+        its just deleting the investment currently choosed from the system and adds a new one, with the current options
+        :return: void
+        """
+        assert(type(self.sender()) == QPushButton), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
+        assert(type(self.choosed_inv_button) == QPushButton), STRINGS.ERROR_NO_INVESTMENT_BUTTON_SET
+        assert(self.edit_mode), STRINGS.ERROR_NOT_IN_EDIT_MODE
+        #delete the old investment
+        old_inv = self.InvestmentList.getInvestmentForButton(self.choosed_inv_button)
+        new_inv = self.backend.getInvestmentObject(self.getDataFromForm())
+        if new_inv == False:
+            QMessageBox.critical(self, STRINGS.CRITICAL_ADD_INVESTMENT_TITLE, self.backend.error_string)
+            return
+        self.backend.deleteInvestment(old_inv)
+        self.disableEditMode()
+        #add the new one
+        self.backend.addInvestment(new_inv)
+        self.investmentChanged()
+        
+    def Eedit_delete_transaction(self):
+        """
+        event handler
+        activates if the user clicks a delete investment button
+        its just deleting the investment currently choosed from the system
+        :return: void
+        """
+        assert(type(self.sender()) == QPushButton), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
+        assert(type(self.choosed_inv_button) == QPushButton), STRINGS.ERROR_NO_INVESTMENT_BUTTON_SET
+        assert(self.edit_mode), STRINGS.ERROR_NOT_IN_EDIT_MODE
+        self.backend.deleteInvestment(self.InvestmentList.getInvestmentForButton(self.choosed_inv_button))
+        self.disableEditMode()
+        self.investmentChanged()

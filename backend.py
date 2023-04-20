@@ -1004,12 +1004,23 @@ class Backend:
     @Dbenchmark
     @Dsave
     @DsortInv
-    def addInvestment(self, data:list[str, str, float, float, float, float]):
+    def addInvestment(self, investment:Investment):
         """
         takes in some data from the form 
         validates them first and adds the investment to the system if not error occurred
         :param data: list[datetime.date<date of the transaction>, str<trade_type>, str<ticker>, float<number>, float<ppa>, float<tradingfee>, float<tax>]
         :return: bool<success?>
+        """
+        assert(type(investment) == Investment), STRINGS.getTypeErrorString(investment, "investment", Investment)
+        self.investments.append(investment)    #adds the investment
+        self.investment_dict[investment] = True    #adds the investment to the map
+    
+    def getInvestmentObject(self, data:list[str, str, float, float, float, float]):
+        """
+        takes in some data from the form 
+        validates them first and returns the investment object if not error occurred
+        :param data: list[datetime.date<date of the transaction>, str<trade_type>, str<ticker>, float<number>, float<ppa>, float<tradingfee>, float<tax>]
+        :return: object<Investment> or bool<False if the data is not valid>
         """
         assert(len(data) == 7), STRINGS.ERROR_WRONG_DATA_LENGTH+str(data)
         date, trade_type, ticker_symbol, number, ppa, tradingfee, tax = data
@@ -1072,15 +1083,17 @@ class Backend:
         self.investments.append(inv_obj)    #adds the investment
         self.investment_dict[inv_obj] = True    #adds the investment to the map
 
-        if self._update():
-            #added transaction successfully
-            return True
+        success = self._update()
+        self.investments.remove(inv_obj)    #removes the data again
+        self.investment_dict.pop(inv_obj)
+        if success:
+            #investment valid
+            return inv_obj
         else:
             #some error occured
-            self.investments.remove(inv_obj)
-            self.investment_dict.pop(inv_obj)
             self.error_string = "The investment was not added.\nFollowing error occured:\n"+self.error_string
             return False
+    
     @Dbenchmark
     def _update(self):
         """
