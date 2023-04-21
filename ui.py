@@ -3729,7 +3729,10 @@ class InvestTab(QWidget):
         if new_inv == False:
             QMessageBox.critical(self, STRINGS.CRITICAL_ADD_INVESTMENT_TITLE, self.backend.error_string)
             return
-        self.backend.deleteInvestment(old_inv)
+        success = self.backend.deleteInvestment(old_inv)
+        if success == False:
+            QMessageBox.critical(self, STRINGS.CRITICAL_ADD_INVESTMENT_TITLE, self.backend.error_string)
+            return
         self.disableEditMode()
         #add the new one
         self.backend.addInvestment(new_inv)
@@ -3745,6 +3748,9 @@ class InvestTab(QWidget):
         assert(type(self.sender()) == QPushButton), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
         assert(type(self.choosed_inv_button) == QPushButton), STRINGS.ERROR_NO_INVESTMENT_BUTTON_SET
         assert(self.edit_mode), STRINGS.ERROR_NOT_IN_EDIT_MODE
-        self.backend.deleteInvestment(self.InvestmentList.getInvestmentForButton(self.choosed_inv_button))
+        success = self.backend.deleteInvestment(self.InvestmentList.getInvestmentForButton(self.choosed_inv_button))
+        if success == False:
+            QMessageBox.critical(self, STRINGS.CRITICAL_ADD_INVESTMENT_TITLE, self.backend.error_string)
+            return
         self.disableEditMode()
         self.investmentChanged()

@@ -1094,6 +1094,24 @@ class Backend:
             self.error_string = "The investment was not added.\nFollowing error occured:\n"+self.error_string
             return False
     
+    @Dsave
+    @DsortInv
+    def deleteInvestment(self, investment:Investment):
+        """
+        deletes a given investment from the system
+        :param investment: object<Investment>
+        :return: bool<success?>
+        """
+        assert(type(investment) == Investment), STRINGS.getTypeErrorString(investment, "investment", Investment)
+        assert(investment in self.investments), STRINGS.ERROR_INVESTMENT_NOT_IN_LIST+str(investment)+str(self.investments)
+        self.investments.remove(investment)
+        self.investment_dict.pop(investment)
+        success = self._update()
+        if success == False:
+            self.investments.append(investment)
+            self.investment_dict[investment] = True
+        return success
+
     @Dbenchmark
     def _update(self):
         """

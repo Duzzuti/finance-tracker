@@ -278,6 +278,7 @@ class ENG:
     ERROR_IN_EDIT_MODE = "The action cannot be done because the window is in edit mode"
     ERROR_NO_TRANSACTION_BUTTON_SET = "There is no active transaction button set"
     ERROR_TRANSACTION_NOT_IN_LIST = "The given transaction is not found in the transaction list: "
+    ERROR_INVESTMENT_NOT_IN_LIST = "The given investment is not found in the investment list: "
     ERROR_SENDER_NOT_IN_SORT_BUTTONS = "The sender button is not part of the sort button list"
     ERROR_SORTELEMENT_OUT_OF_RANGE = "The sort element has some invalid data or is out of range: "
     ERROR_TOOLTIPS_ALREADY_SET = "The tooltips are already set"
