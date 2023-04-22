@@ -914,6 +914,7 @@ class Backend:
         self.ticker_shares_dict:dict[str, float] = {}             #saves the current number of shares that the user is holding per asset
         self.sortCriteriaInv = [SortEnum.DATE, True]
         self.timeout_time = 1.0   #time in seconds the programm should wait for a api response before throwing
+        self.investmentFilter = Filter()   #sets up a investment filter object for the backend
 
     def initAfterLoad(self):
         """
@@ -947,6 +948,18 @@ class Backend:
         :return: Iterable[Investment]
         """
         return self.investments
+
+    def getAllAssetNames(self):
+        """
+        getter for all asset short names that are in a investment
+        these are sorted alphabetically
+        :return: Iterable[str]
+        """
+        ret = []
+        for inv in self.investments:
+            if not inv.asset.short_name in ret:
+                ret.append(inv.asset.short_name)
+        return sorted(ret)
 
     def getTickerForName(self, name:str):
         """
@@ -1000,6 +1013,54 @@ class Backend:
         print(list(map(lambda x: x.ticker_symbol+" "+x.short_name, self.current_assets)))
         print(self.ticker_symbols)
         print(self.ticker_shares_dict)
+
+    def getFilteredInvestments(self):
+        """
+        generator for all investments that met the requirements of the investment filter
+        :return: Generator<object<Investment>>
+        """
+        for inv in self.investments:
+            if self.isInvestmentFilter(inv):
+                yield inv
+
+    def isInvestmentFilter(self, investment:Investment):
+        """
+        a bulk of if statements to check, whether a given investment is valid with the filter applied
+        :param investment: object<Investment>
+        :return: bool<is investment valid?>
+        """
+        assert(type(investment) == Investment), STRINGS.getTypeErrorString(investment, "investment", Investment)
+        if not(self.investmentFilter.minDate <= investment.date <= self.investmentFilter.maxDate):
+            return False
+        if type(self.investmentFilter.minCashflow) != bool:
+            #filter set
+            if not(abs(self.investmentFilter.minCashflow) <= abs(investment.price)):
+                return False
+        if type(self.investmentFilter.maxCashflow) != bool:
+            #filter set
+            if not(abs(self.investmentFilter.maxCashflow) >= abs(investment.price)):
+                return False
+        if type(self.investmentFilter.minCashflowPerProduct) != bool:
+            #filter set
+            if not(abs(self.investmentFilter.minCashflowPerProduct) <= abs(investment.price_per_asset)):
+                return False
+        if type(self.investmentFilter.maxCashflowPerProduct) != bool:
+            #filter set
+            if not(abs(self.investmentFilter.maxCashflowPerProduct) >= abs(investment.price_per_asset)):
+                return False
+        if not(any(map(lambda x: x.lower() in map(lambda x: x.lower(), investment.asset.short_name), self.investmentFilter.assets))) and \
+                                self.investmentFilter.assets != []:
+            return False
+        return True
+
+    def setInvFilter(self, filter:Filter):
+        """
+        setter for the investment filter
+        :param filter: object<Filter>
+        :return: void
+        """
+        assert(type(filter) == Filter), STRINGS.getTypeErrorString(filter, "filter", Filter)
+        self.investmentFilter = filter
 
     @Dbenchmark
     @Dsave

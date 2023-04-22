@@ -14,7 +14,7 @@ class ENG:
         :param _type: type<the type the argument should have>
         :return: str<error message>
         """
-        return f"The argument '{arg_name}' is not of type {_type}: {arg}"
+        return f"The argument '{arg_name}' is not of type {_type}: {arg} is type {type(arg)}"
 
     def getListTypeErrorString(arg, arg_name, inner_type):
         """
@@ -94,6 +94,7 @@ class ENG:
     APP_NEW_TRANSACTION_CASHFLOW_INPUT = "cashflow"
 
     APP_LABEL_TRANSACTION_COUNT = " Transactions"
+    APP_LABEL_INVESTMENT_COUNT = " Investments"
 
     APP_LABEL_RENAMING = "Renaming"
     APP_LABEL_RENAMING_CATEGORY = "Old category name:"
@@ -140,6 +141,14 @@ class ENG:
     FWINDOW_LABEL_SET_FILTER = "Set filter"
     FWINDOW_LABEL_CATEGORY = "Filter by category"
     FWINDOW_LABEL_PERSON = "Filter by person"
+    #filterwindow for investments
+    FINVWINDOW_TITLE = "Filter investments"
+    FINVWINDOW_LABEL = "Filter settings"
+    FINVWINDOW_LABEL_DATE = "Filter by date"
+    FINVWINDOW_LABEL_MIN_DATE = "Minimum Date:"
+    FINVWINDOW_LABEL_MAX_DATE = "Maximum Date:"
+    FINVWINDOW_LABEL_ASSET = "Filter by asset"
+    FINVWINDOW_DEFAULT_ASSET = "No asset filter set"
 
     #CalendarWindow Strings
     CWINDOW_TITLE = "Choose a date"

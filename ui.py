@@ -2845,6 +2845,8 @@ class InvestTab(QWidget):
         self.mode = "buy"
         self.edit_mode = False  #true if the user clicks a past investment to edit that investment
 
+        self.filter = Filter()          #sets up the filter object to filter the investments
+
         self.InitWidget()       #creates the base state of the widget
 
     def InitWidget(self):
@@ -3496,6 +3498,21 @@ class InvestTab(QWidget):
         self.load_inv_button.setEnabled(False)
         self.export_inv_button.setEnabled(False)
 
+    def updateFilter(self):
+        """
+        update the settings based on the filter.
+        should be called if the filter changed
+        :return: void
+        """
+        #sets the right text
+        if self.filter.isStandard():
+            self.filter_button.setText(STRINGS.APP_BUTTON_FILTER_OFF)
+        else:
+            self.filter_button.setText(STRINGS.APP_BUTTON_FILTER_ON)
+        self.backend.setInvFilter(self.filter)     #sets the new filter in the backend
+        self.InvestmentList.updateLastInvestments()        #reloads the investments to make the filter work
+        self.num_trade_label.setText(str(self.InvestmentList.getInvestmentCount())+STRINGS.APP_LABEL_INVESTMENT_COUNT)
+
 
     def Eenter_only_positive_numbers(self):
         """
@@ -3606,7 +3623,6 @@ class InvestTab(QWidget):
         except:
             self.InputsInvestment.setInput("price", False)
 
-
     def Eselect_trading_type(self):
         """
         event handler
@@ -3657,12 +3673,23 @@ class InvestTab(QWidget):
             self.backend.addInvestment(success)
             self.investmentChanged()
 
-
     def Eopen_filter(self):
-        pass
-
+        """
+        event handler
+        activates if the user wants to set a filter for the investments
+        :return: void
+        """
+        self.filter = FilterWIndowInvest(self).filter     #sets the filter
+        self.updateFilter()     #updates the filter, that will go to the backend and new data will be got
+    
     def Ereset_filter(self):
-        pass
+        """
+        event handler
+        activates if the user wants to reset the filter for the investments
+        :return: void
+        """
+        self.filter = Filter()  #sets the default filter
+        self.updateFilter()     #updates the filter in the backend
 
     def Esort_investments(self):
         """
@@ -3754,3 +3781,346 @@ class InvestTab(QWidget):
             return
         self.disableEditMode()
         self.investmentChanged()
+
+
+class FilterWIndowInvest(QDialog):
+    """
+    The FilterWindow class contains the Window used for filter investments
+    the FilterWindow class takes the InvestTab as an object to work with
+    """
+    def __init__(self, investWidget:QWidget):
+        """
+        basic constructor is building the window. Takes the investment widget object to communicate (communicate with the backend as well)
+        :param investWidget: object<QWidget>
+        :return: void
+        """
+        assert(type(investWidget) == InvestTab), STRINGS.getTypeErrorString(investWidget, "investWidget", InvestTab)
+        super().__init__()  #initializes the Base Class (QDialog)
+
+        self.title = STRINGS.FINVWINDOW_TITLE
+
+        self.widget = investWidget
+        self.backend:Backend = investWidget.backend
+        self.filter = investWidget.filter     #saves the filter object from the investmemt widget
+        self.tooltips_set = False   #keeps track whether you already set the tooltips or not
+
+        #sets up the combo boxes
+        self.AssetCombo = Combo(STRINGS.FINVWINDOW_DEFAULT_ASSET, self.Easset_choosed, self.backend.getAllAssetNames)
+
+        #build the window
+        self.InitWindow()
+
+    def InitWindow(self):
+        """
+        this method is building the window
+        :return: void
+        """
+        self.setWindowTitle(self.title)
+        self.grid = QGridLayout()       #sets the layout of the complete window
+
+        self.createLayout()             #create the layout with all components
+        self.setToolTips()              #set the tooltips for the user
+
+        self.setLayout(self.grid)
+
+        self.exec() #show the window on top and make all other windows not clickable
+    
+    def createLayout(self):
+        """
+        creates layout components and add UI components to that layout
+        build the window
+        :return: void
+        """
+        assert("grid" in map(lambda x: x[0], vars(self).items())), STRINGS.ERROR_GRID_NOT_DEFINED
+        self.addWidgets()   #add the widgets
+
+    def addWidgets(self):
+        """
+        adds the Widgets to the window
+        builds up the window and connects these widgets with there event handlers
+        handles the behavior of these widgets too
+        :return: void
+        """
+        #sets up the main label in a widget in order to add the tooltip later
+        main_label_widget = QWidget()
+        self.main_label_layout = QHBoxLayout()
+        self.main_label_layout.setContentsMargins(0,0,0,0)
+        self.main_label = QLabel(STRINGS.FINVWINDOW_LABEL)
+        self.main_label.setFont(FONTS.BIG_ITALIC_BOLD)
+        self.main_label_layout.addWidget(self.main_label)
+        main_label_widget.setLayout(self.main_label_layout)
+        self.grid.addWidget(main_label_widget, 0, 0)
+
+        #********************CALENDAR********************************
+        #holds the buttons connected with the CalendarWindow to choose a min and max date
+        group_date = QGroupBox()
+        layout_date = QGridLayout()
+
+        #labels
+        date_label_widget = QWidget()
+        self.date_label_layout = QHBoxLayout()
+        self.date_label_layout.setContentsMargins(0,0,0,0)
+        self.date_label = QLabel(STRINGS.FINVWINDOW_LABEL_DATE)
+        self.date_label.setFont(FONTS.ITALIC_UNDERLINE)
+        self.date_label_layout.addWidget(self.date_label)
+        date_label_widget.setLayout(self.date_label_layout)
+        layout_date.addWidget(date_label_widget, 0, 0)
+
+        min_date_label = QLabel(STRINGS.FINVWINDOW_LABEL_MIN_DATE)
+        layout_date.addWidget(min_date_label, 1, 0)
+        max_date_label = QLabel(STRINGS.FINVWINDOW_LABEL_MAX_DATE)
+        layout_date.addWidget(max_date_label, 1, 1)
+
+        #calendar buttons
+        self.min_date_button = QPushButton(self.filter.minDate.toString("dd.MM.yyyy"))
+        self.min_date_button.clicked.connect(self.Eopen_calendar)
+        layout_date.addWidget(self.min_date_button, 2, 0)
+
+        self.max_date_button = QPushButton(self.filter.maxDate.toString("dd.MM.yyyy"))
+        self.max_date_button.clicked.connect(self.Eopen_calendar)
+        layout_date.addWidget(self.max_date_button, 2, 1)
+
+        group_date.setLayout(layout_date)
+        self.grid.addWidget(group_date, 1, 0)
+
+        #********************ASSET***********************************
+        #holds the buttons and labels for filtering by short name
+        groupbox_asset = QGroupBox()
+        grid_asset = QGridLayout()
+
+        asset_label_widget = QWidget()
+        self.asset_label_layout = QHBoxLayout()
+        self.asset_label_layout.setContentsMargins(0,0,0,0)
+        self.asset_label = QLabel(STRINGS.FINVWINDOW_LABEL_ASSET)
+        self.asset_label.setFont(FONTS.ITALIC_UNDERLINE)
+        self.asset_label_layout.addWidget(self.asset_label)
+        asset_label_widget.setLayout(self.asset_label_layout)
+        grid_asset.addWidget(asset_label_widget, 0, 0)
+
+        self.asset_combo_layout = QVBoxLayout()
+        self.asset_combo_widget = QGroupBox()
+
+        self.AssetCombo.setLayout(self.asset_combo_layout)
+        self.AssetCombo.addComboBox()
+        self.AssetCombo.sort()
+
+        self.asset_combo_widget.setLayout(self.asset_combo_layout)
+        grid_asset.addWidget(self.asset_combo_widget, 0, 1)
+
+        #completes this group
+        groupbox_asset.setLayout(grid_asset)
+        self.grid.addWidget(groupbox_asset, 2, 0)
+
+        #********************CASHFLOW********************************
+        #holds the buttons and labels for filtering by cashflow
+        grid_cf = QGridLayout()
+        groupbox_cf = QGroupBox()
+        grid_cf.setSpacing(20)
+
+        #meta label for the group
+        cashflow_label_widget = QWidget()
+        self.cashflow_label_layout = QHBoxLayout()
+        self.cashflow_label_layout.setContentsMargins(0,0,0,0)
+        self.cashflow_label = QLabel(STRINGS.FWINDOW_LABEL_CASHFLOW)
+        self.cashflow_label.setFont(FONTS.ITALIC_UNDERLINE)
+        self.cashflow_label_layout.addWidget(self.cashflow_label)
+        cashflow_label_widget.setLayout(self.cashflow_label_layout)
+        grid_cf.addWidget(cashflow_label_widget, 0, 0)
+
+        #min cashflow label
+        self.min_cashflow_label = QLabel(STRINGS.FWINDOW_LABEL_CASHFLOW_MIN)
+        grid_cf.addWidget(self.min_cashflow_label, 3, 0)
+
+        #ax cashflow label
+        self.max_cashflow_label = QLabel(STRINGS.FWINDOW_LABEL_CASHFLOW_MAX)
+        grid_cf.addWidget(self.max_cashflow_label, 4, 0)
+
+        #price per product label
+        self.trans_ppp_label = QLabel(STRINGS.APP_LABEL_NEW_TRANSACTION_CF_PP)
+        grid_cf.addWidget(self.trans_ppp_label, 2, 1)
+
+        #full price label
+        self.trans_fullp_label = QLabel(STRINGS.APP_LABEL_NEW_TRANSACTION_CF_FULL)
+        grid_cf.addWidget(self.trans_fullp_label, 2, 2)
+
+        #price per product input (minimum)
+        self.min_ppp_edit = QLineEdit()
+        self.min_ppp_edit.textChanged.connect(self.Eenter_only_numbers)
+        grid_cf.addWidget(self.min_ppp_edit, 3, 1)
+
+        #full price input (minimum)
+        self.min_fullp_edit = QLineEdit()
+        self.min_fullp_edit.textChanged.connect(self.Eenter_only_numbers)
+        grid_cf.addWidget(self.min_fullp_edit, 3, 2)
+
+        #price per product input (maximum)
+        self.max_ppp_edit = QLineEdit()
+        self.max_ppp_edit.textChanged.connect(self.Eenter_only_numbers)
+        grid_cf.addWidget(self.max_ppp_edit, 4, 1)
+
+        #full price input (maximum)
+        self.max_fullp_edit = QLineEdit()
+        self.max_fullp_edit.textChanged.connect(self.Eenter_only_numbers)
+        grid_cf.addWidget(self.max_fullp_edit, 4, 2)
+
+        #sets up the layout for this group
+        groupbox_cf.setLayout(grid_cf)
+        self.grid.addWidget(groupbox_cf, 3, 0)
+
+        #********************SUBMIT_BUTTON***************************
+        #submit transaction button
+        self.submit_widget = QWidget()
+        self.submit_layout = QHBoxLayout()
+        self.submit_button = QPushButton(STRINGS.FWINDOW_LABEL_SET_FILTER)
+        self.submit_button.setFont(FONTS.BIG_BOLD)
+        self.submit_button.clicked.connect(self.Esubmit_filter)
+        self.submit_layout.addWidget(self.submit_button)
+        self.submit_widget.setLayout(self.submit_layout)
+        self.grid.addWidget(self.submit_widget, 6, 0)
+
+        self.update(get_form_data=False)   #updates all widgets to the filter settings
+
+    def setToolTips(self):
+        """
+        sets the tool tip for the ui components, adds icons too, you have to build the ui first
+        :return: void
+        """
+        assert(not self.tooltips_set), STRINGS.ERROR_TOOLTIPS_ALREADY_SET
+        self.tooltips_set = True
+
+        #add info icons
+        main_info_label = QLabel()
+        main_info_label.setPixmap(ICONS.INFO_PIXMAP.scaledToHeight(self.main_label.sizeHint().height()))
+        self.main_label_layout.addWidget(main_info_label, 10, alignment=Qt.AlignmentFlag.AlignLeft)
+
+        date_info_label = QLabel()
+        date_info_label.setPixmap(ICONS.INFO_PIXMAP.scaledToHeight(self.date_label.sizeHint().height()))
+        self.date_label_layout.addWidget(date_info_label, alignment=Qt.AlignmentFlag.AlignLeft)
+
+        product_info_label = QLabel()
+        product_info_label.setPixmap(ICONS.INFO_PIXMAP.scaledToHeight(self.asset_label.sizeHint().height()))
+        self.asset_label_layout.addWidget(product_info_label, 10, alignment=Qt.AlignmentFlag.AlignLeft)
+
+        cf_info_label = QLabel()
+        cf_info_label.setPixmap(ICONS.INFO_PIXMAP.scaledToHeight(self.cashflow_label.sizeHint().height()))
+        self.cashflow_label_layout.addWidget(cf_info_label, alignment=Qt.AlignmentFlag.AlignLeft)
+
+        main_info_label.setToolTip(STRINGS.FTOOLTIP_MAIN)
+        date_info_label.setToolTip(STRINGS.FTOOLTIP_DATE)
+        product_info_label.setToolTip(STRINGS.FTOOLTIP_PRODUCT)
+        cf_info_label.setToolTip(STRINGS.FTOOLTIP_CASHFLOW)
+
+    def updateFilterData(self):
+        """
+        gets the data from the form and saves it in the filter object
+        if the user input cannot be saved as a float i.e ("-"), this method returns false to signal the caller, 
+        that the data is not ready to submit
+        :return: bool<submit-ready?>
+        """
+        self.filter.setAssets(self.AssetCombo.getChoosenItems())
+        try:
+            min_cf = False if self.min_fullp_edit.text() == "" else float(self.min_fullp_edit.text())
+            max_cf = False if self.max_fullp_edit.text() == "" else float(self.max_fullp_edit.text())
+            min_cf_pp = False if self.min_ppp_edit.text() == "" else float(self.min_ppp_edit.text())
+            max_cf_pp = False if self.max_ppp_edit.text() == "" else float(self.max_ppp_edit.text())
+        except:
+            return False
+        
+        self.filter.setMinCashflow(min_cf)
+        self.filter.setMaxCashflow(max_cf)
+        self.filter.setMinCashflowPerProduct(min_cf_pp)
+        self.filter.setMaxCashflowPerProduct(max_cf_pp)
+        return True
+
+    def update(self, get_form_data=True):
+        """
+        this method is updating the contents of the form based on the current filter settings
+        :param get_form_data: bool<the current data from the form should be used? (disable at the first call)>
+        :return: void
+        """
+        if get_form_data:
+            self.updateFilterData() #updates the filter with the data from the form
+        self.min_date_button.setText(self.filter.minDate.toString("dd.MM.yyyy"))
+        self.max_date_button.setText(self.filter.maxDate.toString("dd.MM.yyyy"))
+        if type(self.filter.minCashflow) != bool:
+            #filter is set
+            self.min_fullp_edit.setText(str(self.filter.minCashflow))
+        if type(self.filter.maxCashflow) != bool:
+            #filter is set
+            self.max_fullp_edit.setText(str(self.filter.maxCashflow))
+        if type(self.filter.minCashflowPerProduct) != bool:
+            #filter is set
+            self.min_ppp_edit.setText(str(self.filter.minCashflowPerProduct))
+        if type(self.filter.maxCashflowPerProduct) != bool:
+            #filter is set
+            self.max_ppp_edit.setText(str(self.filter.maxCashflowPerProduct))
+
+        self.AssetCombo.setItems(self.filter.assets)
+
+    def Eenter_only_numbers(self):
+        """
+        Event handler
+        activates if the text in an input changed
+        if a non number related symbol is entered, this handler deletes it.
+        Makes sure that the input is a non negative valid float
+        :return: void
+        """
+        assert(type(self.sender()) == QLineEdit), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
+        self.sender().setText(utils.only_numbers(self.sender(), negatives=False))
+
+    def Ereset_asset(self):
+        """
+        Event handler
+        activates if the assets are reseted
+        :return: void
+        """
+        assert(type(self.sender()) == QPushButton), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
+        self.AssetCombo.reset()   #reset the ComboBoxes
+
+    def Esubmit_filter(self):
+        """
+        event handler, 
+        does close the window and saves the current filter settings
+        the caller can now look into self.filter to get the data
+        :return: void
+        """
+        if self.updateFilterData():
+            self.close()
+        else:
+            print("could not convert cashflow to float")
+
+    def Eopen_calendar(self):
+        """
+        event handler
+        activates if the user wants to select a date for the filter
+        :return: void
+        """
+        sender = self.sender()
+        assert(type(sender) == QPushButton), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(sender)
+        assert(sender == self.max_date_button or sender == self.min_date_button), STRINGS.ERROR_WRONG_SENDER+inspect.stack()[0][3]+", "+str(sender)
+        if sender == self.min_date_button:
+            #user selected the minimum date
+            choosed_date = CalendarWindow(self.filter.minDate).date
+            self.filter.setMinDate(choosed_date)
+        elif sender == self.max_date_button:
+            #user selected the maximum date
+            choosed_date = CalendarWindow(self.filter.maxDate).date
+            self.filter.setMaxDate(choosed_date)
+        self.update()       #updates the gui (write the new dates on the buttons)
+
+    def Easset_choosed(self):
+        """
+        Event handler
+        activates if the user choosed a asset in a ComboBox
+        adds a new ComboBox if neccessary
+        :return: void
+        """
+        assert(type(self.sender()) == QComboBox), STRINGS.ERROR_WRONG_SENDER_TYPE+inspect.stack()[0][3]+", "+type(self.sender())
+        if not self.AssetCombo.isNoDefault():
+            #if there are some ComboBoxes with the default asset, no further boxes are added
+            self.AssetCombo.updateItems()    #sets the items correctly (you can only choose every option once) 
+            return
+            
+        if CONSTANTS.MAX_COMBOS > self.AssetCombo.getLen():
+            #add a new box, if the max boxes are not reached yet
+            self.AssetCombo.addComboBox()

@@ -95,6 +95,7 @@ class Filter:
         msg += f"From/to persons: {self.ftpersons}\n"
         msg += f"Why persons: {self.whypersons}\n"
         msg += f"Persons: {self.persons}\n"
+        msg += f"Assets: {self.assets}\n"
         return msg
 
     def isStandard(self):
@@ -114,7 +115,10 @@ class Filter:
         self.categories == [] and
         self.ftpersons == [] and
         self.whypersons == [] and
-        self.persons == [])
+        self.persons == [] and
+        self.assets == []
+        
+        )
     
     def reset(self):
         """
@@ -134,6 +138,7 @@ class Filter:
         self.ftpersons = []
         self.whypersons = []
         self.persons = []
+        self.assets = []
 
     def setMinDate(self, minDate:QDate):
         """
@@ -253,3 +258,12 @@ class Filter:
         """
         assert(type(persons) == list and all(map(lambda x: type(x) == str, persons))), STRINGS.getListTypeErrorString(persons, "persons", str)
         self.persons = persons
+
+    def setAssets(self, assets:list[str]):
+        """
+        setter for the assets filter
+        :param assets: list<str<asset short name, that needs to be set as a asset1>, ...>
+        :return: void
+        """
+        assert(type(assets) == list and all(map(lambda x: type(x) == str, assets))), STRINGS.getListTypeErrorString(assets, "assets", str)
+        self.assets = assets
