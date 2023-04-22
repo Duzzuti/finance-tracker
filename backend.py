@@ -1048,7 +1048,7 @@ class Backend:
             #filter set
             if not(abs(self.investmentFilter.maxCashflowPerProduct) >= abs(investment.price_per_asset)):
                 return False
-        if not(any(map(lambda x: x.lower() in map(lambda x: x.lower(), investment.asset.short_name), self.investmentFilter.assets))) and \
+        if not(investment.asset.short_name.lower() in map(lambda x: x.lower(), self.investmentFilter.assets)) and \
                                 self.investmentFilter.assets != []:
             return False
         return True

@@ -149,6 +149,11 @@ class ENG:
     FINVWINDOW_LABEL_MAX_DATE = "Maximum Date:"
     FINVWINDOW_LABEL_ASSET = "Filter by asset"
     FINVWINDOW_DEFAULT_ASSET = "No asset filter set"
+    FINVWINDOW_LABEL_PRICE = "Filter by price"
+    FINVWINDOW_LABEL_PRICE_MIN = "Minimum price:"
+    FINVWINDOW_LABEL_PRICE_MAX = "Maximum price:"
+    FINVWINDOW_LABEL_PRICE_PPA = f"Per asset (in {CURRENCY}):"
+    FINVWINDOW_LABEL_PRICE_FULL = f"For the full investment (in {CURRENCY}):"
 
     #CalendarWindow Strings
     CWINDOW_TITLE = "Choose a date"
@@ -197,13 +202,16 @@ class ENG:
     TOOLTIP_CATEGORY = "You can add some categories to your product\nChoose them on the left side\nIf you wanna add some new ones, use the input field and add button below\nNOTES:\nCategories are case insensitive\nYou can only have one combination of categories per product"
     TOOLTIP_PERSON = "You can add some persons related to that transaction\nChoose them above\nIf you wanna add some new ones, use the input field and add button below\nThere are TWO kinds of persons:\n1.From/To persons: A person who buys/sells the product from/to you\n2.Why persons: without this person, you would not made this transaction \nNOTES:\nPersons are case insensitive"
 
-    FTOOLTIP_MAIN = "You can set the filters for the transactions here\nAll filters are combined using AND\nPress 'set Filter' to save your current filter"
+    FTOOLTIP_MAIN = f"You can set the filters for the transactions here\nAll filters are combined using AND\nPress '{FWINDOW_LABEL_SET_FILTER}' to save your current filter"
+    FTOOLTIP_MAIN_INV = f"You can set the filters for the investments here\nAll filters are combined using AND\nPress '{FWINDOW_LABEL_SET_FILTER}' to save your current filter"
     FTOOLTIP_DATE = "You can set the minimum and maximum dates for the transaction"
+    FTOOLTIP_DATE_INV = "You can set the minimum and maximum dates for the investment"
     FTOOLTIP_PRODUCT = "You can set filters for the product name of the transaction\nEnter a substring in the first input field that the product name HAS TO contain\nEnter a substring in the second input field that the product name HAS TO start with"
     FTOOLTIP_CASHFLOW = "You can set the lower and upper bound for the transaction's cash flows\nYou can set the bounds for full cashflow or cashflow per product\nIf you set the absolute/signed button to absolute, the filter looks for absolute cashflows\nNOTE:\nThe cashflows per product and full cashflows have to apply BOTH for the transaction"
+    FTOOLTIP_PRICE = "You can set the lower and upper bound for the investments's price\nYou can set the bounds for full price or price per asset\nNOTE:\nThe price per asset and full prices have to apply BOTH on the investment"
     FTOOLTIP_CATEGORY = "You can set a category filter\nNOTE:\nAt least ONE category that is selected has to apply on the transaction"
     FTOOLTIP_PERSON = "You can set a person filter\nYou can choose a person that has to be in the from/to persons of the transaction\nYou can choose a why person\nOr a person that needs to show in the from/to OR why persons of the transaction\nNOTE:\nAt least one persons that is selected has to apply on the transaction"
-
+    FTOOLTIP_ASSET = "You can set filters for the asset.\nYou can choose some assets, which will be shown.\nIf you leave this box at the default, all assets are shown"
 
     #questions
     QUESTION_OVERRIDE_OTHER_PRODUCT_CATEGORIES = "Do you wanna override the categories of ALL previous products?"
@@ -225,6 +233,7 @@ class ENG:
     CRITICAL_IMPORT_TRANSACTIONS_TITLE = "Error importing transactions"
     CRITICAL_IMPORT_TRANSACTIONS = "Some errors are occured while importing the transactions.\nThe csv file was probably not in the right format\nYour data got lost due to this error, please load your backup (your full data backup) that you have made (hopefully :))"
     CRITICAL_ADD_INVESTMENT_TITLE = "Error while adding the investment"
+    CRITICAL_SUBMIT_FILTER = "Error while processing the filter"
 
 
     #info
@@ -296,6 +305,7 @@ class ENG:
     ERROR_PERSON_NOT_FOUND = "The provided person is not known to the system"
     ERROR_PRODUCT_NOT_FOUND = "The provided product is not known to the system"
     ERROR_TRADE_TYPE_NOT_VALID = "The selected trade type is not valid: "
+    ERROR_CASHFLOW_IS_NOT_NUMBER = "Could not convert the given cashflow to a number. Please enter a valid number"
 
     ERROR_WRONG_CF_DATA = "Got wrong cashflow data: "
     ERROR_WRONG_FORMAT_GEOMETRY = "geometry is in a wrong format: "

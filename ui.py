@@ -2661,7 +2661,7 @@ class FilterWindow(QDialog):
         if self.updateFilterData():
             self.close()
         else:
-            print("could not convert cashflow to float")
+            QMessageBox.critical(self, STRINGS.CRITICAL_SUBMIT_FILTER, STRINGS.ERROR_CASHFLOW_IS_NOT_NUMBER)
 
     def Eopen_calendar(self):
         """
@@ -2840,7 +2840,7 @@ class InvestTab(QWidget):
         self.grid = QGridLayout()       #layout for the object
         self.grid.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
         self.backend:Backend = backend  #saves the backend
-        self.InvestmentList = InvestmentList(self.backend.getInvestments, self.Elast_inv_button_pressed)
+        self.InvestmentList = InvestmentList(self.backend.getFilteredInvestments, self.Elast_inv_button_pressed)
         self.InputsInvestment = Inputs(["ticker", "number", "price"], self.activateSubmitButton, self.deactivateSubmitButton)
         self.mode = "buy"
         self.edit_mode = False  #true if the user clicks a past investment to edit that investment
@@ -3911,61 +3911,61 @@ class FilterWIndowInvest(QDialog):
         groupbox_asset.setLayout(grid_asset)
         self.grid.addWidget(groupbox_asset, 2, 0)
 
-        #********************CASHFLOW********************************
-        #holds the buttons and labels for filtering by cashflow
-        grid_cf = QGridLayout()
-        groupbox_cf = QGroupBox()
-        grid_cf.setSpacing(20)
+        #********************PRICE***********************************
+        #holds the buttons and labels for filtering by price
+        grid_price = QGridLayout()
+        groupbox_price = QGroupBox()
+        grid_price.setSpacing(20)
 
         #meta label for the group
-        cashflow_label_widget = QWidget()
-        self.cashflow_label_layout = QHBoxLayout()
-        self.cashflow_label_layout.setContentsMargins(0,0,0,0)
-        self.cashflow_label = QLabel(STRINGS.FWINDOW_LABEL_CASHFLOW)
-        self.cashflow_label.setFont(FONTS.ITALIC_UNDERLINE)
-        self.cashflow_label_layout.addWidget(self.cashflow_label)
-        cashflow_label_widget.setLayout(self.cashflow_label_layout)
-        grid_cf.addWidget(cashflow_label_widget, 0, 0)
+        price_label_widget = QWidget()
+        self.price_label_layout = QHBoxLayout()
+        self.price_label_layout.setContentsMargins(0,0,0,0)
+        self.price_label = QLabel(STRINGS.FINVWINDOW_LABEL_PRICE)
+        self.price_label.setFont(FONTS.ITALIC_UNDERLINE)
+        self.price_label_layout.addWidget(self.price_label)
+        price_label_widget.setLayout(self.price_label_layout)
+        grid_price.addWidget(price_label_widget, 0, 0)
 
-        #min cashflow label
-        self.min_cashflow_label = QLabel(STRINGS.FWINDOW_LABEL_CASHFLOW_MIN)
-        grid_cf.addWidget(self.min_cashflow_label, 3, 0)
+        #min price label
+        self.min_price_label = QLabel(STRINGS.FINVWINDOW_LABEL_PRICE_MIN)
+        grid_price.addWidget(self.min_price_label, 3, 0)
 
-        #ax cashflow label
-        self.max_cashflow_label = QLabel(STRINGS.FWINDOW_LABEL_CASHFLOW_MAX)
-        grid_cf.addWidget(self.max_cashflow_label, 4, 0)
+        #max price label
+        self.max_price_label = QLabel(STRINGS.FINVWINDOW_LABEL_PRICE_MAX)
+        grid_price.addWidget(self.max_price_label, 4, 0)
 
-        #price per product label
-        self.trans_ppp_label = QLabel(STRINGS.APP_LABEL_NEW_TRANSACTION_CF_PP)
-        grid_cf.addWidget(self.trans_ppp_label, 2, 1)
+        #price per asset label
+        self.ppa_label = QLabel(STRINGS.FINVWINDOW_LABEL_PRICE_PPA)
+        grid_price.addWidget(self.ppa_label, 2, 1)
 
         #full price label
-        self.trans_fullp_label = QLabel(STRINGS.APP_LABEL_NEW_TRANSACTION_CF_FULL)
-        grid_cf.addWidget(self.trans_fullp_label, 2, 2)
+        self.fullp_label = QLabel(STRINGS.FINVWINDOW_LABEL_PRICE_FULL)
+        grid_price.addWidget(self.fullp_label, 2, 2)
 
-        #price per product input (minimum)
-        self.min_ppp_edit = QLineEdit()
-        self.min_ppp_edit.textChanged.connect(self.Eenter_only_numbers)
-        grid_cf.addWidget(self.min_ppp_edit, 3, 1)
+        #price per asset input (minimum)
+        self.min_ppa_edit = QLineEdit()
+        self.min_ppa_edit.textChanged.connect(self.Eenter_only_numbers)
+        grid_price.addWidget(self.min_ppa_edit, 3, 1)
 
         #full price input (minimum)
         self.min_fullp_edit = QLineEdit()
         self.min_fullp_edit.textChanged.connect(self.Eenter_only_numbers)
-        grid_cf.addWidget(self.min_fullp_edit, 3, 2)
+        grid_price.addWidget(self.min_fullp_edit, 3, 2)
 
-        #price per product input (maximum)
-        self.max_ppp_edit = QLineEdit()
-        self.max_ppp_edit.textChanged.connect(self.Eenter_only_numbers)
-        grid_cf.addWidget(self.max_ppp_edit, 4, 1)
+        #price per asset input (maximum)
+        self.max_ppa_edit = QLineEdit()
+        self.max_ppa_edit.textChanged.connect(self.Eenter_only_numbers)
+        grid_price.addWidget(self.max_ppa_edit, 4, 1)
 
         #full price input (maximum)
         self.max_fullp_edit = QLineEdit()
         self.max_fullp_edit.textChanged.connect(self.Eenter_only_numbers)
-        grid_cf.addWidget(self.max_fullp_edit, 4, 2)
+        grid_price.addWidget(self.max_fullp_edit, 4, 2)
 
         #sets up the layout for this group
-        groupbox_cf.setLayout(grid_cf)
-        self.grid.addWidget(groupbox_cf, 3, 0)
+        groupbox_price.setLayout(grid_price)
+        self.grid.addWidget(groupbox_price, 3, 0)
 
         #********************SUBMIT_BUTTON***************************
         #submit transaction button
@@ -3997,18 +3997,18 @@ class FilterWIndowInvest(QDialog):
         date_info_label.setPixmap(ICONS.INFO_PIXMAP.scaledToHeight(self.date_label.sizeHint().height()))
         self.date_label_layout.addWidget(date_info_label, alignment=Qt.AlignmentFlag.AlignLeft)
 
-        product_info_label = QLabel()
-        product_info_label.setPixmap(ICONS.INFO_PIXMAP.scaledToHeight(self.asset_label.sizeHint().height()))
-        self.asset_label_layout.addWidget(product_info_label, 10, alignment=Qt.AlignmentFlag.AlignLeft)
+        asset_info_label = QLabel()
+        asset_info_label.setPixmap(ICONS.INFO_PIXMAP.scaledToHeight(self.asset_label.sizeHint().height()))
+        self.asset_label_layout.addWidget(asset_info_label, 10, alignment=Qt.AlignmentFlag.AlignLeft)
 
-        cf_info_label = QLabel()
-        cf_info_label.setPixmap(ICONS.INFO_PIXMAP.scaledToHeight(self.cashflow_label.sizeHint().height()))
-        self.cashflow_label_layout.addWidget(cf_info_label, alignment=Qt.AlignmentFlag.AlignLeft)
+        price_info_label = QLabel()
+        price_info_label.setPixmap(ICONS.INFO_PIXMAP.scaledToHeight(self.price_label.sizeHint().height()))
+        self.price_label_layout.addWidget(price_info_label, alignment=Qt.AlignmentFlag.AlignLeft)
 
-        main_info_label.setToolTip(STRINGS.FTOOLTIP_MAIN)
-        date_info_label.setToolTip(STRINGS.FTOOLTIP_DATE)
-        product_info_label.setToolTip(STRINGS.FTOOLTIP_PRODUCT)
-        cf_info_label.setToolTip(STRINGS.FTOOLTIP_CASHFLOW)
+        main_info_label.setToolTip(STRINGS.FTOOLTIP_MAIN_INV)
+        date_info_label.setToolTip(STRINGS.FTOOLTIP_DATE_INV)
+        asset_info_label.setToolTip(STRINGS.FTOOLTIP_ASSET)
+        price_info_label.setToolTip(STRINGS.FTOOLTIP_PRICE)
 
     def updateFilterData(self):
         """
@@ -4021,8 +4021,8 @@ class FilterWIndowInvest(QDialog):
         try:
             min_cf = False if self.min_fullp_edit.text() == "" else float(self.min_fullp_edit.text())
             max_cf = False if self.max_fullp_edit.text() == "" else float(self.max_fullp_edit.text())
-            min_cf_pp = False if self.min_ppp_edit.text() == "" else float(self.min_ppp_edit.text())
-            max_cf_pp = False if self.max_ppp_edit.text() == "" else float(self.max_ppp_edit.text())
+            min_cf_pp = False if self.min_ppa_edit.text() == "" else float(self.min_ppa_edit.text())
+            max_cf_pp = False if self.max_ppa_edit.text() == "" else float(self.max_ppa_edit.text())
         except:
             return False
         
@@ -4050,10 +4050,10 @@ class FilterWIndowInvest(QDialog):
             self.max_fullp_edit.setText(str(self.filter.maxCashflow))
         if type(self.filter.minCashflowPerProduct) != bool:
             #filter is set
-            self.min_ppp_edit.setText(str(self.filter.minCashflowPerProduct))
+            self.min_ppa_edit.setText(str(self.filter.minCashflowPerProduct))
         if type(self.filter.maxCashflowPerProduct) != bool:
             #filter is set
-            self.max_ppp_edit.setText(str(self.filter.maxCashflowPerProduct))
+            self.max_ppa_edit.setText(str(self.filter.maxCashflowPerProduct))
 
         self.AssetCombo.setItems(self.filter.assets)
 
@@ -4087,7 +4087,7 @@ class FilterWIndowInvest(QDialog):
         if self.updateFilterData():
             self.close()
         else:
-            print("could not convert cashflow to float")
+            QMessageBox.critical(self, STRINGS.CRITICAL_SUBMIT_FILTER, STRINGS.ERROR_CASHFLOW_IS_NOT_NUMBER)
 
     def Eopen_calendar(self):
         """
